@@ -1,0 +1,4 @@
+imosh
+=====
+
+Libraries for bash
