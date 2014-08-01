@@ -1,5 +1,5 @@
 imosh::on_exit() {
-  echo "$@" >>"${TMPDIR}/on_exit.sh"
+  echo "$@" >>"${__IMOSH_TMPDIR}/on_exit.sh"
 }
 
 imosh::internal::error_handler() {
@@ -8,10 +8,10 @@ imosh::internal::error_handler() {
 
 imosh::internal::exit_handler() {
   set +e
-  if [ -f "${TMPDIR}/on_exit.sh" ]; then
-    source "${TMPDIR}/on_exit.sh"
+  if [ -f "${__IMOSH_TMPDIR}/on_exit.sh" ]; then
+    source "${__IMOSH_TMPDIR}/on_exit.sh"
   fi
-  rm -rf "${TMPDIR}"
+  rm -rf "${__IMOSH_TMPDIR}"
 }
 
 imosh::internal::signal_handler() {

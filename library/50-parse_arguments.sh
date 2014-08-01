@@ -17,7 +17,7 @@ imosh::internal::parse_flags() {
       --*) flag="${flag:2}";;
       -*) flag="${flag:1}";;
     esac
-    flag_name="$(cut -d= -f1 <<< "${flags}")"
+    flag_name="$(cut -d= -f1 <<< "${flag}")"
     flag_value="${flag:${#flag_name}}"
     if [ "${flag_value:0:1}" != '=' ]; then
       IMOSH_FLAGS+=("FLAGS_${flag_name}=1")
@@ -26,12 +26,12 @@ imosh::internal::parse_flags() {
       fi
       continue
     fi
-    IMOSH_FLAGS+=("FLAGS_${flag_name}=$(imosh::shell_escape "${flag_value:1}")")
+    IMOSH_FLAGS+=("FLAGS_${flag_name}=${flag_value:1}")
   done
 }
 
-alias imosh::parse_arguments='
+IMOSH_PARSE_ARGUMENTS='
     local IMOSH_ARGV IMOSH_FLAGS
     imosh::internal::parse_flags "$@"
     local "${IMOSH_FLAGS[@]}"
-    set -- "${IMOSH_ARGV}'
+    set -- "${IMOSH_ARGV}"'
