@@ -17,7 +17,10 @@ imosh::internal::parse_flags() {
       --*) flag="${flag:2}";;
       -*) flag="${flag:1}";;
     esac
-    flag_name="$(cut -d= -f1 <<< "${flag}")"
+    flag_name="${flag%%=*}"
+    if [[ ! "${flag_name}" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+      LOG FATAL "flag name is bad: ${flag_name}"
+    fi
     flag_value="${flag:${#flag_name}}"
     if [ "${flag_value:0:1}" != '=' ]; then
       IMOSH_FLAGS+=("FLAGS_${flag_name}=1")

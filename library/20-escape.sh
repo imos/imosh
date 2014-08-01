@@ -4,6 +4,6 @@ imosh::shell_escape() {
   local replace="'\"'\"'"
   for arg in "$@"; do
     arg="${arg//${search}/${replace}}"
-    echo "'${arg}'"
+    echo -n "'${arg}'"
   done
 }
