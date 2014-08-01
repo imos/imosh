@@ -15,4 +15,3 @@ imosh::stack_trace() {
     ((i+=1))
   done
 }
-

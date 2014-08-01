@@ -1,2 +1,1 @@
 # imosh - Libraries for BASH.
-

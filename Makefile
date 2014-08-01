@@ -1,5 +1,8 @@
 concat:
-	@cat library/*.sh > imosh
+	@for library in library/*.sh; do \
+	  cat "$${library}"; \
+	  echo; \
+	done >imosh
 	@chmod +x imosh
 .PHONY: concat
 
