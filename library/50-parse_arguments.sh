@@ -35,4 +35,3 @@ alias imosh::parse_arguments='
     imosh::internal::parse_flags "$@"
     local "${IMOSH_FLAGS[@]}"
     set -- "${IMOSH_ARGV}'
-

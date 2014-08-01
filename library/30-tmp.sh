@@ -6,4 +6,3 @@ if [ "${TMPDIR}" == '' -o  "${TMPDIR}" == '/' ]; then
 fi
 
 imosh::on_exit 'rm -rf ${TMPDIR}'
-

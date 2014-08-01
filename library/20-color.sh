@@ -11,4 +11,3 @@ IMOSH_COLOR_BLUE="$(imosh::internal::style '0;34')"
 IMOSH_COLOR_MAGENTA="$(imosh::internal::style '0;35')"
 IMOSH_COLOR_CYAN="$(imosh::internal::style '0;36')"
 IMOSH_COLOR_WHITE="$(imosh::internal::style '0;37')"
-

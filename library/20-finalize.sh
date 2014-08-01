@@ -27,4 +27,3 @@ trap imosh::internal::error_handler ERR
 for signal in SIGHUP SIGINT SIGPIPE SIGTERM SIGXCPU SIGXFSZ SIGUSR1 SIGUSR2; do
   trap "imosh::internal::signal_handler ${signal}" "${signal}"
 done
-

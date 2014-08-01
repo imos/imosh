@@ -1,5 +1,6 @@
 # imosh - Libraries for BASH.
 
+
 imosh::internal::style() {
   echo -en "\\033[${1}m"
 }
@@ -14,6 +15,7 @@ IMOSH_COLOR_MAGENTA="$(imosh::internal::style '0;35')"
 IMOSH_COLOR_CYAN="$(imosh::internal::style '0;36')"
 IMOSH_COLOR_WHITE="$(imosh::internal::style '0;37')"
 
+
 imosh::shell_escape() {
   local arg
   local search="'"
@@ -23,6 +25,7 @@ imosh::shell_escape() {
     echo "'${arg}'"
   done
 }
+
 
 imosh::on_exit() {
   echo "$@" >>"${TMPDIR}/on_exit.sh"
@@ -54,6 +57,7 @@ for signal in SIGHUP SIGINT SIGPIPE SIGTERM SIGXCPU SIGXFSZ SIGUSR1 SIGUSR2; do
   trap "imosh::internal::signal_handler ${signal}" "${signal}"
 done
 
+
 LOG() {
   local level="$1"
   shift
@@ -77,6 +81,7 @@ LOG() {
   fi
 }
 
+
 # Shows a stack trace.  Arguments are used as a message.
 imosh::stack_trace() {
   local max_depth="${#BASH_LINENO[@]}"
@@ -95,6 +100,7 @@ imosh::stack_trace() {
   done
 }
 
+
 TMPDIR="${TMPDIR%/}"
 export TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/imosh.XXXXXX")"
 
@@ -103,6 +109,7 @@ if [ "${TMPDIR}" == '' -o  "${TMPDIR}" == '/' ]; then
 fi
 
 imosh::on_exit 'rm -rf ${TMPDIR}'
+
 
 # Parses arguments without getopt.
 imosh::internal::parse_flags() {
@@ -141,4 +148,5 @@ alias imosh::parse_arguments='
     imosh::internal::parse_flags "$@"
     local "${IMOSH_FLAGS[@]}"
     set -- "${IMOSH_ARGV}'
+
 

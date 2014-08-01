@@ -7,4 +7,3 @@ imosh::shell_escape() {
     echo "'${arg}'"
   done
 }
-
