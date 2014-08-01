@@ -54,6 +54,15 @@ for signal in SIGHUP SIGINT SIGPIPE SIGTERM SIGXCPU SIGXFSZ SIGUSR1 SIGUSR2; do
   trap "imosh::internal::signal_handler ${signal}" "${signal}"
 done
 
+isset() {
+  local variable_name="$1"
+
+  if [ "$(eval echo '${'"${variable_name}"'+set}')" == '' ]; then
+    return 1
+  fi
+  return 0
+}
+
 LOG() {
   local level="$1"
   shift
@@ -75,6 +84,10 @@ LOG() {
     imosh::stack_trace '*** Check failure stack trace: ***'
     exit 1
   fi
+}
+
+ord() {
+  printf '%d' \'"${1}"
 }
 
 # Shows a stack trace.  Arguments are used as a message.
