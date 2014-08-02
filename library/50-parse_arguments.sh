@@ -46,5 +46,7 @@ imosh::internal::parse_args() {
 readonly IMOSH_PARSE_ARGUMENTS='
     local IMOSH_ARGV IMOSH_ARGS
     imosh::internal::parse_args "$@"
-    readonly "${IMOSH_ARGS[@]}"
-    set -- "${IMOSH_ARGV}"'
+    if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
+      readonly "${IMOSH_ARGS[@]}"
+    fi
+    set -- "${IMOSH_ARGV[@]}"'
