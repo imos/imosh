@@ -360,7 +360,8 @@ imosh::internal::parse_args() {
         IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=1")
         continue
       fi
-      LOG FATAL "no such ${class_name} is defined: ${arg_name}"
+      LOG FATAL "no such bool ${class_name} is defined:" \
+                "(${upper_class_name}S_)${arg_name}"
     fi
     if php::isset "${upper_class_name}S_${arg_name}"; then
       if [ "${class_name}" == 'flag' ] && \
@@ -372,7 +373,8 @@ imosh::internal::parse_args() {
       IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value:1}")
       continue
     fi
-    LOG FATAL "no such ${class_name} is defined: ${arg_name}"
+    LOG FATAL "no such ${class_name} is defined:" \
+              "(${upper_class_name}S_)${arg_name}"
   done
 }
 
