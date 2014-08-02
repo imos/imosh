@@ -178,6 +178,7 @@ LOG() {
   local datetime="$(date +'%m%d %T.%N')"
   # For systems not supporting %N in date.
   datetime="${datetime/.N/.000000}"
+  datetime="${datetime:0:20}"
   local pid="$$"
   if php::isset __IMOSH_LOG_PID; then
     pid="${__IMOSH_LOG_PID}"
