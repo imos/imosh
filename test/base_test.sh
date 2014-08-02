@@ -8,7 +8,7 @@ test::compare_string() {
   if [[ ! $'\n' < ' ' ]]; then
     LOG ERROR 'string comparation is bad: [[ "\n" < " " ]]'
   fi
-  if [ ! $'\n' < ' ' ]; then
+  if [ ! $'\n' \< ' ' ]; then
     LOG ERROR 'string comparation is bad: [ "\n" < " " ]'
   fi
   if [[ ! 'A' < 'a' ]]; then
