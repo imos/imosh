@@ -7,6 +7,7 @@ test::sort() {
   php::sort values
   EXPECT_EQ "1 10 11 12 13 14 15 16 17 18 19 2 20 3 4 5 6 7 8 9" \
             "$(echo "${values[@]}")"
+  local i=1
   local c1=$'\x01'
   local values=($'\x1a' $'\x11' "${c1}" $'\x16' $'\x09' $'\x03' $'\x1c' $'\x05'
                 $'\x1d' $'\x1b' $'\x0a' $'\x19' $'\x1e' $'\x0e' $'\x15' $'\x0f'
@@ -18,5 +19,6 @@ test::sort() {
   expected+=$'\x09 \x0a \x0b \x0c \x0d \x0e \x0f \x10 '
   expected+=$'\x11 \x12 \x13 \x14 \x15 \x16 \x17 \x18 '
   expected+=$'\x19 \x1a \x1b \x1c \x1d \x1e \x1f \x20'
-  EXPECT_EQ "${expected}" "$(echo "${values[@]}")"
+  EXPECT_EQ "$(php::bin2hex "${expected}")" \
+            "$(php::bin2hex "$(php::implode ' ' values)")"
 }
