@@ -8,7 +8,8 @@ concat:
 
 test: concat
 	bash --version
-	@for test in test/*_test.sh; do \
+	@IMOS_TEST_IS_FAILED=0; \
+	for test in test/*_test.sh; do \
 	  if PATH="$$(pwd):$${PATH}" bash test/main.sh "$${test}"; then \
 	    echo "$${test} ... Passed" >&2; \
 	  else \
