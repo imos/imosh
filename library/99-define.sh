@@ -27,14 +27,14 @@ imosh::internal::convert_type() {
   esac
 }
 
-DEFINE_variable() {
+imosh::internal::define_flag() {
+  local ARGS_alias
+  eval "${IMOSH_PARSE_ARGUMENTS}"
   local type="$1"
   local name="$2"
   local default_value="$3"
   local description="$4"
 
-  local ARGS_alias
-  eval "${IMOSH_PARSE_ARGUMENTS}"
   if [ "$#" -ne 4 ]; then
     LOG FATAL 'DEFINE_${type} requires 3 arguments.'
   fi
@@ -54,7 +54,54 @@ DEFINE_variable() {
             imosh::shell_escape "${description}")"
 }
 
-DEFINE_string() { DEFINE_variable string "$@"; }
-DEFINE_int() { DEFINE_variable int "$@"; }
-DEFINE_bool() { DEFINE_variable bool "$@"; }
-DEFINE_double() { DEFINE_variable double "$@"; }
+DEFINE_string() { imosh::internal::define_flag string "$@"; }
+DEFINE_int() { imosh::internal::define_flag int "$@"; }
+DEFINE_bool() { imosh::internal::define_flag bool "$@"; }
+DEFINE_double() { imosh::internal::define_flag double "$@"; }
+
+imosh::internal::init() {
+  local flag flag_name flag_value
+  IMOSH_ARGV=()
+  while [ "$#" != '0' ]; do
+    local flag="$1"
+    shift
+    if [ "${flag:0:1}" != '-' ]; then
+      IMOSH_ARGV+=("${flag}")
+      continue
+    fi
+    if [ "${flag}" == '--' ]; then
+      IMOSH_ARGV+=("$@")
+    fi
+    case "${flag}" in
+      --*) flag="${flag:2}";;
+      -*) flag="${flag:1}";;
+    esac
+    flag_name="${flag%%=*}"
+    if [[ ! "${flag_name}" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+      LOG FATAL "flag name is bad: ${flag_name}"
+    fi
+    flag_value="${flag:${#flag_name}}"
+    if [ "${arg_value:0:1}" != '=' ]; then
+      if [ "${arg_name:0:2}" == 'no' ]; then
+        if php::isset "ARGS_${arg_name:2}"; then
+          IMOSH_ARGS+=("ARGS_${arg_name:2}=0")
+          continue
+        fi
+      fi
+      if php::isset "ARGS_${arg_name}"; then
+        IMOSH_ARGS+=("ARGS_${arg_name}=1")
+        continue
+      fi
+      LOG FATAL "no such arg is defined: ${arg_name}"
+    fi
+    if php::isset "ARGS_${arg_name}"; then
+      IMOSH_ARGS+=("ARGS_${arg_name}=${arg_value:1}")
+      continue
+    fi
+    LOG FATAL "no such arg is defined: ${arg_name}"
+  done
+}
+
+readonly IMOSH_INIT='
+    imosh::internal::init "$@"
+    set -- "${IMOSH_ARGV[@]}"'

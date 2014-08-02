@@ -106,6 +106,14 @@ php::ord() {
   printf '%d' \'"${1}"
 }
 
+php::strtolower() {
+  print "$1" | tr '[A-Z]' '[a-z]'
+}
+
+php::strtoupper() {
+  print "$1" | tr '[a-z]' '[A-Z]'
+}
+
 # Shows a stack trace.  Arguments are used as a message.
 imosh::stack_trace() {
   local max_depth="${#BASH_LINENO[@]}"
@@ -141,6 +149,9 @@ imosh::mktemp
 
 # Parses arguments without getopt.
 imosh::internal::parse_args() {
+  local class_name="$1"; shift
+
+  local upper_class_name="$(php::strtoupper "${class_name}")"
   local arg arg_name arg_value
   IMOSH_ARGV=()
   IMOSH_ARGS=()
@@ -148,7 +159,7 @@ imosh::internal::parse_args() {
     local arg="$1"
     shift
     if [ "${arg:0:1}" != '-' ]; then
-      IMOSH_ARGV+=("$arg")
+      IMOSH_ARGV+=("${arg}")
       continue
     fi
     if [ "${arg}" == '--' ]; then
@@ -160,33 +171,33 @@ imosh::internal::parse_args() {
     esac
     arg_name="${arg%%=*}"
     if [[ ! "${arg_name}" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
-      LOG FATAL "arg name is bad: ${arg_name}"
+      LOG FATAL "${class_name} name is bad: ${arg_name}"
     fi
     arg_value="${arg:${#arg_name}}"
     if [ "${arg_value:0:1}" != '=' ]; then
       if [ "${arg_name:0:2}" == 'no' ]; then
-        if php::isset "ARGS_${arg_name:2}"; then
-          IMOSH_ARGS+=("ARGS_${arg_name:2}=0")
+        if php::isset "${upper_class_name}S_${arg_name:2}"; then
+          IMOSH_ARGS+=("${upper_class_name}S_${arg_name:2}=0")
           continue
         fi
       fi
-      if php::isset "ARGS_${arg_name}"; then
-        IMOSH_ARGS+=("ARGS_${arg_name}=1")
+      if php::isset "${upper_class_name}S_${arg_name}"; then
+        IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=1")
         continue
       fi
-      LOG FATAL "no such arg is defined: ${arg_name}"
+      LOG FATAL "no such ${class_name} is defined: ${arg_name}"
     fi
-    if php::isset "ARGS_${arg_name}"; then
-      IMOSH_ARGS+=("ARGS_${arg_name}=${arg_value:1}")
+    if php::isset "${upper_class_name}S_${arg_name}"; then
+      IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value:1}")
       continue
     fi
-    LOG FATAL "no such arg is defined: ${arg_name}"
+    LOG FATAL "no such ${class_name} is defined: ${arg_name}"
   done
 }
 
 readonly IMOSH_PARSE_ARGUMENTS='
     local IMOSH_ARGV IMOSH_ARGS
-    imosh::internal::parse_args "$@"
+    imosh::internal::parse_args arg "$@"
     if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
       readonly "${IMOSH_ARGS[@]}"
     fi
@@ -221,14 +232,14 @@ imosh::internal::convert_type() {
   esac
 }
 
-DEFINE_variable() {
+imosh::internal::define_flag() {
+  local ARGS_alias
+  eval "${IMOSH_PARSE_ARGUMENTS}"
   local type="$1"
   local name="$2"
   local default_value="$3"
   local description="$4"
 
-  local ARGS_alias
-  eval "${IMOSH_PARSE_ARGUMENTS}"
   if [ "$#" -ne 4 ]; then
     LOG FATAL 'DEFINE_${type} requires 3 arguments.'
   fi
@@ -248,8 +259,55 @@ DEFINE_variable() {
             imosh::shell_escape "${description}")"
 }
 
-DEFINE_string() { DEFINE_variable string "$@"; }
-DEFINE_int() { DEFINE_variable int "$@"; }
-DEFINE_bool() { DEFINE_variable bool "$@"; }
-DEFINE_double() { DEFINE_variable double "$@"; }
+DEFINE_string() { imosh::internal::define_flag string "$@"; }
+DEFINE_int() { imosh::internal::define_flag int "$@"; }
+DEFINE_bool() { imosh::internal::define_flag bool "$@"; }
+DEFINE_double() { imosh::internal::define_flag double "$@"; }
+
+imosh::internal::init() {
+  local flag flag_name flag_value
+  IMOSH_ARGV=()
+  while [ "$#" != '0' ]; do
+    local flag="$1"
+    shift
+    if [ "${flag:0:1}" != '-' ]; then
+      IMOSH_ARGV+=("${flag}")
+      continue
+    fi
+    if [ "${flag}" == '--' ]; then
+      IMOSH_ARGV+=("$@")
+    fi
+    case "${flag}" in
+      --*) flag="${flag:2}";;
+      -*) flag="${flag:1}";;
+    esac
+    flag_name="${flag%%=*}"
+    if [[ ! "${flag_name}" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+      LOG FATAL "flag name is bad: ${flag_name}"
+    fi
+    flag_value="${flag:${#flag_name}}"
+    if [ "${arg_value:0:1}" != '=' ]; then
+      if [ "${arg_name:0:2}" == 'no' ]; then
+        if php::isset "ARGS_${arg_name:2}"; then
+          IMOSH_ARGS+=("ARGS_${arg_name:2}=0")
+          continue
+        fi
+      fi
+      if php::isset "ARGS_${arg_name}"; then
+        IMOSH_ARGS+=("ARGS_${arg_name}=1")
+        continue
+      fi
+      LOG FATAL "no such arg is defined: ${arg_name}"
+    fi
+    if php::isset "ARGS_${arg_name}"; then
+      IMOSH_ARGS+=("ARGS_${arg_name}=${arg_value:1}")
+      continue
+    fi
+    LOG FATAL "no such arg is defined: ${arg_name}"
+  done
+}
+
+readonly IMOSH_INIT='
+    imosh::internal::init "$@"
+    set -- "${IMOSH_ARGV[@]}"'
 
