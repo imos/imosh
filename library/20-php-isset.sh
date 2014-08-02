@@ -1,4 +1,4 @@
-isset() {
+php::isset() {
   local variable_name="$1"
 
   if [ "$(eval echo '${'"${variable_name}"'+set}')" == '' ]; then

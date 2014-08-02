@@ -4,14 +4,6 @@ print() {
   printf "%s" "$*"
 }
 
-bin2hex() {
-  if [ "$#" -eq 0 ]; then
-    od -An -tx1 | tr -d ' \n'
-  else
-    print "$*" | bin2hex
-  fi
-}
-
 imosh::internal::style() {
   echo -en "\\033[${1}m"
 }
@@ -66,15 +58,6 @@ for signal in SIGHUP SIGINT SIGPIPE SIGTERM SIGXCPU SIGXFSZ SIGUSR1 SIGUSR2; do
   trap "imosh::internal::signal_handler ${signal}" "${signal}"
 done
 
-isset() {
-  local variable_name="$1"
-
-  if [ "$(eval echo '${'"${variable_name}"'+set}')" == '' ]; then
-    return 1
-  fi
-  return 0
-}
-
 LOG() {
   local level="$1"
   shift
@@ -98,7 +81,24 @@ LOG() {
   fi
 }
 
-ord() {
+php::bin2hex() {
+  if [ "$#" -eq 0 ]; then
+    od -An -tx1 | tr -d ' \n'
+  else
+    print "$*" | php::bin2hex
+  fi
+}
+
+php::isset() {
+  local variable_name="$1"
+
+  if [ "$(eval echo '${'"${variable_name}"'+set}')" == '' ]; then
+    return 1
+  fi
+  return 0
+}
+
+php::ord() {
   printf '%d' \'"${1}"
 }
 
