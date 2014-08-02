@@ -28,17 +28,31 @@ imosh::internal::parse_args() {
     if [ "${arg_value:0:1}" != '=' ]; then
       if [ "${arg_name:0:2}" == 'no' ]; then
         if php::isset "${upper_class_name}S_${arg_name:2}"; then
+          if [ "${class_name}" == 'flag' ] && \
+             [ "$(imosh::internal::flag_type "${arg_name:2}")" != 'bool']; then
+            LOG FATAL "the ${arg_name:2} flag is not a bool flag"
+          fi
           IMOSH_ARGS+=("${upper_class_name}S_${arg_name:2}=0")
           continue
         fi
       fi
       if php::isset "${upper_class_name}S_${arg_name}"; then
+        if [ "${class_name}" == 'flag' ] && \
+           [ "$(imosh::internal::flag_type "${arg_name}")" != 'bool']; then
+          LOG FATAL "the ${arg_name} flag is not a bool flag"
+        fi
         IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=1")
         continue
       fi
       LOG FATAL "no such ${class_name} is defined: ${arg_name}"
     fi
     if php::isset "${upper_class_name}S_${arg_name}"; then
+      if [ "${class_name}" == 'flag' ] && \
+         ! imosh::internal::convert_type \
+             "$(imosh::internal::flag_type "${arg_name}")" \
+             "${arg_value:1}"; then
+        LOG FATAL "the ${arg_name} flag has an invalid value: ${arg_value:1}"
+      fi
       IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value:1}")
       continue
     fi
@@ -52,4 +66,6 @@ readonly IMOSH_PARSE_ARGUMENTS='
     if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
       readonly "${IMOSH_ARGS[@]}"
     fi
-    set -- "${IMOSH_ARGV[@]}"'
+    if [ "${#IMOSH_ARGV[@]}" -ne 0 ]; then
+      set -- "${IMOSH_ARGV[@]}"
+    fi'

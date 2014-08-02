@@ -1,5 +1,10 @@
 # imosh - Libraries for BASH.
 
+if [ "${__IMOSH_IS_LOADED+loaded}" == 'loaded' ]; then
+  return
+fi
+__IMOSH_IS_LOADED=loaded
+
 print() {
   printf "%s" "$*"
 }
@@ -17,6 +22,110 @@ IMOSH_COLOR_BLUE="$(imosh::internal::style '0;34')"
 IMOSH_COLOR_MAGENTA="$(imosh::internal::style '0;35')"
 IMOSH_COLOR_CYAN="$(imosh::internal::style '0;36')"
 IMOSH_COLOR_WHITE="$(imosh::internal::style '0;37')"
+
+# __IMOSH_FLAGS_TYPE_<flag name>=<flag type>
+# __IMOSH_FLAGS_DESCRIPTION_<flag name>=<description>
+# __IMOSH_FLAGS_ALIASES=(from:to ...)
+
+imosh::internal::convert_type() {
+  local type="$1"; shift
+  local value="$*"
+
+  case "${type}" in
+    int)
+      if [[ "${value}" =~ ^-?[0-9]+$ ]]; then
+        print "${value}"
+      else
+        return 1
+      fi
+      ;;
+    string)
+      print "${value}"
+      ;;
+    bool)
+      case "${value}" in
+        1|T|t|[Tt]rue) print 1;;
+        0|F|f|[Ff]alse) print 0;;
+        *) return 1;;
+      esac
+      ;;
+    variant)
+      print "${value}"
+      ;;
+    *) LOG FATAL "no such type: ${type}";;
+  esac
+}
+
+imosh::internal::flag_type() {
+  local name="$1"
+
+  if [ "$#" -ne 1 ]; then
+    LOG FATAL 'flag_type requires 1 arugument.'
+  fi
+  eval print '${__IMOSH_FLAGS_TYPE_'"${name}"'}'
+}
+
+imosh::internal::define_flag() {
+  local ARGS_alias
+  eval "${IMOSH_PARSE_ARGUMENTS}"
+  local type="$1"
+  local name="$2"
+  local default_value="$3"
+  local description="$4"
+
+  if [ "$#" -ne 4 ]; then
+    LOG FATAL 'DEFINE_${type} requires 3 arguments.'
+  fi
+  if ! imosh::internal::convert_type \
+           "${type}" "${default_value}" >/dev/null; then
+    LOG FATAL "${type}'s default value should be ${type}: ${default_value}"
+  fi
+  default_value="$(imosh::internal::convert_type "${type}" "${default_value}")"
+  local description="${description} (default: $(
+                         imosh::shell_escape "${default_value}"))"
+  if php::isset "__IMOSH_FLAGS_TYPE_${name}"; then
+    LOG FATAL "already defined flag: ${name}"
+  fi
+  case "${type}" in
+    int|bool) declare -i "FLAGS_${name}";;
+  esac
+  eval "FLAGS_${name}=$(imosh::shell_escape "${default_value}")"
+  eval "__IMOSH_FLAGS_TYPE_${name}=${type}"
+  eval "__IMOSH_FLAGS_DESCRIPTION_${name}=$(
+            imosh::shell_escape "${description}")"
+  if [ "${ARGS_alias}" != '' ]; then
+    imosh::internal::define_flag \
+        "${type}" "${ARGS_alias}" "${default_value}" "${description}"
+    eval "__IMOSH_FLAGS_ALIASES+=( \
+              $(imosh::shell_escape "${name}:${ARGS_alias}"))"
+  fi
+}
+
+DEFINE_string() { imosh::internal::define_flag string "$@"; }
+DEFINE_int() { imosh::internal::define_flag int "$@"; }
+DEFINE_bool() { imosh::internal::define_flag bool "$@"; }
+DEFINE_double() { imosh::internal::define_flag double "$@"; }
+
+imosh::internal::init() {
+  imosh::internal::parse_args flag "$@"
+  if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
+    readonly "${IMOSH_ARGS[@]}"
+  fi
+  if [ "${#__IMOSH_FLAGS_ALIASES[@]}" -ne 0 ]; then
+    for alias in "${__IMOSH_FLAGS_ALIASES[@]}"; do
+      eval "FLAGS_${alias%%:*}=\"\${FLAGS_${alias#*:}}\""
+    done
+  fi
+}
+
+readonly IMOSH_INIT='
+    set -e -u
+    imosh::internal::init "$@"
+    if [ "${#IMOSH_ARGV[@]}" -ne 0 ]; then
+      set -- "${IMOSH_ARGV[@]}"
+    fi'
+
+__IMOSH_FLAGS_ALIASES=()
 
 imosh::shell_escape() {
   local arg
@@ -177,17 +286,31 @@ imosh::internal::parse_args() {
     if [ "${arg_value:0:1}" != '=' ]; then
       if [ "${arg_name:0:2}" == 'no' ]; then
         if php::isset "${upper_class_name}S_${arg_name:2}"; then
+          if [ "${class_name}" == 'flag' ] && \
+             [ "$(imosh::internal::flag_type "${arg_name:2}")" != 'bool']; then
+            LOG FATAL "the ${arg_name:2} flag is not a bool flag"
+          fi
           IMOSH_ARGS+=("${upper_class_name}S_${arg_name:2}=0")
           continue
         fi
       fi
       if php::isset "${upper_class_name}S_${arg_name}"; then
+        if [ "${class_name}" == 'flag' ] && \
+           [ "$(imosh::internal::flag_type "${arg_name}")" != 'bool']; then
+          LOG FATAL "the ${arg_name} flag is not a bool flag"
+        fi
         IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=1")
         continue
       fi
       LOG FATAL "no such ${class_name} is defined: ${arg_name}"
     fi
     if php::isset "${upper_class_name}S_${arg_name}"; then
+      if [ "${class_name}" == 'flag' ] && \
+         ! imosh::internal::convert_type \
+             "$(imosh::internal::flag_type "${arg_name}")" \
+             "${arg_value:1}"; then
+        LOG FATAL "the ${arg_name} flag has an invalid value: ${arg_value:1}"
+      fi
       IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value:1}")
       continue
     fi
@@ -201,113 +324,7 @@ readonly IMOSH_PARSE_ARGUMENTS='
     if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
       readonly "${IMOSH_ARGS[@]}"
     fi
-    set -- "${IMOSH_ARGV[@]}"'
-
-# __IMOSH_FLAGS_TYPE_<flag name>=<flag type>
-# __IMOSH_FLAGS_DESCRIPTION_<flag name>=<description>
-
-imosh::internal::convert_type() {
-  local type="$1"; shift
-  local value="$*"
-
-  case "${type}" in
-    int)
-      if [[ "${value}" =~ ^-?[0-9]+$ ]]; then
-        print "${value}"
-      else
-        return 1
-      fi
-      ;;
-    string)
-      print "${value}"
-      ;;
-    bool)
-      case "${value}" in
-        1|T|t|[Tt]rue) print 1;;
-        0|F|f|[Ff]alse) print 0;;
-        *) return 1;;
-      esac
-      ;;
-    *) LOG FATAL "no such type: ${type}";;
-  esac
-}
-
-imosh::internal::define_flag() {
-  local ARGS_alias
-  eval "${IMOSH_PARSE_ARGUMENTS}"
-  local type="$1"
-  local name="$2"
-  local default_value="$3"
-  local description="$4"
-
-  if [ "$#" -ne 4 ]; then
-    LOG FATAL 'DEFINE_${type} requires 3 arguments.'
-  fi
-  if ! imosh::internal::convert_type \
-           "${type}" "${default_value}" >/dev/null; then
-    LOG FATAL "${1}'s default value should be ${type}: ${default_value}"
-  fi
-  default_value="$(imosh::internal::convert_type "${type}" "${default_value}")"
-  local description="${description} (default: $(
-                         imosh::shell_escape "${default_value}"))"
-  if php::isset "__IMOSH_FLAGS_TYPE_${name}"; then
-    LOG FATAL "already defined flag: ${name}"
-  fi
-  eval "FLAGS_${name}=$(imosh::shell_escape "${default_value}")"
-  eval "__IMOSH_FLAGS_TYPE_${name}=${type}"
-  eval "__IMOSH_FLAGS_DESCRIPTION_${name}=$(
-            imosh::shell_escape "${description}")"
-}
-
-DEFINE_string() { imosh::internal::define_flag string "$@"; }
-DEFINE_int() { imosh::internal::define_flag int "$@"; }
-DEFINE_bool() { imosh::internal::define_flag bool "$@"; }
-DEFINE_double() { imosh::internal::define_flag double "$@"; }
-
-imosh::internal::init() {
-  local flag flag_name flag_value
-  IMOSH_ARGV=()
-  while [ "$#" != '0' ]; do
-    local flag="$1"
-    shift
-    if [ "${flag:0:1}" != '-' ]; then
-      IMOSH_ARGV+=("${flag}")
-      continue
-    fi
-    if [ "${flag}" == '--' ]; then
-      IMOSH_ARGV+=("$@")
-    fi
-    case "${flag}" in
-      --*) flag="${flag:2}";;
-      -*) flag="${flag:1}";;
-    esac
-    flag_name="${flag%%=*}"
-    if [[ ! "${flag_name}" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
-      LOG FATAL "flag name is bad: ${flag_name}"
-    fi
-    flag_value="${flag:${#flag_name}}"
-    if [ "${arg_value:0:1}" != '=' ]; then
-      if [ "${arg_name:0:2}" == 'no' ]; then
-        if php::isset "ARGS_${arg_name:2}"; then
-          IMOSH_ARGS+=("ARGS_${arg_name:2}=0")
-          continue
-        fi
-      fi
-      if php::isset "ARGS_${arg_name}"; then
-        IMOSH_ARGS+=("ARGS_${arg_name}=1")
-        continue
-      fi
-      LOG FATAL "no such arg is defined: ${arg_name}"
-    fi
-    if php::isset "ARGS_${arg_name}"; then
-      IMOSH_ARGS+=("ARGS_${arg_name}=${arg_value:1}")
-      continue
-    fi
-    LOG FATAL "no such arg is defined: ${arg_name}"
-  done
-}
-
-readonly IMOSH_INIT='
-    imosh::internal::init "$@"
-    set -- "${IMOSH_ARGV[@]}"'
+    if [ "${#IMOSH_ARGV[@]}" -ne 0 ]; then
+      set -- "${IMOSH_ARGV[@]}"
+    fi'
 
