@@ -13,7 +13,7 @@ test::sort() {
                 $'\x1d' $'\x1b' $'\x0a' $'\x19' $'\x1e' $'\x0e' $'\x15' $'\x0f'
                 $'\x0d' $'\x08' $'\x04' $'\x13' $'\x02' $'\x07' $'\x1f' $'\x0c'
                 $'\x17' $'\x20' $'\x18' $'\x10' $'\x06' $'\x0b' $'\x12' $'\x14')
-  php::sort values
+  IFS= php::sort values
   local expected=''
   expected+=$'\x01 \x02 \x03 \x04 \x05 \x06 \x07 \x08 '
   expected+=$'\x09 \x0a \x0b \x0c \x0d \x0e \x0f \x10 '
@@ -21,7 +21,7 @@ test::sort() {
   expected+=$'\x19 \x1a \x1b \x1c \x1d \x1e \x1f \x20'
   EXPECT_EQ "$(php::bin2hex "${expected}")" \
             "$(php::bin2hex "$(php::implode ' ' values)")"
-  php::sort values
+  IFS= php::sort values
   EXPECT_EQ "$(php::bin2hex "${expected}")" \
             "$(php::bin2hex "$(php::implode ' ' values)")"
 }
