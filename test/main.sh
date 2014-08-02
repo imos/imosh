@@ -32,6 +32,7 @@ if [ "$(cat "${TMPDIR}/test_func")" == '' ]; then
   LOG FATAL "$1 has no test."
 fi
 exec 3>&2
+IMOSH_TEST_IS_FAILED=0
 while read line; do
   function="${line##*test::}"
   echo "${IMOSH_COLOR_GREEN}[ RUN      ]${IMOSH_COLOR_DEFAULT} ${function}" >&2
@@ -39,14 +40,17 @@ while read line; do
     testing::run "${function}" 2>&3 &
     wait $!
   } } 2>"${TMPDIR}/time" &
-  wait $!
-  status="$?"
-  time="($(echo $(cat "${TMPDIR}/time")))"
-  if (( status == 0 )); then
+  if wait $!; then
+    time="($(echo $(cat "${TMPDIR}/time")))"
     echo "${IMOSH_COLOR_GREEN}[       OK ]${IMOSH_COLOR_DEFAULT}" \
          "${function} ${time}" >&2
   else
+    time="($(echo $(cat "${TMPDIR}/time")))"
     echo "${IMOSH_COLOR_RED}[  FAILED  ]${IMOSH_COLOR_DEFAULT}" \
          "${function} ${time}" >&2
+    IMOSH_TEST_IS_FAILED=1
   fi
 done <"${TMPDIR}/test_func"
+if (( IMOSH_TEST_IS_FAILED )); then
+  exit 1
+fi
