@@ -13,7 +13,7 @@ test::sort() {
                 $'\x0d' $'\x08' $'\x04' $'\x13' $'\x02' $'\x07' $'\x1f' $'\x0c'
                 $'\x17' $'\x20' $'\x18' $'\x10' $'\x06' $'\x0b' $'\x12' $'\x14')
   php::sort values
-  local expected=
+  local expected=''
   expected+=$'\x01 \x02 \x03 \x04 \x05 \x06 \x07 \x08 '
   expected+=$'\x09 \x0a \x0b \x0c \x0d \x0e \x0f \x10 '
   expected+=$'\x11 \x12 \x13 \x14 \x15 \x16 \x17 \x18 '

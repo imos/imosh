@@ -13,6 +13,8 @@ test: concat
 	    echo "$${test} ... Passed" >&2; \
 	  else \
 	    echo "$${test} ... Failed" >&2; \
+	    IMOS_TEST_IS_FAILED=1; \
 	  fi \
-	done
+	done; \
+	if (( IMOS_TEST_IS_FAILED )); then exit 1; fi
 .PHONY: test
