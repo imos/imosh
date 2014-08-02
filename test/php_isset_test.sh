@@ -10,6 +10,10 @@ test::isset() {
   if ! php::isset defined_variable; then
     LOG FATAL "defined_variable should return true"
   fi
+  local null_variable=
+  if ! php::isset null_variable; then
+    LOG FATAL "null_variable should return true"
+  fi
   local uninitialized_variable
   if ! php::isset uninitialized_variable; then
     LOG FATAL "uninitialized_variable should return true"
