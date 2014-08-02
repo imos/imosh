@@ -1,40 +1,50 @@
 # Parses arguments without getopt.
-imosh::internal::parse_flags() {
-  local flag flag_name flag_value
+imosh::internal::parse_args() {
+  local arg arg_name arg_value
   IMOSH_ARGV=()
-  IMOSH_FLAGS=()
+  IMOSH_ARGS=()
   while [ "$#" != '0' ]; do
-    local flag="$1"
+    local arg="$1"
     shift
-    if [ "${flag:0:1}" != '-' ]; then
-      IMOSH_ARGV+=("$flag")
+    if [ "${arg:0:1}" != '-' ]; then
+      IMOSH_ARGV+=("$arg")
       continue
     fi
-    if [ "${flag}" == '--' ]; then
+    if [ "${arg}" == '--' ]; then
       IMOSH_ARGV+=("$@")
     fi
-    case "${flag}" in
-      --*) flag="${flag:2}";;
-      -*) flag="${flag:1}";;
+    case "${arg}" in
+      --*) arg="${arg:2}";;
+      -*) arg="${arg:1}";;
     esac
-    flag_name="${flag%%=*}"
-    if [[ ! "${flag_name}" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
-      LOG FATAL "flag name is bad: ${flag_name}"
+    arg_name="${arg%%=*}"
+    if [[ ! "${arg_name}" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+      LOG FATAL "arg name is bad: ${arg_name}"
     fi
-    flag_value="${flag:${#flag_name}}"
-    if [ "${flag_value:0:1}" != '=' ]; then
-      IMOSH_FLAGS+=("FLAGS_${flag_name}=1")
-      if [ "${flag_name:0:2}" == 'no' ]; then
-        IMOSH_FLAGS+=("FLAGS_${flag_name:2}=0")
+    arg_value="${arg:${#arg_name}}"
+    if [ "${arg_value:0:1}" != '=' ]; then
+      if [ "${arg_name:0:2}" == 'no' ]; then
+        if php::isset "ARGS_${arg_name:2}"; then
+          IMOSH_ARGS+=("ARGS_${arg_name:2}=0")
+          continue
+        fi
       fi
+      if php::isset "ARGS_${arg_name}"; then
+        IMOSH_ARGS+=("ARGS_${arg_name}=1")
+        continue
+      fi
+      LOG FATAL "no such arg is defined: ${arg_name}"
+    fi
+    if php::isset "ARGS_${arg_name}"; then
+      IMOSH_ARGS+=("ARGS_${arg_name}=${arg_value:1}")
       continue
     fi
-    IMOSH_FLAGS+=("FLAGS_${flag_name}=${flag_value:1}")
+    LOG FATAL "no such arg is defined: ${arg_name}"
   done
 }
 
-IMOSH_PARSE_ARGUMENTS='
-    local IMOSH_ARGV IMOSH_FLAGS
-    imosh::internal::parse_flags "$@"
-    local "${IMOSH_FLAGS[@]}"
+readonly IMOSH_PARSE_ARGUMENTS='
+    local IMOSH_ARGV IMOSH_ARGS
+    imosh::internal::parse_args "$@"
+    readonly "${IMOSH_ARGS[@]}"
     set -- "${IMOSH_ARGV}"'
