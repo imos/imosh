@@ -17,5 +17,5 @@ test: concat
 	    IMOS_TEST_IS_FAILED=1; \
 	  fi \
 	done; \
-	if [ "$${IMOS_TEST_IS_FAILED}" == '1' ]; then exit 1; fi
+	if [ "$${IMOS_TEST_IS_FAILED}" = '1' ]; then exit 1; fi
 .PHONY: test
