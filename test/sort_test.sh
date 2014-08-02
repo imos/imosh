@@ -21,4 +21,7 @@ test::sort() {
   expected+=$'\x19 \x1a \x1b \x1c \x1d \x1e \x1f \x20'
   EXPECT_EQ "$(php::bin2hex "${expected}")" \
             "$(php::bin2hex "$(php::implode ' ' values)")"
+  php::sort values
+  EXPECT_EQ "$(php::bin2hex "${expected}")" \
+            "$(php::bin2hex "$(php::implode ' ' values)")"
 }
