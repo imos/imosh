@@ -1,3 +1,6 @@
+# CAVEATS:
+#     Some versions of BASH 4 have a bug around string comparation using double
+#     brackets.
 test::compare_string() {
   if [[ ! ' b' < 'a' ]]; then
     LOG ERROR 'string comparation is bad: [[ " b" < "a" ]]'
