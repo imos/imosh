@@ -5,18 +5,18 @@ php::internal::set_pivot() {
   local y="${__sort_values[${pivot_index}]}"
   local z="${__sort_values[${right}]}"
 
-  if [[ "${x}" < "${y}" ]]; then
-    if [[ "${y}" < "${z}" ]]; then
+  if [ "${x}" \< "${y}" ]; then
+    if [ "${y}" \< "${z}" ]; then
       pivot="${y}"
-    elif [[ "${z}" < "${x}" ]]; then
+    elif [ "${z}" \< "${x}" ]; then
       pivot="${x}"
     else
       pivot="${z}"
     fi
   else
-    if [[ "${z}" < "${y}" ]]; then
+    if [ "${z}" \< "${y}" ]; then
       pivot="${y}"
-    elif [[ "${x}" < "${z}" ]]; then
+    elif [ "${x}" \< "${z}" ]; then
       pivot="${x}"
     else
       pivot="${z}"
@@ -31,10 +31,10 @@ php::internal::quick_sort() {
   local pivot=''
   php::internal::set_pivot
   while :; do
-    while [[ "${__sort_values[${i}]}" < "${pivot}" ]]; do
+    while [ "${__sort_values[${i}]}" \< "${pivot}" ]; do
       (( i += 1 )) || true
     done
-    while [[ "${pivot}" < "${__sort_values[${j}]}" ]]; do
+    while [ "${pivot}" \< "${__sort_values[${j}]}" ]; do
       (( j -= 1 )) || true
     done
     if [ "${i}" -ge "${j}" ]; then break; fi
