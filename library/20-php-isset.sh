@@ -1,3 +1,6 @@
+# CAVEATS:
+#     isset returns true for uninitialized variables in BASH 3, and returns
+#     false for them in BASH 4.
 php::isset() {
   local variable_name="$1"
 

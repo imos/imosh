@@ -1,5 +1,5 @@
 test::parse_arguments() {
-  local ARGS_foo ARGS_bar
+  local ARGS_foo= ARGS_bar=
   set -- --foo arg1 --bar=$'abc\'def -- ghi;jkl \n mno"=pqr \t stu' arg2
   eval "${IMOSH_PARSE_ARGUMENTS}"
   EXPECT_EQ 2 "${#IMOSH_ARGV[@]}"
