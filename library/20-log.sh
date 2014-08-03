@@ -17,9 +17,32 @@ LOG() {
   local message=(
       "${level:0:1}${datetime}"
       "${pid}"
-      "${BASH_SOURCE[1]}:${BASH_LINENO[0]}]"
+      "${BASH_SOURCE[1]##*/}:${BASH_LINENO[0]}]"
       "$*")
-  echo "${message[@]}" >&2
+  case "${level}" in
+    INFO)
+      echo "${message[*]}" >&2
+      echo "${message[*]}" >&101
+      ;;
+    WARNING)
+      echo "${message[*]}" >&2
+      echo "${message[*]}" >&101
+      echo "${message[*]}" >&102
+      ;;
+    ERROR)
+      echo "${message[*]}" >&2
+      echo "${message[*]}" >&101
+      echo "${message[*]}" >&102
+      echo "${message[*]}" >&103
+      ;;
+    FATAL)
+      echo "${message[*]}" >&2
+      echo "${message[*]}" >&101
+      echo "${message[*]}" >&102
+      echo "${message[*]}" >&103
+      echo "${message[*]}" >&104
+      ;;
+  esac
   if [ "${level}" == 'FATAL' ]; then
     imosh::stack_trace '*** Check failure stack trace: ***'
     exit 1
