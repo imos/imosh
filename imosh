@@ -18,6 +18,7 @@ imosh::internal::style() {
   echo -en "\\033[${1}m"
 }
 
+IMOSH_STYLE_DEFAULT="$(imosh::internal::style '0')"
 IMOSH_COLOR_DEFAULT="$(imosh::internal::style '0;39')"
 IMOSH_COLOR_BLACK="$(imosh::internal::style '0;30')"
 IMOSH_COLOR_RED="$(imosh::internal::style '0;31')"
