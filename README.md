@@ -1,7 +1,8 @@
-imosh
-=====
+Introduction
+============
 
-Libraries for bash
+imosh is a library for bash.
+It consists of a flag library and a PHP-like function library.
 
 Usage
 =====
@@ -27,6 +28,11 @@ DEFINE_(type) (flag name) (default value) (flag description)
 Flag Types
 ----------
 
-* string ... string type.
-* bool ... bolean type.
+* string ... string type,
+* bool ... boolean type,
 * int ... integer type.
+
+Flag Options
+------------
+
+* --alias=(alias name) ... declares a flag alias.  This is useful for short flag names.
