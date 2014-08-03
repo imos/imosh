@@ -1,5 +1,6 @@
 run() {
-  bash test/flags.sh --noalsologtostderr --nologtostderr "$@"
+  IMOSH_FLAGS_alsologtostderr=0 IMOSH_FLAGS_logtostderr=0 \
+      bash test/flags.sh "$@"
 }
 
 test::help() {
