@@ -51,6 +51,10 @@ imosh::internal::define_flag() {
   if [ "$#" -ne 4 ]; then
     LOG FATAL 'DEFINE_${type} requires 3 arguments.'
   fi
+  # Change the default value based on its corresponding environment variable.
+  if php::isset "IMOSH_FLAGS_${name}"; then
+    default_value="$(eval print "\${IMOSH_FLAGS_${name}}")"
+  fi
   if ! imosh::internal::convert_type \
            "${type}" "${default_value}" >/dev/null; then
     LOG FATAL "${type}'s default value should be ${type}: ${default_value}"
