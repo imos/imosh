@@ -622,3 +622,5 @@ TMPDIR="${TMPDIR:-/tmp}"
 export TMPDIR="${TMPDIR%/}"
 imosh::mktemp
 
+LOG INFO 'imosh is ready.'
+
