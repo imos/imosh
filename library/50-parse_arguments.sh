@@ -1,37 +1,79 @@
 # Parses arguments without getopt.
-imosh::internal::parse_flags() {
-  local flag flag_name flag_value
+imosh::internal::parse_args() {
+  local class_name="$1"; shift
+
+  local upper_class_name="$(php::strtoupper "${class_name}")"
+  local arg arg_name arg_value
   IMOSH_ARGV=()
-  IMOSH_FLAGS=()
+  IMOSH_ARGS=()
   while [ "$#" != '0' ]; do
-    local flag="$1"
+    local arg="$1"
     shift
-    if [ "${flag:0:1}" != '-' ]; then
-      IMOSH_ARGV+=("$flag")
+    if [ "${arg:0:1}" != '-' ]; then
+      IMOSH_ARGV+=("${arg}")
       continue
     fi
-    if [ "${flag}" == '--' ]; then
+    if [ "${arg}" == '--' ]; then
       IMOSH_ARGV+=("$@")
     fi
-    case "${flag}" in
-      --*) flag="${flag:2}";;
-      -*) flag="${flag:1}";;
+    case "${arg}" in
+      --*) arg="${arg:2}";;
+      -*) arg="${arg:1}";;
     esac
-    flag_name="$(cut -d= -f1 <<< "${flags}")"
-    flag_value="${flag:${#flag_name}}"
-    if [ "${flag_value:0:1}" != '=' ]; then
-      IMOSH_FLAGS+=("FLAGS_${flag_name}=1")
-      if [ "${flag_name:0:2}" == 'no' ]; then
-        IMOSH_FLAGS+=("FLAGS_${flag_name:2}=0")
+    arg_name="${arg%%=*}"
+    if [[ ! "${arg_name}" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+      LOG FATAL "${class_name} name is bad: ${arg_name}"
+    fi
+    arg_value="${arg:${#arg_name}}"
+    if [ "${arg_value:0:1}" != '=' ]; then
+      if [ "${arg_name:0:2}" == 'no' ]; then
+        if php::isset "${upper_class_name}S_${arg_name:2}"; then
+          if [ "${class_name}" == 'flag' ] && \
+             [ "$(imosh::internal::flag_type "${arg_name:2}")" != 'bool' ]; then
+            LOG FATAL "the ${arg_name:2} flag is not a bool flag"
+          fi
+          IMOSH_ARGS+=("${upper_class_name}S_${arg_name:2}=0")
+          continue
+        fi
       fi
+      if php::isset "${upper_class_name}S_${arg_name}"; then
+        if [ "${class_name}" == 'flag' ] && \
+           [ "$(imosh::internal::flag_type "${arg_name}")" != 'bool' ]; then
+          LOG FATAL "the ${arg_name} flag is not a bool flag"
+        fi
+        IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=1")
+        continue
+      fi
+      LOG FATAL "no such bool ${class_name} is defined:" \
+                "(${upper_class_name}S_)${arg_name}"
+    fi
+    arg_value="${arg_value:1}"
+    if php::isset "${upper_class_name}S_${arg_name}"; then
+      if [ "${class_name}" == 'flag' ]; then
+        if ! imosh::internal::convert_type \
+               "$(imosh::internal::flag_type "${arg_name}")" \
+               "${arg_value}" >/dev/null; then
+          LOG FATAL "the ${arg_name} flag has an invalid value: ${arg_value}"
+        else
+          arg_value="$(imosh::internal::convert_type \
+                             "$(imosh::internal::flag_type "${arg_name}")" \
+                             "${arg_value}")"
+        fi
+      fi
+      IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value}")
       continue
     fi
-    IMOSH_FLAGS+=("FLAGS_${flag_name}=$(imosh::shell_escape "${flag_value:1}")")
+    LOG FATAL "no such ${class_name} is defined:" \
+              "(${upper_class_name}S_)${arg_name}"
   done
 }
 
-alias imosh::parse_arguments='
-    local IMOSH_ARGV IMOSH_FLAGS
-    imosh::internal::parse_flags "$@"
-    local "${IMOSH_FLAGS[@]}"
-    set -- "${IMOSH_ARGV}'
+readonly IMOSH_PARSE_ARGUMENTS='
+    local IMOSH_ARGV IMOSH_ARGS
+    imosh::internal::parse_args arg "$@"
+    if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
+      readonly "${IMOSH_ARGS[@]}"
+    fi
+    if [ "${#IMOSH_ARGV[@]}" -ne 0 ]; then
+      set -- "${IMOSH_ARGV[@]}"
+    fi'
