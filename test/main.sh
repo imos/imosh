@@ -59,7 +59,7 @@ if [ "$#" -gt '1' ]; then
   exit
 fi
 
-echo "${IMOSH_COLOR_GREEN}[==========]${IMOSH_COLOR_DEFAULT}" \
+echo "${IMOSH_COLOR_GREEN}[==========]${IMOSH_STYLE_DEFAULT}" \
      "Running tests for ${1}." >&2
 source "$1" || exit 1
 ( ( declare -F | grep 'test::' ) || true ) >"${TMPDIR}/test_func"
@@ -69,18 +69,18 @@ fi
 exec 3>&2
 while read line; do
   function="${line##*test::}"
-  echo "${IMOSH_COLOR_GREEN}[ RUN      ]${IMOSH_COLOR_DEFAULT} ${function}" >&2
+  echo "${IMOSH_COLOR_GREEN}[ RUN      ]${IMOSH_STYLE_DEFAULT} ${function}" >&2
   { time -p {
     testing::run "${function}" 2>&3 &
     wait $!
   } } 2>"${TMPDIR}/time" &
   if wait $!; then
     time="($(echo $(cat "${TMPDIR}/time")))"
-    echo "${IMOSH_COLOR_GREEN}[       OK ]${IMOSH_COLOR_DEFAULT}" \
+    echo "${IMOSH_COLOR_GREEN}[       OK ]${IMOSH_STYLE_DEFAULT}" \
          "${function} ${time}" >&2
   else
     time="($(echo $(cat "${TMPDIR}/time")))"
-    echo "${IMOSH_COLOR_RED}[  FAILED  ]${IMOSH_COLOR_DEFAULT}" \
+    echo "${IMOSH_COLOR_RED}[  FAILED  ]${IMOSH_STYLE_DEFAULT}" \
          "${function} ${time}" >&2
     IMOSH_TEST_IS_FAILED=1
   fi

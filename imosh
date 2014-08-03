@@ -18,6 +18,7 @@ imosh::internal::style() {
   echo -en "\\033[${1}m"
 }
 
+IMOSH_STYLE_DEFAULT="$(imosh::internal::style '0')"
 IMOSH_COLOR_DEFAULT="$(imosh::internal::style '0;39')"
 IMOSH_COLOR_BLACK="$(imosh::internal::style '0;30')"
 IMOSH_COLOR_RED="$(imosh::internal::style '0;31')"
@@ -238,6 +239,16 @@ php::isset() {
     return 1
   fi
   return 0
+}
+
+php::md5() {
+  if which openssl >/dev/null 2>/dev/null; then
+    print "${1}" | openssl md5 -binary | php::bin2hex
+  elif which md5sum >/dev/null 2>/dev/null; then
+    print "${1}" | md5sum -b | php::bin2hex
+  else
+    LOG FATAL 'no command for md5 is found.'
+  fi
 }
 
 php::ord() {
