@@ -2,9 +2,10 @@ Introduction
 ============
 
 imosh is a library for bash.
-It consists of a flag library and a PHP-like function library.
+It consists of utilities like gflags and glog and PHP-like functions.
 
 imosh is tested on drone.io (https://drone.io/github.com/imos/imosh).
+
 
 Usage
 =====
@@ -12,13 +13,13 @@ Usage
 ```sh
 source imosh || exit 1
 
-DEFINE_string 'flag' '' 'Flag name to show.'
 DEFINE_string 'string' 'default' 'String flag.'
 DEFINE_int 'int' 100 'Integer flag.'
 DEFINE_bool 'bool' false 'Boolean flag.'
 
 eval "${IMOSH_INIT}"
 ```
+
 
 Flag Definition
 ===============
@@ -66,6 +67,12 @@ Flags
 
 * `--alsologtostderr` makes all severities output to stderr in addition to log files,
 * `--logtostderr` makes all severities output to stderr instead of log files.
+
+Path to Output
+--------------
+
+imosh outputs log files to `${TMPDIR}/<program name>.<host name>.<user>.<severity>.<date>.<time>.<process ID>`.
+
 
 PHP-like Functions
 ==================
@@ -250,7 +257,7 @@ Outputs a string with all occurrences of `search` in `subject` replaced with the
 ```sh
 $ php::str_replace ' ' 'x' 'abc def ghi'; echo
 abcxdefxghi
-$ php::str_replace 'aaa' 'bbb' 'aaaaaaaa'
+$ php::str_replace 'aaa' 'bbb' 'aaaaaaaa'; echo
 bbbbbbaa
 ```
 
@@ -266,7 +273,7 @@ Outputs a string with all alphabetic characters converted to lowercase.
 ### Examples
 
 ```sh
-$ php::strtolower 'ABC def Ghi 123 ひらがな 漢字 カタカナ'
+$ php::strtolower 'ABC def Ghi 123 ひらがな 漢字 カタカナ'; echo
 abc def ghi 123 ひらがな 漢字 カタカナ
 ```
 
@@ -282,6 +289,6 @@ Outputs a string with all alphabetic characters converted to uppercase.
 ### Examples
 
 ```sh
-$ php::strtoupper 'ABC def Ghi 123 ひらがな 漢字 カタカナ'
+$ php::strtoupper 'ABC def Ghi 123 ひらがな 漢字 カタカナ'; echo
 ABC DEF GHI 123 ひらがな 漢字 カタカナ
 ```
