@@ -3,6 +3,8 @@ test::help() {
   local expected_message="Usage: test/flags.sh [options ...] [args ...]
 Options:
   --help=false: Print this help message and exit. (Alias: --h)
+  --alsologtostderr=false: Log messages go to stderr in addition to logfiles.
+  --logtostderr=false: Log messages go to stderr instead of logfiles.
   --flag='': Flag name to show.
   --show_argv=false: Output extra argv.
   --string='default': String flag.
