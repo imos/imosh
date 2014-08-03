@@ -15,6 +15,7 @@ imosh::internal::parse_args() {
     fi
     if [ "${arg}" == '--' ]; then
       IMOSH_ARGV+=("$@")
+      break
     fi
     case "${arg}" in
       --*) arg="${arg:2}";;
