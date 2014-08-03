@@ -1,5 +1,7 @@
 # imosh - Libraries for BASH.
 
+set -e -u
+
 if [ "${__IMOSH_IS_LOADED+loaded}" == 'loaded' ]; then
   return
 fi
@@ -8,6 +10,34 @@ __IMOSH_IS_LOADED=loaded
 print() {
   printf "%s" "$*"
 }
+
+__IMOSH_PROGRAM_NAME="${0##*/}"
+__IMOSH_HOSTNAME="$(hostname -s)"
+__IMOSH_USER="${USER}"
+__IMOSH_LOG_PREFIX="${__IMOSH_PROGRAM_NAME}.${__IMOSH_HOSTNAME}.${__IMOSH_USER}"
+__IMOSH_LOG_DIR="${TMPDIR:-/tmp}"
+__IMOSH_LOG_SUFFIX="$(date +'%Y%m%d.%H%M%S').$$"
+
+imosh::internal::log_file() {
+  local severity="${1}"
+  local path=''
+  path+="${__IMOSH_LOG_DIR}/"
+  path+="${__IMOSH_LOG_PREFIX}.${severity}.${__IMOSH_LOG_SUFFIX}"
+  print "${path}"
+}
+
+# Close descriptors for logs beforehand for BASH3's bug.
+exec 101>&- 102>&- 103>&- 104>&-
+
+if [ -w "${__IMOSH_LOG_DIR}" ]; then
+  exec 101>"$(imosh::internal::log_file INFO)"
+  exec 102>"$(imosh::internal::log_file WARNING)"
+  exec 103>"$(imosh::internal::log_file ERROR)"
+  exec 104>"$(imosh::internal::log_file FATAL)"
+else
+  exec 101>/dev/null 102>/dev/null 103>/dev/null 104>/dev/null
+  echo "failed to open files to write logs: ${__IMOSH_LOG_DIR}" >&2
+fi
 
 imosh::get_child_processes() {
   local ppid="$1"
@@ -40,7 +70,7 @@ imosh::shell_escape() {
 }
 
 imosh::on_exit() {
-  echo "$@" >>"${__IMOSH_TMPDIR}/on_exit.sh"
+  echo "$@" >>"${__IMOSH_CORE_TMPDIR}/on_exit.sh"
 }
 
 imosh::internal::error_handler() {
@@ -48,19 +78,30 @@ imosh::internal::error_handler() {
 }
 
 imosh::internal::exit_handler() {
+  LOG INFO "finalizing..."
+
   set +e
-  if [ -f "${__IMOSH_TMPDIR}/on_exit.sh" ]; then
-    source "${__IMOSH_TMPDIR}/on_exit.sh"
+  if [ -f "${__IMOSH_CORE_TMPDIR}/on_exit.sh" ]; then
+    source "${__IMOSH_CORE_TMPDIR}/on_exit.sh"
   fi
-  rm -rf "${__IMOSH_TMPDIR}"
+  rm -rf "${__IMOSH_CORE_TMPDIR}"
+
+  # Close log pipes and remove unused log files.
+  exec 101>&- 102>&- 103>&- 104>&-
+  local severity=''
+  for severity in INFO WARNING ERROR FATAL; do
+    local path="$(imosh::internal::log_file "${severity}")"
+    if [ ! -s "${path}" ]; then
+      rm "${path}"
+    fi
+  done
 }
 
 imosh::internal::signal_handler() {
   local signal="$1"
-  imosh::stack_trace "terminated by signal: ${signal}"
+  LOG ERROR "$(imosh::stack_trace "terminated by signal: ${signal}" 2>&1)"
   trap - "${signal}"
   kill -s "${signal}" $$
-  # exit 130
 }
 
 trap imosh::internal::exit_handler EXIT
@@ -88,13 +129,58 @@ LOG() {
   local message=(
       "${level:0:1}${datetime}"
       "${pid}"
-      "${BASH_SOURCE[1]}:${BASH_LINENO[0]}]"
+      "${BASH_SOURCE[1]##*/}:${BASH_LINENO[0]}]"
       "$*")
-  echo "${message[@]}" >&2
+  message="${message[*]}"
   if [ "${level}" == 'FATAL' ]; then
-    imosh::stack_trace '*** Check failure stack trace: ***'
-    exit 1
+    message+=$'\n'
+    message+="$(imosh::stack_trace '*** Check failure stack trace: ***' 2>&1)"
   fi
+  local logtostderr=0
+  if php::isset FLAGS_logtostderr; then
+    logtostderr="${FLAGS_logtostderr}"
+  fi
+  local alsologtostderr=0
+  if php::isset FLAGS_alsologtostderr; then
+    alsologtostderr="${FLAGS_alsologtostderr}"
+  fi
+  case "${level}" in
+    INFO)
+      if (( logtostderr || alsologtostderr )); then
+        echo "${message}" >&2
+      fi
+      if (( ! logtostderr )); then
+        echo "${message}" >&101
+      fi
+      ;;
+    WARNING)
+      if (( logtostderr || alsologtostderr )); then
+        echo "${message}" >&2
+      fi
+      if (( ! logtostderr )); then
+        echo "${message}" >&101
+        echo "${message}" >&102
+      fi
+      ;;
+    ERROR)
+      echo "${message}" >&2
+      if (( ! logtostderr )); then
+        echo "${message}" >&101
+        echo "${message}" >&102
+        echo "${message}" >&103
+      fi
+      ;;
+    FATAL)
+      echo "${message}" >&2
+      if (( ! logtostderr )); then
+        echo "${message}" >&101
+        echo "${message}" >&102
+        echo "${message}" >&103
+        echo "${message}" >&104
+      fi
+      exit 1
+      ;;
+  esac
 }
 
 # Parses arguments without getopt.
@@ -432,6 +518,10 @@ imosh::internal::define_flag() {
   if [ "$#" -ne 4 ]; then
     LOG FATAL 'DEFINE_${type} requires 3 arguments.'
   fi
+  # Change the default value based on its corresponding environment variable.
+  if php::isset "IMOSH_FLAGS_${name}"; then
+    default_value="$(eval print "\${IMOSH_FLAGS_${name}}")"
+  fi
   if ! imosh::internal::convert_type \
            "${type}" "${default_value}" >/dev/null; then
     LOG FATAL "${type}'s default value should be ${type}: ${default_value}"
@@ -478,7 +568,9 @@ DEFINE_double() { imosh::internal::define_flag double "$@"; }
 
 imosh::internal::init() {
   imosh::internal::parse_args flag "$@"
-  eval "${IMOSH_ARGS[@]}"
+  if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
+    eval "${IMOSH_ARGS[@]}"
+  fi
   if [ "${#__IMOSH_FLAGS_ALIASES[@]}" -ne 0 ]; then
     for alias in "${__IMOSH_FLAGS_ALIASES[@]}"; do
       eval "FLAGS_${alias%%:*}=\"\${FLAGS_${alias#*:}}\""
@@ -509,19 +601,24 @@ __IMOSH_FLAGS=()
 __IMOSH_FLAGS_ALIASES=()
 
 DEFINE_bool --alias=h help false 'Print this help message and exit.'
+DEFINE_bool 'alsologtostderr' false \
+            'Log messages go to stderr in addition to logfiles.'
+DEFINE_bool 'logtostderr' false \
+            'Log messages go to stderr instead of logfiles.'
 
 imosh::mktemp() {
   TMPDIR="${TMPDIR%/}"
-  export TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/imosh.XXXXXX")"
-
-  if [ "${TMPDIR}" == '' -o  "${TMPDIR}" == '/' ]; then
+  export IMOSH_TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/imosh.XXXXXX")"
+  if [ "${IMOSH_TMPDIR}" == '' -o  "${IMOSH_TMPDIR}" == '/' ]; then
     LOG FATAL 'failed to create a temporary directory.'
   fi
 
-  export __IMOSH_TMPDIR="${TMPDIR}/.imosh"
-  mkdir "${__IMOSH_TMPDIR}"
-  imosh::on_exit "rm -rf ${TMPDIR}"
+  export __IMOSH_CORE_TMPDIR="${IMOSH_TMPDIR}/.imosh"
+  mkdir "${__IMOSH_CORE_TMPDIR}"
+  imosh::on_exit "rm -rf ${IMOSH_TMPDIR}"
 }
 
+TMPDIR="${TMPDIR:-/tmp}"
+export TMPDIR="${TMPDIR%/}"
 imosh::mktemp
 

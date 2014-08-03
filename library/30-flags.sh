@@ -51,6 +51,10 @@ imosh::internal::define_flag() {
   if [ "$#" -ne 4 ]; then
     LOG FATAL 'DEFINE_${type} requires 3 arguments.'
   fi
+  # Change the default value based on its corresponding environment variable.
+  if php::isset "IMOSH_FLAGS_${name}"; then
+    default_value="$(eval print "\${IMOSH_FLAGS_${name}}")"
+  fi
   if ! imosh::internal::convert_type \
            "${type}" "${default_value}" >/dev/null; then
     LOG FATAL "${type}'s default value should be ${type}: ${default_value}"
@@ -97,7 +101,9 @@ DEFINE_double() { imosh::internal::define_flag double "$@"; }
 
 imosh::internal::init() {
   imosh::internal::parse_args flag "$@"
-  eval "${IMOSH_ARGS[@]}"
+  if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
+    eval "${IMOSH_ARGS[@]}"
+  fi
   if [ "${#__IMOSH_FLAGS_ALIASES[@]}" -ne 0 ]; then
     for alias in "${__IMOSH_FLAGS_ALIASES[@]}"; do
       eval "FLAGS_${alias%%:*}=\"\${FLAGS_${alias#*:}}\""
@@ -128,3 +134,7 @@ __IMOSH_FLAGS=()
 __IMOSH_FLAGS_ALIASES=()
 
 DEFINE_bool --alias=h help false 'Print this help message and exit.'
+DEFINE_bool 'alsologtostderr' false \
+            'Log messages go to stderr in addition to logfiles.'
+DEFINE_bool 'logtostderr' false \
+            'Log messages go to stderr instead of logfiles.'
