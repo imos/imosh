@@ -29,7 +29,7 @@ imosh::internal::parse_args() {
       if [ "${arg_name:0:2}" == 'no' ]; then
         if php::isset "${upper_class_name}S_${arg_name:2}"; then
           if [ "${class_name}" == 'flag' ] && \
-             [ "$(imosh::internal::flag_type "${arg_name:2}")" != 'bool']; then
+             [ "$(imosh::internal::flag_type "${arg_name:2}")" != 'bool' ]; then
             LOG FATAL "the ${arg_name:2} flag is not a bool flag"
           fi
           IMOSH_ARGS+=("${upper_class_name}S_${arg_name:2}=0")
@@ -38,7 +38,7 @@ imosh::internal::parse_args() {
       fi
       if php::isset "${upper_class_name}S_${arg_name}"; then
         if [ "${class_name}" == 'flag' ] && \
-           [ "$(imosh::internal::flag_type "${arg_name}")" != 'bool']; then
+           [ "$(imosh::internal::flag_type "${arg_name}")" != 'bool' ]; then
           LOG FATAL "the ${arg_name} flag is not a bool flag"
         fi
         IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=1")
@@ -47,14 +47,20 @@ imosh::internal::parse_args() {
       LOG FATAL "no such bool ${class_name} is defined:" \
                 "(${upper_class_name}S_)${arg_name}"
     fi
+    arg_value="${arg_value:1}"
     if php::isset "${upper_class_name}S_${arg_name}"; then
-      if [ "${class_name}" == 'flag' ] && \
-         ! imosh::internal::convert_type \
-             "$(imosh::internal::flag_type "${arg_name}")" \
-             "${arg_value:1}"; then
-        LOG FATAL "the ${arg_name} flag has an invalid value: ${arg_value:1}"
+      if [ "${class_name}" == 'flag' ]; then
+        if ! imosh::internal::convert_type \
+               "$(imosh::internal::flag_type "${arg_name}")" \
+               "${arg_value}" >/dev/null; then
+          LOG FATAL "the ${arg_name} flag has an invalid value: ${arg_value}"
+        else
+          arg_value="$(imosh::internal::convert_type \
+                             "$(imosh::internal::flag_type "${arg_name}")" \
+                             "${arg_value}")"
+        fi
       fi
-      IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value:1}")
+      IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value}")
       continue
     fi
     LOG FATAL "no such ${class_name} is defined:" \

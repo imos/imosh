@@ -61,9 +61,6 @@ imosh::internal::define_flag() {
   if php::isset "__IMOSH_FLAGS_TYPE_${name}"; then
     LOG FATAL "already defined flag: ${name}"
   fi
-  case "${type}" in
-    int|bool) declare -i "FLAGS_${name}";;
-  esac
   eval "FLAGS_${name}=$(imosh::shell_escape "${default_value}")"
   eval "__IMOSH_FLAGS_TYPE_${name}=${type}"
   eval "__IMOSH_FLAGS_DESCRIPTION_${name}=$(
