@@ -105,6 +105,23 @@ $ php::bin2hex hoge; echo
 686f6765
 ```
 
+php::explode
+------------
+
+```sh
+php::explode <variable> <delimiter> <string>
+```
+
+Assigns an array of strings to `variable`, each of which is a substring of `string` formed by splitting it on boundaries formed by the string `delimiter`.
+
+### Examples
+
+```sh
+$ php::explode values 'xyz' 'abcxyzdefxyzghi'
+$ php::implode ',' values; echo
+abc,def,ghi
+```
+
 php::hex2bin
 ------------
 
