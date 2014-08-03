@@ -10,6 +10,6 @@ imosh::mktemp() {
   imosh::on_exit "rm -rf ${IMOSH_TMPDIR}"
 }
 
-TMPDIR="${TMPDIR%/}"
-export TMPDIR="${TMPDIR:-/tmp}"
+TMPDIR="${TMPDIR:-/tmp}"
+export TMPDIR="${TMPDIR%/}"
 imosh::mktemp
