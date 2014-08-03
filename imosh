@@ -198,6 +198,27 @@ LOG() {
   fi
 }
 
+php::array_unique() {
+  if [ "$#" -ne 1 ]; then
+    LOG FATAL 'php::array_unique requires one argument.'
+  fi
+
+  local __array_unique_name="${1}"
+  eval "local __array_unique_values=(\"\${${__array_unique_name}[@]}\")"
+  php::sort __array_unique_values
+  local __array_unique_i=1 __array_unique_size="${#__array_unique_values[@]}"
+  while (( __array_unique_i < __array_unique_size )); do
+    local __array_unique_last_i=0
+    (( __array_unique_last_i = __array_unique_i - 1 )) || true
+    if [ "${__array_unique_values[${__array_unique_i}]}" == \
+         "${__array_unique_values[${__array_unique_last_i}]}" ]; then
+      unset __array_unique_values["${__array_unique_last_i}"]
+    fi
+    (( __array_unique_i += 1 )) || true
+  done
+  eval "${__array_unique_name}=(\"\${__array_unique_values[@]}\")"
+}
+
 php::bin2hex() {
   if [ "$#" -eq 0 ]; then
     od -An -tx1 | tr -d ' \n'
@@ -253,6 +274,32 @@ php::md5() {
 
 php::ord() {
   printf '%d' \'"${1}"
+}
+
+php::rand() {
+  if [ "$#" -eq 0 ]; then
+    php::rand 0 2147483647
+    return
+  fi
+  if [ "$#" -ne 2 ]; then
+    LOG FATAL 'php::rand requires zero or two arguments.'
+  fi
+
+  local min="${1}" max="${2}" range=0
+  (( range = max - min + 1 )) || true
+  if [ "${range}" -lt 1 ]; then
+    LOG FATAL "min must be larger than max: min=${min}, max=${max}"
+  fi
+  if [ "${range}" -eq 1 ]; then
+    print "${min}"
+  fi
+  local rand=0
+  (( rand = RANDOM ^ (RANDOM << 8) ^
+            (RANDOM << 16) ^ (RANDOM << 24) ^
+            (RANDOM << 32) ^ (RANDOM << 40) ^
+            (RANDOM << 48) ^ (RANDOM << 56) )) || true
+  (( rand = min + ( rand % range + range ) % range )) || true
+  print "${rand}"
 }
 
 php::internal::set_pivot() {
@@ -314,6 +361,16 @@ php::sort() {
   (( __sort_size -= 1 )) || true
   php::internal::quick_sort 0 "${__sort_size}"
   eval "${__sort_name}=(\"\${__sort_values[@]}\")"
+}
+
+# Usage:
+#   php::str_replace <search> <replace> <subject>
+php::str_replace() {
+  local search="${1}"
+  local replace="${2}"
+  local subject="${3}"
+
+  print "${subject//${search}/${replace}}"
 }
 
 php::strtolower() {
