@@ -1,4 +1,4 @@
-test::implode() {
+test::php::implode() {
   local values=(a b c)
   EXPECT_EQ 'a b c' "$(php::implode ' ' values)"
   EXPECT_EQ 'axxxbxxxc' "$(php::implode 'xxx' values)"

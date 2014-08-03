@@ -1,4 +1,4 @@
-test::isset() {
+test::php::isset() {
   if php::isset undefined_variable; then
     LOG FATAL "undefined_variable should return false"
   fi

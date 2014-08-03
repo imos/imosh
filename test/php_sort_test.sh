@@ -1,4 +1,4 @@
-test::sort() {
+test::php::sort() {
   local values=(w a c m d i n v y u q j g r x t z k h s e l o f b p)
   php::sort values
   EXPECT_EQ "a b c d e f g h i j k l m n o p q r s t u v w x y z" \
