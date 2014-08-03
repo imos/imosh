@@ -7,6 +7,8 @@ imosh::internal::error_handler() {
 }
 
 imosh::internal::exit_handler() {
+  LOG INFO "finalizing..."
+
   set +e
   if [ -f "${__IMOSH_CORE_TMPDIR}/on_exit.sh" ]; then
     source "${__IMOSH_CORE_TMPDIR}/on_exit.sh"
@@ -26,10 +28,9 @@ imosh::internal::exit_handler() {
 
 imosh::internal::signal_handler() {
   local signal="$1"
-  imosh::stack_trace "terminated by signal: ${signal}"
+  LOG ERROR "$(imosh::stack_trace "terminated by signal: ${signal}" 2>&1)"
   trap - "${signal}"
   kill -s "${signal}" $$
-  # exit 130
 }
 
 trap imosh::internal::exit_handler EXIT
