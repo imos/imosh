@@ -89,8 +89,8 @@ imosh outputs log files to `${TMPDIR}/<program name>.<host name>.<user>.<severit
 PHP-like Functions
 ==================
 
-php::bin2hex
-------------
+php::bin2hex (od)
+-----------------
 
 ```sh
 php::bin2hex <message>
@@ -122,8 +122,8 @@ $ php::implode ',' values; echo
 abc,def,ghi
 ```
 
-php::hex2bin
-------------
+php::hex2bin (printf, sed, tr)
+------------------------------
 
 ```sh
 php::hex2bin <message>
@@ -187,8 +187,8 @@ $ if php::isset variable; then echo defined; else echo undefined; fi
 defined
 ```
 
-php::md5
---------
+php::md5 (openssl OR md5sum)
+----------------------------
 
 ```sh
 php::md5 <message>
@@ -205,8 +205,8 @@ $ php::md5 'foo'; echo
 acbd18db4cc2f85cedef654fccc4a4d8
 ```
 
-php::ord
---------
+php::ord (printf)
+-----------------
 
 ```sh
 php::ord <string>
@@ -272,8 +272,8 @@ $ php::implode ',' values; echo
  abc,ABC,a,ab
 ```
 
-php::str_replace
-----------------
+php::str_replace (printf)
+-------------------------
 
 ```sh
 php::str_replace <search> <replace> <subject>
@@ -290,8 +290,8 @@ $ php::str_replace 'aaa' 'bbb' 'aaaaaaaa'; echo
 bbbbbbaa
 ```
 
-php::strtolower
----------------
+php::strtolower (printf, tr)
+----------------------------
 
 ```sh
 php::strtolower <message>
@@ -306,8 +306,8 @@ $ php::strtolower 'ABC def Ghi 123 ひらがな 漢字 カタカナ'; echo
 abc def ghi 123 ひらがな 漢字 カタカナ
 ```
 
-php::strtoupper
----------------
+php::strtoupper (printf, tr)
+----------------------------
 
 ```sh
 php::strtoupper <message>
