@@ -16,6 +16,11 @@ EXPECT_EQ() {
   IMOSH_TEST_IS_FAILED=1
 }
 
+ASSERT_EQ() {
+  EXPECT_EQ "$@"
+  if (( IMOSH_TEST_IS_FAILED )); then exit 1; fi
+}
+
 testing::run() {
   local test_name="$1"
 
