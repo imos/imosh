@@ -1,5 +1,7 @@
 # imosh - Libraries for BASH.
 
+set -e -u
+
 if [ "${__IMOSH_IS_LOADED+loaded}" == 'loaded' ]; then
   return
 fi
@@ -65,7 +67,7 @@ imosh::shell_escape() {
 }
 
 imosh::on_exit() {
-  echo "$@" >>"${__IMOSH_TMPDIR}/on_exit.sh"
+  echo "$@" >>"${__IMOSH_CORE_TMPDIR}/on_exit.sh"
 }
 
 imosh::internal::error_handler() {
@@ -74,10 +76,10 @@ imosh::internal::error_handler() {
 
 imosh::internal::exit_handler() {
   set +e
-  if [ -f "${__IMOSH_TMPDIR}/on_exit.sh" ]; then
-    source "${__IMOSH_TMPDIR}/on_exit.sh"
+  if [ -f "${__IMOSH_CORE_TMPDIR}/on_exit.sh" ]; then
+    source "${__IMOSH_CORE_TMPDIR}/on_exit.sh"
   fi
-  rm -rf "${__IMOSH_TMPDIR}"
+  rm -rf "${__IMOSH_CORE_TMPDIR}"
 }
 
 imosh::internal::signal_handler() {
@@ -560,16 +562,17 @@ DEFINE_bool --alias=h help false 'Print this help message and exit.'
 
 imosh::mktemp() {
   TMPDIR="${TMPDIR%/}"
-  export TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/imosh.XXXXXX")"
-
-  if [ "${TMPDIR}" == '' -o  "${TMPDIR}" == '/' ]; then
+  export IMOSH_TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/imosh.XXXXXX")"
+  if [ "${IMOSH_TMPDIR}" == '' -o  "${IMOSH_TMPDIR}" == '/' ]; then
     LOG FATAL 'failed to create a temporary directory.'
   fi
 
-  export __IMOSH_TMPDIR="${TMPDIR}/.imosh"
-  mkdir "${__IMOSH_TMPDIR}"
-  imosh::on_exit "rm -rf ${TMPDIR}"
+  export __IMOSH_CORE_TMPDIR="${IMOSH_TMPDIR}/.imosh"
+  mkdir "${__IMOSH_CORE_TMPDIR}"
+  imosh::on_exit "rm -rf ${IMOSH_TMPDIR}"
 }
 
+TMPDIR="${TMPDIR%/}"
+export TMPDIR="${TMPDIR:-/tmp}"
 imosh::mktemp
 

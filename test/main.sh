@@ -38,8 +38,8 @@ if [ "$#" -gt '1' ]; then
   for file in "$@"; do
     format_i="$(printf '%05d' "${i}")"
     bash test/main.sh "${file}" \
-        >"${TMPDIR}/test_index_${format_i}.stdout" \
-        2>"${TMPDIR}/test_index_${format_i}.stderr" &
+        >"${IMOSH_TMPDIR}/test_index_${format_i}.stdout" \
+        2>"${IMOSH_TMPDIR}/test_index_${format_i}.stderr" &
     ppid+=("$!")
     (( i += 1 )) || true
   done
@@ -53,8 +53,8 @@ if [ "$#" -gt '1' ]; then
       test_is_failed=1
       IMOSH_TEST_IS_FAILED=1
     fi
-    cat "${TMPDIR}/test_index_${format_i}.stdout"
-    cat "${TMPDIR}/test_index_${format_i}.stderr" >&2
+    cat "${IMOSH_TMPDIR}/test_index_${format_i}.stdout"
+    cat "${IMOSH_TMPDIR}/test_index_${format_i}.stderr" >&2
     echo
     (( i += 1 )) || true
   done
@@ -67,8 +67,8 @@ fi
 echo "${IMOSH_COLOR_GREEN}[==========]${IMOSH_STYLE_DEFAULT}" \
      "Running tests for ${1}." >&2
 source "$1" || exit 1
-( ( declare -F | grep 'test::' ) || true ) >"${TMPDIR}/test_func"
-if [ "$(cat "${TMPDIR}/test_func")" == '' ]; then
+( ( declare -F | grep 'test::' ) || true ) >"${IMOSH_TMPDIR}/test_func"
+if [ "$(cat "${IMOSH_TMPDIR}/test_func")" == '' ]; then
   LOG FATAL "$1 has no test."
 fi
 exec 3>&2
@@ -78,18 +78,18 @@ while read line; do
   { time -p {
     testing::run "${function}" 2>&3 &
     wait $!
-  } } 2>"${TMPDIR}/time" &
+  } } 2>"${IMOSH_TMPDIR}/time" &
   if wait $!; then
-    time="($(echo $(cat "${TMPDIR}/time")))"
+    time="($(echo $(cat "${IMOSH_TMPDIR}/time")))"
     echo "${IMOSH_COLOR_GREEN}[       OK ]${IMOSH_STYLE_DEFAULT}" \
          "${function} ${time}" >&2
   else
-    time="($(echo $(cat "${TMPDIR}/time")))"
+    time="($(echo $(cat "${IMOSH_TMPDIR}/time")))"
     echo "${IMOSH_COLOR_RED}[  FAILED  ]${IMOSH_STYLE_DEFAULT}" \
          "${function} ${time}" >&2
     IMOSH_TEST_IS_FAILED=1
   fi
-done <"${TMPDIR}/test_func"
+done <"${IMOSH_TMPDIR}/test_func"
 if (( IMOSH_TEST_IS_FAILED )); then
   exit 1
 fi
