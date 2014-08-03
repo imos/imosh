@@ -10,6 +10,8 @@ imosh is tested on drone.io (https://drone.io/github.com/imos/imosh).
 Usage
 =====
 
+Copy imosh in the top directory to some directory listed in `${PATH}`.
+
 ```sh
 source imosh || exit 1
 
@@ -18,6 +20,16 @@ DEFINE_int 'int' 100 'Integer flag.'
 DEFINE_bool 'bool' false 'Boolean flag.'
 
 eval "${IMOSH_INIT}"
+```
+
+Terminal
+--------
+
+imosh is also useful for regular shell operations.
+You can use imosh by running the following command beforehand:
+
+```sh
+source imosh
 ```
 
 

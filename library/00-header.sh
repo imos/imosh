@@ -1,6 +1,8 @@
 # imosh - Libraries for BASH.
 
-set -e -u
+if ! shopt login_shell >/dev/null; then
+  set -e -u
+fi
 
 if [ "${__IMOSH_IS_LOADED+loaded}" == 'loaded' ]; then
   return

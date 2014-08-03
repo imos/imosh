@@ -35,6 +35,9 @@ imosh::internal::signal_handler() {
 
 trap imosh::internal::exit_handler EXIT
 trap imosh::internal::error_handler ERR
-for signal in SIGHUP SIGINT SIGPIPE SIGTERM SIGXCPU SIGXFSZ SIGUSR1 SIGUSR2; do
-  trap "imosh::internal::signal_handler ${signal}" "${signal}"
-done
+if ! shopt login_shell >/dev/null; then
+  for signal in SIGHUP SIGINT SIGPIPE SIGTERM \
+                SIGXCPU SIGXFSZ SIGUSR1 SIGUSR2; do
+    trap "imosh::internal::signal_handler ${signal}" "${signal}"
+  done
+fi
