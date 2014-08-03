@@ -4,6 +4,8 @@ Introduction
 imosh is a library for bash.
 It consists of a flag library and a PHP-like function library.
 
+imosh is tested on drone.io (https://drone.io/github.com/imos/imosh).
+
 Usage
 =====
 
@@ -22,7 +24,7 @@ Flag Definition
 ===============
 
 ```sh
-DEFINE_(type) (flag name) (default value) (flag description)
+DEFINE_<type> <flag name> <default value> <flag description>
 ```
 
 Flag Types
@@ -35,4 +37,4 @@ Flag Types
 Flag Options
 ------------
 
-* --alias=(alias name) ... declares a flag alias.  This is useful for short flag names.
+* --alias=`alias name` ... declares a flag alias.  This is useful for short flag names.
