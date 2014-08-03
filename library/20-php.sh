@@ -21,7 +21,7 @@ php::internal::run() {
 
 php::internal::start() {
   if [ "${__IMOSH_PHP_STDIN}" != '' ]; then
-    if kill -0 "${__IMOSH_PHP_PID}" 2>/dev/null; then
+    if kill -0 "$(cat "${__IMOSH_PHP_PID}")" 2>/dev/null; then
       return;
     else
       exec 111>&- 110<&-
@@ -29,6 +29,7 @@ php::internal::start() {
   fi
   __IMOSH_PHP_STDIN="$(mktemp "${__IMOSH_CORE_TMPDIR}/php_stdin.XXXXXX")"
   __IMOSH_PHP_STDOUT="$(mktemp "${__IMOSH_CORE_TMPDIR}/php_stdout.XXXXXX")"
+  __IMOSH_PHP_PID="$(mktemp "${__IMOSH_CORE_TMPDIR}/php_pid.XXXXXX")"
   rm "${__IMOSH_PHP_STDIN}" "${__IMOSH_PHP_STDOUT}"
   local php_script="$(mktemp "${__IMOSH_CORE_TMPDIR}/php_script.XXXXXX")"
   cat << 'EOM' >"${php_script}"
@@ -50,8 +51,11 @@ EOM
   mkfifo "${__IMOSH_PHP_STDIN}"
   mkfifo "${__IMOSH_PHP_STDOUT}"
   LOG INFO 'Starting to run php...'
-  php "${php_script}" <"${__IMOSH_PHP_STDIN}" >"${__IMOSH_PHP_STDOUT}" &
-  __IMOSH_PHP_PID="$!"
+  bash -c "nohup php '${php_script}' \
+               <'${__IMOSH_PHP_STDIN}' \
+               >'${__IMOSH_PHP_STDOUT}' \
+               2>/dev/null &
+           echo \$! >'${__IMOSH_PHP_PID}'"
   LOG INFO "Opening PHP's STDIN..."
   exec 111>"${__IMOSH_PHP_STDIN}"
   LOG INFO "Opening PHP's STDOUT..."
