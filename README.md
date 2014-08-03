@@ -223,6 +223,26 @@ $ php::ord ''; echo
 0
 ```
 
+php::preg_match (php)
+---------------------
+
+```sh
+php::preg_match <pattern> <subject> [<matches>]
+```
+
+Searches `subject` for a match to the regular expression given in `pattern`.
+Returns true iff `pattern` is found in `subject`.
+If `matches` is provided, then it is filled with the results of search.
+`${matches[0]}` will contain the text that matched the full pattern, `${matches[1]}` will have the text that matched the first captured parenthesized subpattern, and so on.
+
+### Examples
+
+```sh
+$ php::preg_match '%(\d{4})-(\d{2})-(\d{2})%' 'date: 2014-08-04 12:13:14'
+$ php::implode ',' match
+2014-08-04,2014,08,04
+```
+
 php::rand
 ---------
 
