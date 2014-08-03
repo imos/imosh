@@ -238,7 +238,7 @@ If `matches` is provided, then it is filled with the results of search.
 ### Examples
 
 ```sh
-$ php::preg_match '%(\d{4})-(\d{2})-(\d{2})%' 'date: 2014-08-04 12:13:14'
+$ php::preg_match '%(\d{4})-(\d{2})-(\d{2})%' 'date: 2014-08-04 12:13:14' match
 $ php::implode ',' match
 2014-08-04,2014,08,04
 ```
