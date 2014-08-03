@@ -1,5 +1,4 @@
 source imosh || exit 1
-source "$1" || exit 1
 
 set -e -u
 
@@ -27,12 +26,47 @@ testing::run() {
   fi
 }
 
+IMOSH_TEST_IS_FAILED=0
+if [ "$#" -gt '1' ]; then
+  ppid=()
+  i=0
+  for file in "$@"; do
+    format_i="$(printf '%05d' "${i}")"
+    bash test/main.sh "${file}" \
+        >"${TMPDIR}/test_index_${format_i}.stdout" \
+        2>"${TMPDIR}/test_index_${format_i}.stderr" &
+    ppid+=("$!")
+    (( i += 1 )) || true
+  done
+  max_i="${i}"
+  i=0
+  while (( i < max_i )); do
+    format_i="$(printf '%05d' "${i}")"
+    pid="${ppid[${i}]}"
+    test_is_failed=0
+    if ! wait "${pid}"; then
+      test_is_failed=1
+      IMOSH_TEST_IS_FAILED=1
+    fi
+    cat "${TMPDIR}/test_index_${format_i}.stdout"
+    cat "${TMPDIR}/test_index_${format_i}.stderr" >&2
+    echo
+    (( i += 1 )) || true
+  done
+  if (( IMOSH_TEST_IS_FAILED )); then
+    exit 1
+  fi
+  exit
+fi
+
+echo "${IMOSH_COLOR_GREEN}[==========]${IMOSH_COLOR_DEFAULT}" \
+     "Running tests for ${1}." >&2
+source "$1" || exit 1
 ( ( declare -F | grep 'test::' ) || true ) >"${TMPDIR}/test_func"
 if [ "$(cat "${TMPDIR}/test_func")" == '' ]; then
   LOG FATAL "$1 has no test."
 fi
 exec 3>&2
-IMOSH_TEST_IS_FAILED=0
 while read line; do
   function="${line##*test::}"
   echo "${IMOSH_COLOR_GREEN}[ RUN      ]${IMOSH_COLOR_DEFAULT} ${function}" >&2
