@@ -12,6 +12,16 @@ imosh::internal::exit_handler() {
     source "${__IMOSH_CORE_TMPDIR}/on_exit.sh"
   fi
   rm -rf "${__IMOSH_CORE_TMPDIR}"
+
+  # Close log pipes and remove unused log files.
+  exec 101>&- 102>&- 103>&- 104>&-
+  local severity=''
+  for severity in INFO WARNING ERROR FATAL; do
+    local path="$(imosh::internal::log_file "${severity}")"
+    if [ ! -s "${path}" ]; then
+      rm "${path}"
+    fi
+  done
 }
 
 imosh::internal::signal_handler() {

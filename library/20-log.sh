@@ -19,32 +19,34 @@ LOG() {
       "${pid}"
       "${BASH_SOURCE[1]##*/}:${BASH_LINENO[0]}]"
       "$*")
+  message="${message[*]}"
+  if [ "${level}" == 'FATAL' ]; then
+    message+=$'\n'
+    message+="$(imosh::stack_trace '*** Check failure stack trace: ***' 2>&1)"
+  fi
   case "${level}" in
     INFO)
-      echo "${message[*]}" >&2
-      echo "${message[*]}" >&101
+      echo "${message}" >&2
+      echo "${message}" >&101
       ;;
     WARNING)
-      echo "${message[*]}" >&2
-      echo "${message[*]}" >&101
-      echo "${message[*]}" >&102
+      echo "${message}" >&2
+      echo "${message}" >&101
+      echo "${message}" >&102
       ;;
     ERROR)
-      echo "${message[*]}" >&2
-      echo "${message[*]}" >&101
-      echo "${message[*]}" >&102
-      echo "${message[*]}" >&103
+      echo "${message}" >&2
+      echo "${message}" >&101
+      echo "${message}" >&102
+      echo "${message}" >&103
       ;;
     FATAL)
-      echo "${message[*]}" >&2
-      echo "${message[*]}" >&101
-      echo "${message[*]}" >&102
-      echo "${message[*]}" >&103
-      echo "${message[*]}" >&104
+      echo "${message}" >&2
+      echo "${message}" >&101
+      echo "${message}" >&102
+      echo "${message}" >&103
+      echo "${message}" >&104
+      exit 1
       ;;
   esac
-  if [ "${level}" == 'FATAL' ]; then
-    imosh::stack_trace '*** Check failure stack trace: ***'
-    exit 1
-  fi
 }

@@ -18,7 +18,7 @@ __IMOSH_LOG_PREFIX="${__IMOSH_PROGRAM_NAME}.${__IMOSH_HOSTNAME}.${__IMOSH_USER}"
 __IMOSH_LOG_DIR="${TMPDIR:-/tmp}"
 __IMOSH_LOG_SUFFIX="$(date +'%Y%m%d.%H%M%S').$$"
 
-imosh::internal::log_dir() {
+imosh::internal::log_file() {
   local severity="${1}"
   local path=''
   path+="${__IMOSH_LOG_DIR}/"
@@ -26,11 +26,14 @@ imosh::internal::log_dir() {
   print "${path}"
 }
 
+# Close descriptors for logs beforehand for BASH3's bug.
+exec 101>&- 102>&- 103>&- 104>&-
+
 if [ -w "${__IMOSH_LOG_DIR}" ]; then
-  exec 101>"$(imosh::internal::log_dir INFO)"
-  exec 102>"$(imosh::internal::log_dir WARNING)"
-  exec 103>"$(imosh::internal::log_dir ERROR)"
-  exec 104>"$(imosh::internal::log_dir FATAL)"
+  exec 101>"$(imosh::internal::log_file INFO)"
+  exec 102>"$(imosh::internal::log_file WARNING)"
+  exec 103>"$(imosh::internal::log_file ERROR)"
+  exec 104>"$(imosh::internal::log_file FATAL)"
 else
   exec 101>/dev/null 102>/dev/null 103>/dev/null 104>/dev/null
   echo "failed to open files to write logs: ${__IMOSH_LOG_DIR}" >&2
@@ -80,6 +83,16 @@ imosh::internal::exit_handler() {
     source "${__IMOSH_CORE_TMPDIR}/on_exit.sh"
   fi
   rm -rf "${__IMOSH_CORE_TMPDIR}"
+
+  # Close log pipes and remove unused log files.
+  exec 101>&- 102>&- 103>&- 104>&-
+  local severity=''
+  for severity in INFO WARNING ERROR FATAL; do
+    local path="$(imosh::internal::log_file "${severity}")"
+    if [ ! -s "${path}" ]; then
+      rm "${path}"
+    fi
+  done
 }
 
 imosh::internal::signal_handler() {
@@ -117,34 +130,36 @@ LOG() {
       "${pid}"
       "${BASH_SOURCE[1]##*/}:${BASH_LINENO[0]}]"
       "$*")
+  message="${message[*]}"
+  if [ "${level}" == 'FATAL' ]; then
+    message+=$'\n'
+    message+="$(imosh::stack_trace '*** Check failure stack trace: ***' 2>&1)"
+  fi
   case "${level}" in
     INFO)
-      echo "${message[*]}" >&2
-      echo "${message[*]}" >&101
+      echo "${message}" >&2
+      echo "${message}" >&101
       ;;
     WARNING)
-      echo "${message[*]}" >&2
-      echo "${message[*]}" >&101
-      echo "${message[*]}" >&102
+      echo "${message}" >&2
+      echo "${message}" >&101
+      echo "${message}" >&102
       ;;
     ERROR)
-      echo "${message[*]}" >&2
-      echo "${message[*]}" >&101
-      echo "${message[*]}" >&102
-      echo "${message[*]}" >&103
+      echo "${message}" >&2
+      echo "${message}" >&101
+      echo "${message}" >&102
+      echo "${message}" >&103
       ;;
     FATAL)
-      echo "${message[*]}" >&2
-      echo "${message[*]}" >&101
-      echo "${message[*]}" >&102
-      echo "${message[*]}" >&103
-      echo "${message[*]}" >&104
+      echo "${message}" >&2
+      echo "${message}" >&101
+      echo "${message}" >&102
+      echo "${message}" >&103
+      echo "${message}" >&104
+      exit 1
       ;;
   esac
-  if [ "${level}" == 'FATAL' ]; then
-    imosh::stack_trace '*** Check failure stack trace: ***'
-    exit 1
-  fi
 }
 
 # Parses arguments without getopt.
@@ -528,7 +543,9 @@ DEFINE_double() { imosh::internal::define_flag double "$@"; }
 
 imosh::internal::init() {
   imosh::internal::parse_args flag "$@"
-  eval "${IMOSH_ARGS[@]}"
+  if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
+    eval "${IMOSH_ARGS[@]}"
+  fi
   if [ "${#__IMOSH_FLAGS_ALIASES[@]}" -ne 0 ]; then
     for alias in "${__IMOSH_FLAGS_ALIASES[@]}"; do
       eval "FLAGS_${alias%%:*}=\"\${FLAGS_${alias#*:}}\""

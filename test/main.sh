@@ -1,6 +1,5 @@
 source imosh || exit 1
-
-set -e -u
+eval "${IMOSH_INIT}"
 
 EXPECT_EQ() {
   local expected="$1"
@@ -76,6 +75,7 @@ while read line; do
   function="${line##*test::}"
   echo "${IMOSH_COLOR_GREEN}[ RUN      ]${IMOSH_STYLE_DEFAULT} ${function}" >&2
   { time -p {
+    export TMPDIR="${IMOSH_TMPDIR}"
     testing::run "${function}" 2>&3 &
     wait $!
   } } 2>"${IMOSH_TMPDIR}/time" &

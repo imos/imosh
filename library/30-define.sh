@@ -97,7 +97,9 @@ DEFINE_double() { imosh::internal::define_flag double "$@"; }
 
 imosh::internal::init() {
   imosh::internal::parse_args flag "$@"
-  eval "${IMOSH_ARGS[@]}"
+  if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
+    eval "${IMOSH_ARGS[@]}"
+  fi
   if [ "${#__IMOSH_FLAGS_ALIASES[@]}" -ne 0 ]; then
     for alias in "${__IMOSH_FLAGS_ALIASES[@]}"; do
       eval "FLAGS_${alias%%:*}=\"\${FLAGS_${alias#*:}}\""
