@@ -29,13 +29,13 @@ php::internal::run() {
 }
 
 php::internal::start() {
-  if [ "${__IMOSH_PHP_EXECUTER_PID}" = "$$" ]; then
-    # Make sure that the target process exists.
-    if kill -0 "$(cat "${__IMOSH_PHP_PID}")" 2>/dev/null; then
-      return;
-    fi
-  fi
   if (( FLAGS_disown_php )); then
+    if [ "${__IMOSH_PHP_EXECUTER_PID}" = "$$" ]; then
+      # Make sure that the target process exists.
+      if kill -0 "$(cat "${__IMOSH_PHP_PID}")" 2>/dev/null; then
+        return;
+      fi
+    fi
     exec 111>&- 110<&-
     __IMOSH_PHP_STDIN="$(mktemp "${__IMOSH_CORE_TMPDIR}/php_stdin.XXXXXX")"
     __IMOSH_PHP_STDOUT="$(mktemp "${__IMOSH_CORE_TMPDIR}/php_stdout.XXXXXX")"
