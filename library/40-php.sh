@@ -51,13 +51,23 @@ EOM
   mkfifo "${__IMOSH_PHP_STDIN}"
   mkfifo "${__IMOSH_PHP_STDOUT}"
   LOG INFO 'Starting to run php...'
-  bash -c "nohup php '${php_script}' \
-               <'${__IMOSH_PHP_STDIN}' \
-               >'${__IMOSH_PHP_STDOUT}' \
-               2>/dev/null &
-           echo \$! >'${__IMOSH_PHP_PID}'"
+  if (( FLAGS_disown_php )); then
+    bash -c "nohup php '${php_script}' \
+                 <'${__IMOSH_PHP_STDIN}' \
+                 >'${__IMOSH_PHP_STDOUT}' \
+                 2>/dev/null &
+             echo \$! >'${__IMOSH_PHP_PID}'"
+  else
+    php "${php_script}" \
+        <"${__IMOSH_PHP_STDIN}" \
+        >"${__IMOSH_PHP_STDOUT}" \
+        2>/dev/null &
+    echo "$!" >"${__IMOSH_PHP_PID}"
+  fi
   LOG INFO "Opening PHP's STDIN..."
   exec 111>"${__IMOSH_PHP_STDIN}"
   LOG INFO "Opening PHP's STDOUT..."
   exec 110<"${__IMOSH_PHP_STDOUT}"
 }
+
+DEFINE_bool disown_php false 'Disown a PHP process.'

@@ -1,5 +1,6 @@
 run() {
   IMOSH_FLAGS_alsologtostderr=0 IMOSH_FLAGS_logtostderr=0 \
+  IMOSH_FLAGS_disown_php=0 \
       bash test/flags.sh "$@"
 }
 
@@ -10,6 +11,7 @@ Options:
   --help=false: Print this help message and exit. (Alias: --h)
   --alsologtostderr=false: Log messages go to stderr in addition to logfiles.
   --logtostderr=false: Log messages go to stderr instead of logfiles.
+  --disown_php=false: Disown a PHP process.
   --flag='': Flag name to show.
   --show_argv=false: Output extra argv.
   --string='default': String flag.
