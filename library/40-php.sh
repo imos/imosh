@@ -11,6 +11,10 @@ php::internal::run() {
   local __php_line __php_return_code
   read __php_line <&110
   read __php_return_code <&110
+  if (( ! FLAGS_disown_php )); then
+    exec 111>&- 110<&-
+    __IMOSH_PHP_EXECUTER_PID=''
+  fi
   if [ "${__php_name}" != '' ]; then
     eval "${__php_name}=${__php_line//@/\\}"
   fi
