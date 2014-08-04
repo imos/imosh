@@ -1,5 +1,4 @@
-__IMOSH_PHP_STDIN=''
-__IMOSH_PHP_STDOUT=''
+__IMOSH_PHP_EXECUTER_PID=''
 
 php::internal::run() {
   local __php_code="$1"
@@ -20,15 +19,16 @@ php::internal::run() {
 }
 
 php::internal::start() {
-  if [ "${__IMOSH_PHP_STDIN}" != '' ]; then
+  if [ "${__IMOSH_PHP_EXECUTER_PID}" = "$$" ]; then
+    # Make sure that the target process exists.
     if kill -0 "$(cat "${__IMOSH_PHP_PID}")" 2>/dev/null; then
       return;
-    else
-      exec 111>&- 110<&-
     fi
   fi
+  exec 111>&- 110<&-
   __IMOSH_PHP_STDIN="$(mktemp "${__IMOSH_CORE_TMPDIR}/php_stdin.XXXXXX")"
   __IMOSH_PHP_STDOUT="$(mktemp "${__IMOSH_CORE_TMPDIR}/php_stdout.XXXXXX")"
+  __IMOSH_PHP_EXECUTER_PID="$$"
   __IMOSH_PHP_PID="$(mktemp "${__IMOSH_CORE_TMPDIR}/php_pid.XXXXXX")"
   rm "${__IMOSH_PHP_STDIN}" "${__IMOSH_PHP_STDOUT}"
   local php_script="$(mktemp "${__IMOSH_CORE_TMPDIR}/php_script.XXXXXX")"
