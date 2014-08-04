@@ -1,8 +1,15 @@
 __IMOSH_PHP_EXECUTER_PID=''
 
 php::internal::kill() {
-  php::internal::run 'exit(0);'
-  kill -TERM "$(cat "${__IMOSH_PHP_PID}")" 2>/dev/null
+  if (( FLAGS_disown_php )); then
+    if [ "${__IMOSH_PHP_EXECUTER_PID}" = "$$" ]; then
+      # Make sure that the target process exists.
+      if kill -0 "$(cat "${__IMOSH_PHP_PID}")" 2>/dev/null; then
+        php::internal::run 'exit(0);'
+        kill -TERM "$(cat "${__IMOSH_PHP_PID}")" 2>/dev/null
+      fi
+    fi
+  fi
 }
 
 php::internal::run() {
@@ -12,9 +19,11 @@ php::internal::run() {
 
   local __php_line __php_return_code
   local __php_new_line=$'\n'
+  __php_code="${__php_code//@/@@}"
+  __php_code="${__php_code//${__php_new_line}/@n}"
   if (( FLAGS_disown_php )); then
     php::internal::start
-    printf "%s\n" "${__php_code//${__php_new_line}/}" >&111
+    printf "%s\n" "${__php_code}" >&111
     read __php_line <&110
     read __php_return_code <&110
   else
@@ -22,8 +31,7 @@ php::internal::run() {
       read __php_line
       read __php_return_code
       break
-    done <<<"$(printf "%s\n" "${__php_code//${__php_new_line}/}" | \
-                   php::internal::start)"
+    done <<<"$(printf "%s\n" "${__php_code}" |  php::internal::start)"
   fi
 
   if [ "${__php_name}" != '' ]; then
@@ -52,11 +60,14 @@ php::internal::start() {
   cat << 'EOM' >"${php_script}"
 <?php
 
+function imosh_chop($str) { return substr($str, 0, strlen($str) - 1); }
+
 $translate = array(
   "\r" => '@r', "\n" => '@n', '\\' => '@@',
   '"' => '@x22', "'" => "@x27", '@' => '@x40');
 
 while (($line = fgets(STDIN)) !== FALSE) {
+  $line = strtr($line, array('@@' => '@', '@n' => "\n"));
   ob_start();
   $value = eval($line);
   $output = ob_get_clean();
@@ -75,8 +86,7 @@ EOM
   mkfifo "${__IMOSH_PHP_STDOUT}"
   bash -c "nohup php '${php_script}' \
                <'${__IMOSH_PHP_STDIN}' \
-               >'${__IMOSH_PHP_STDOUT}' \
-               2>/dev/null &
+               >'${__IMOSH_PHP_STDOUT}' &
            echo \$! >'${__IMOSH_PHP_PID}'"
   LOG INFO "Opening PHP's STDIN..."
   exec 111>"${__IMOSH_PHP_STDIN}"
@@ -85,3 +95,13 @@ EOM
 }
 
 DEFINE_bool disown_php false 'Disown a PHP process.'
+
+php::stop() {
+  php::internal::kill
+}
+
+php::start() {
+  if (( FLAGS_disown_php )); then
+    php::internal::start
+  fi
+}

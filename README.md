@@ -6,6 +6,12 @@ It consists of utilities like gflags and glog and PHP-like functions.
 
 imosh is tested on drone.io (https://drone.io/github.com/imos/imosh).
 
+Supported BASH versions
+-----------------------
+
+* BASH 3.2.51 on Mac OSX Marvericks
+* BASH 4.2.25 on Ubuntu 14.04
+
 
 Usage
 =====
