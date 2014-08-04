@@ -269,6 +269,35 @@ readonly IMOSH_PARSE_ARGUMENTS='
       set -- "${IMOSH_ARGV[@]}"
     fi'
 
+php::addslashes() {
+  if [ "$#" -ne 1 ]; then
+    LOG FATAL 'php::addslashes requires one argument.'
+  fi
+
+  local subject="${1}"
+  subject="$(php::str_replace '\' '\\' "${subject}")"
+  subject="$(php::str_replace "'" "\\'" "${subject}")"
+  print "${subject}"
+}
+
+php::array_map() {
+  if [ "$#" -ne 2 ]; then
+    LOG FATAL 'php::array_map requires two arguments.'
+  fi
+
+  local __array_map_callback="${1}"
+  local __array_map_name="${2}"
+  eval "local __array_map_values=(\"\${${__array_map_name}[@]}\")"
+  local __array_map_i=0 __array_map_size="${#__array_map_values[@]}"
+  while (( __array_map_i < __array_map_size )); do
+    local __array_map_value="${__array_map_values[${__array_map_i}]}"
+    __array_map_value="$("${__array_map_callback}" "${__array_map_value}")"
+    eval "${__array_map_name}[${__array_map_i}]='$(
+              php::addslashes "${__array_map_value}")'"
+    (( __array_map_i += 1 )) || true
+  done
+}
+
 php::array_unique() {
   if [ "$#" -ne 1 ]; then
     LOG FATAL 'php::array_unique requires one argument.'
@@ -355,6 +384,24 @@ php::md5() {
 
 php::ord() {
   printf '%d' \'"${1}"
+}
+
+php::preg_match() {
+  local __preg_match_pattern="${1}"
+  local __preg_match_subject="${2}"
+  local __preg_match_name=''
+
+  if [ "$#" -ge 3 ]; then __preg_match_name="${3}"; fi
+  local __preg_match_result
+  if ! php::internal::run "
+      if (!preg_match('$(php::addslashes "${__preg_match_pattern}")',
+                      '$(php::addslashes "${__preg_match_subject}")',
+                      \$match)) { return 1; }
+      echo implode(\"\\x02\", \$match); return 0;" __preg_match_result; then
+    return 1
+  else
+    php::explode "${__preg_match_name}" $'\x02' "${__preg_match_result}"
+  fi
 }
 
 php::rand() {
@@ -636,6 +683,114 @@ imosh::mktemp() {
 TMPDIR="${TMPDIR:-/tmp}"
 export TMPDIR="${TMPDIR%/}"
 imosh::mktemp
+
+__IMOSH_PHP_EXECUTER_PID=''
+
+php::internal::kill() {
+  if (( FLAGS_disown_php )); then
+    if [ "${__IMOSH_PHP_EXECUTER_PID}" = "$$" ]; then
+      # Make sure that the target process exists.
+      if kill -0 "$(cat "${__IMOSH_PHP_PID}")" 2>/dev/null; then
+        php::internal::run 'exit(0);'
+        kill -TERM "$(cat "${__IMOSH_PHP_PID}")" 2>/dev/null
+      fi
+    fi
+  fi
+}
+
+php::internal::run() {
+  local __php_code="$1"
+  local __php_name=''
+  if [ "$#" -ge 2 ]; then __php_name="$2"; fi
+
+  local __php_line __php_return_code
+  local __php_new_line=$'\n'
+  __php_code="${__php_code//@/@@}"
+  __php_code="${__php_code//${__php_new_line}/@n}"
+  if (( FLAGS_disown_php )); then
+    php::internal::start
+    printf "%s\n" "${__php_code}" >&111
+    read __php_line <&110
+    read __php_return_code <&110
+  else
+    while :; do
+      read __php_line
+      read __php_return_code
+      break
+    done <<<"$(printf "%s\n" "${__php_code}" |  php::internal::start)"
+  fi
+
+  if [ "${__php_name}" != '' ]; then
+    eval "${__php_name}=${__php_line//@/\\}"
+  fi
+  if [ "${__php_return_code}" == '' ]; then return 1; fi
+  return "${__php_return_code}"
+}
+
+php::internal::start() {
+  if (( FLAGS_disown_php )); then
+    if [ "${__IMOSH_PHP_EXECUTER_PID}" = "$$" ]; then
+      # Make sure that the target process exists.
+      if kill -0 "$(cat "${__IMOSH_PHP_PID}")" 2>/dev/null; then
+        return;
+      fi
+    fi
+    exec 111>&- 110<&-
+    __IMOSH_PHP_STDIN="$(mktemp "${__IMOSH_CORE_TMPDIR}/php_stdin.XXXXXX")"
+    __IMOSH_PHP_STDOUT="$(mktemp "${__IMOSH_CORE_TMPDIR}/php_stdout.XXXXXX")"
+    __IMOSH_PHP_EXECUTER_PID="$$"
+    __IMOSH_PHP_PID="$(mktemp "${__IMOSH_CORE_TMPDIR}/php_pid.XXXXXX")"
+    rm "${__IMOSH_PHP_STDIN}" "${__IMOSH_PHP_STDOUT}"
+  fi
+  local php_script="$(mktemp "${__IMOSH_CORE_TMPDIR}/php_script.XXXXXX")"
+  cat << 'EOM' >"${php_script}"
+<?php
+
+function imosh_chop($str) { return substr($str, 0, strlen($str) - 1); }
+
+$translate = array(
+  "\r" => '@r', "\n" => '@n', '\\' => '@@',
+  '"' => '@x22', "'" => "@x27", '@' => '@x40');
+
+while (($line = fgets(STDIN)) !== FALSE) {
+  $line = strtr($line, array('@@' => '@', '@n' => "\n"));
+  ob_start();
+  $value = eval($line);
+  $output = ob_get_clean();
+  echo "\$'" . strtr($output, $translate) . "'\n";
+  echo intval($value) . "\n";
+  if (isset($argv[1]) && $argv[1] == 'once') exit(0);
+}
+
+EOM
+  LOG INFO 'Starting to run php...'
+  if (( ! FLAGS_disown_php )); then
+    php "${php_script}" once
+    return
+  fi
+  mkfifo "${__IMOSH_PHP_STDIN}"
+  mkfifo "${__IMOSH_PHP_STDOUT}"
+  bash -c "nohup php '${php_script}' \
+               <'${__IMOSH_PHP_STDIN}' \
+               >'${__IMOSH_PHP_STDOUT}' &
+           echo \$! >'${__IMOSH_PHP_PID}'"
+  LOG INFO "Opening PHP's STDIN..."
+  exec 111>"${__IMOSH_PHP_STDIN}"
+  LOG INFO "Opening PHP's STDOUT..."
+  exec 110<"${__IMOSH_PHP_STDOUT}"
+}
+
+DEFINE_bool disown_php false 'Disown a PHP process.'
+
+php::stop() {
+  php::internal::kill
+}
+
+php::start() {
+  if (( FLAGS_disown_php )); then
+    php::internal::start
+  fi
+}
 
 LOG INFO 'imosh is ready.'
 

@@ -6,6 +6,12 @@ It consists of utilities like gflags and glog and PHP-like functions.
 
 imosh is tested on drone.io (https://drone.io/github.com/imos/imosh).
 
+Supported BASH versions
+-----------------------
+
+* BASH 3.2.51 on Mac OSX Marvericks
+* BASH 4.2.25 on Ubuntu 14.04
+
 
 Usage
 =====
@@ -89,8 +95,12 @@ imosh outputs log files to `${TMPDIR}/<program name>.<host name>.<user>.<severit
 PHP-like Functions
 ==================
 
-php::bin2hex
-------------
+Required commands are specified inside parenthes.
+php takes much time to execute, so functions avoids using PHP if possible.
+--disown_php disowns a PHP process and speeds up php functions.
+
+php::bin2hex (od)
+-----------------
 
 ```sh
 php::bin2hex <message>
@@ -122,8 +132,8 @@ $ php::implode ',' values; echo
 abc,def,ghi
 ```
 
-php::hex2bin
-------------
+php::hex2bin (printf, sed, tr)
+------------------------------
 
 ```sh
 php::hex2bin <message>
@@ -187,8 +197,8 @@ $ if php::isset variable; then echo defined; else echo undefined; fi
 defined
 ```
 
-php::md5
---------
+php::md5 (openssl OR md5sum)
+----------------------------
 
 ```sh
 php::md5 <message>
@@ -205,8 +215,8 @@ $ php::md5 'foo'; echo
 acbd18db4cc2f85cedef654fccc4a4d8
 ```
 
-php::ord
---------
+php::ord (printf)
+-----------------
 
 ```sh
 php::ord <string>
@@ -221,6 +231,26 @@ $ php::ord 'abc'; echo
 97
 $ php::ord ''; echo
 0
+```
+
+php::preg_match (php)
+---------------------
+
+```sh
+php::preg_match <pattern> <subject> [<matches>]
+```
+
+Searches `subject` for a match to the regular expression given in `pattern`.
+Returns true iff `pattern` is found in `subject`.
+If `matches` is provided, then it is filled with the results of search.
+`${matches[0]}` will contain the text that matched the full pattern, `${matches[1]}` will have the text that matched the first captured parenthesized subpattern, and so on.
+
+### Examples
+
+```sh
+$ php::preg_match '%(\d{4})-(\d{2})-(\d{2})%' 'date: 2014-08-04 12:13:14' match
+$ php::implode ',' match
+2014-08-04,2014,08,04
 ```
 
 php::rand
@@ -272,8 +302,8 @@ $ php::implode ',' values; echo
  abc,ABC,a,ab
 ```
 
-php::str_replace
-----------------
+php::str_replace (printf)
+-------------------------
 
 ```sh
 php::str_replace <search> <replace> <subject>
@@ -290,8 +320,8 @@ $ php::str_replace 'aaa' 'bbb' 'aaaaaaaa'; echo
 bbbbbbaa
 ```
 
-php::strtolower
----------------
+php::strtolower (printf, tr)
+----------------------------
 
 ```sh
 php::strtolower <message>
@@ -306,8 +336,8 @@ $ php::strtolower 'ABC def Ghi 123 ひらがな 漢字 カタカナ'; echo
 abc def ghi 123 ひらがな 漢字 カタカナ
 ```
 
-php::strtoupper
----------------
+php::strtoupper (printf, tr)
+----------------------------
 
 ```sh
 php::strtoupper <message>
