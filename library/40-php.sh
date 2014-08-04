@@ -4,17 +4,23 @@ php::internal::run() {
   local __php_code="$1"
   local __php_name=''
   if [ "$#" -ge 2 ]; then __php_name="$2"; fi
-  php::internal::start
 
-  local __php_new_line=$'\n'
-  printf "%s\n" "${__php_code//${__php_new_line}/}" >&111
   local __php_line __php_return_code
-  read __php_line <&110
-  read __php_return_code <&110
-  if (( ! FLAGS_disown_php )); then
-    exec 111>&- 110<&-
-    __IMOSH_PHP_EXECUTER_PID=''
+  local __php_new_line=$'\n'
+  if (( FLAGS_disown_php )); then
+    php::internal::start
+    printf "%s\n" "${__php_code//${__php_new_line}/}" >&111
+    read __php_line <&110
+    read __php_return_code <&110
+  else
+    while :; do
+      read __php_line
+      read __php_return_code
+      break
+    done <<<"$(printf "%s\n" "${__php_code//${__php_new_line}/}" | \
+                   php::internal::start)"
   fi
+
   if [ "${__php_name}" != '' ]; then
     eval "${__php_name}=${__php_line//@/\\}"
   fi
@@ -29,12 +35,14 @@ php::internal::start() {
       return;
     fi
   fi
-  exec 111>&- 110<&-
-  __IMOSH_PHP_STDIN="$(mktemp "${__IMOSH_CORE_TMPDIR}/php_stdin.XXXXXX")"
-  __IMOSH_PHP_STDOUT="$(mktemp "${__IMOSH_CORE_TMPDIR}/php_stdout.XXXXXX")"
-  __IMOSH_PHP_EXECUTER_PID="$$"
-  __IMOSH_PHP_PID="$(mktemp "${__IMOSH_CORE_TMPDIR}/php_pid.XXXXXX")"
-  rm "${__IMOSH_PHP_STDIN}" "${__IMOSH_PHP_STDOUT}"
+  if (( FLAGS_disown_php )); then
+    exec 111>&- 110<&-
+    __IMOSH_PHP_STDIN="$(mktemp "${__IMOSH_CORE_TMPDIR}/php_stdin.XXXXXX")"
+    __IMOSH_PHP_STDOUT="$(mktemp "${__IMOSH_CORE_TMPDIR}/php_stdout.XXXXXX")"
+    __IMOSH_PHP_EXECUTER_PID="$$"
+    __IMOSH_PHP_PID="$(mktemp "${__IMOSH_CORE_TMPDIR}/php_pid.XXXXXX")"
+    rm "${__IMOSH_PHP_STDIN}" "${__IMOSH_PHP_STDOUT}"
+  fi
   local php_script="$(mktemp "${__IMOSH_CORE_TMPDIR}/php_script.XXXXXX")"
   cat << 'EOM' >"${php_script}"
 <?php
@@ -49,25 +57,22 @@ while (($line = fgets(STDIN)) !== FALSE) {
   $output = ob_get_clean();
   echo "\$'" . strtr($output, $translate) . "'\n";
   echo intval($value) . "\n";
+  if (isset($argv[1]) && $argv[1] == 'once') exit(0);
 }
 
 EOM
+  LOG INFO 'Starting to run php...'
+  if (( ! FLAGS_disown_php )); then
+    php "${php_script}" once
+    return
+  fi
   mkfifo "${__IMOSH_PHP_STDIN}"
   mkfifo "${__IMOSH_PHP_STDOUT}"
-  LOG INFO 'Starting to run php...'
-  if (( FLAGS_disown_php )); then
-    bash -c "nohup php '${php_script}' \
-                 <'${__IMOSH_PHP_STDIN}' \
-                 >'${__IMOSH_PHP_STDOUT}' \
-                 2>/dev/null &
-             echo \$! >'${__IMOSH_PHP_PID}'"
-  else
-    php "${php_script}" \
-        <"${__IMOSH_PHP_STDIN}" \
-        >"${__IMOSH_PHP_STDOUT}" \
-        2>/dev/null &
-    echo "$!" >"${__IMOSH_PHP_PID}"
-  fi
+  bash -c "nohup php '${php_script}' \
+               <'${__IMOSH_PHP_STDIN}' \
+               >'${__IMOSH_PHP_STDOUT}' \
+               2>/dev/null &
+           echo \$! >'${__IMOSH_PHP_PID}'"
   LOG INFO "Opening PHP's STDIN..."
   exec 111>"${__IMOSH_PHP_STDIN}"
   LOG INFO "Opening PHP's STDOUT..."
