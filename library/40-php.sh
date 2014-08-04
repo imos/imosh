@@ -1,5 +1,10 @@
 __IMOSH_PHP_EXECUTER_PID=''
 
+php::internal::kill() {
+  php::internal::run 'exit(0);'
+  kill -TERM "$(cat "${__IMOSH_PHP_PID}")" 2>/dev/null
+}
+
 php::internal::run() {
   local __php_code="$1"
   local __php_name=''

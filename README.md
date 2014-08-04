@@ -89,6 +89,10 @@ imosh outputs log files to `${TMPDIR}/<program name>.<host name>.<user>.<severit
 PHP-like Functions
 ==================
 
+Required commands are specified inside parenthes.
+php takes much time to execute, so functions avoids using PHP if possible.
+--disown_php disowns a PHP process and speeds up php functions.
+
 php::bin2hex (od)
 -----------------
 
