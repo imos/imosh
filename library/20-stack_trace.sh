@@ -12,6 +12,6 @@ imosh::stack_trace() {
     local file="${BASH_SOURCE[$((i+1))]}"
     local function="${FUNCNAME[$((i+1))]}"
     echo "  at ${function} (${file}:${lineno})" >&2
-    ((i+=1))
+    (( i += 1 )) || true
   done
 }

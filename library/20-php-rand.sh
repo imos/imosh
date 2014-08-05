@@ -14,6 +14,7 @@ php::rand() {
   fi
   if [ "${range}" -eq 1 ]; then
     print "${min}"
+    return
   fi
   local rand=0
   (( rand = RANDOM ^ (RANDOM << 8) ^
