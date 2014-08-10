@@ -593,16 +593,18 @@ imosh::internal::flag_type() {
 }
 
 imosh::internal::define_flag() {
+  local type="$1"; shift
+
   local ARGS_alias='' ARGS_alias_flag=0
   eval "${IMOSH_PARSE_ARGUMENTS}"
-  local type="$1"
-  local name="$2"
-  local default_value="$3"
-  local description="$4"
 
-  if [ "$#" -ne 4 ]; then
-    LOG FATAL 'DEFINE_${type} requires 3 arguments.'
+  if [ "$#" -lt 3 ]; then
+    LOG FATAL 'DEFINE_${type} requires 3+ arguments.'
   fi
+  local name="$1"; shift
+  local default_value="$1"; shift
+  local description="$*"
+
   # Change the default value based on its corresponding environment variable.
   if php::isset "IMOSH_FLAGS_${name}"; then
     default_value="$(eval print "\${IMOSH_FLAGS_${name}}")"
@@ -618,8 +620,8 @@ imosh::internal::define_flag() {
   eval "FLAGS_${name}=$(imosh::shell_escape "${default_value}")"
   eval "__IMOSH_FLAGS_TYPE_${name}=${type}"
   if [ "${ARGS_alias}" != '' ]; then
-    imosh::internal::define_flag --alias_flag \
-        "${type}" "${ARGS_alias}" "${default_value}" "${description}"
+    imosh::internal::define_flag "${type}" --alias_flag \
+        "${ARGS_alias}" "${default_value}" "${description}"
     eval "__IMOSH_FLAGS_ALIASES+=( \
               $(imosh::shell_escape "${name}:${ARGS_alias}"))"
   fi
