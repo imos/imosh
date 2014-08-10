@@ -112,7 +112,7 @@ imosh::internal::man() {
     echo -n '\fB'
     eval "echo -n \"\${__IMOSH_FLAGS_DEFAULT_${flag_name}}\""
     echo '\fP'
-    eval "echo \"  \${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\""
+    eval "echo \"\${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\""
     echo
   done
 }
