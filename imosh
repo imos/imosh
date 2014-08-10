@@ -1,5 +1,5 @@
 #!/bin/bash
-# Last update: 2014-08-06 03:43:33 +0900 (65ac8e0)
+# Last update: 2014-08-10 16:46:55 +0900 (9b8a2d6)
 #
 # imosh - Libraries for BASH.
 
@@ -203,6 +203,10 @@ imosh::internal::parse_args() {
     local arg="$1"
     shift
     if [ "${arg:0:1}" != '-' ]; then
+      IMOSH_ARGV+=("${arg}")
+      continue
+    fi
+    if [[ "${arg}" =~ ^-[0-9] ]]; then
       IMOSH_ARGV+=("${arg}")
       continue
     fi

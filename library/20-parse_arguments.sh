@@ -13,6 +13,10 @@ imosh::internal::parse_args() {
       IMOSH_ARGV+=("${arg}")
       continue
     fi
+    if [[ "${arg}" =~ ^-[0-9] ]]; then
+      IMOSH_ARGV+=("${arg}")
+      continue
+    fi
     if [ "${arg}" == '--' ]; then
       IMOSH_ARGV+=("$@")
       break
