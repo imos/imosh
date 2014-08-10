@@ -86,7 +86,8 @@ imosh::internal::define_flag() {
         ;;
       *) escaped_default_value="$(imosh::shell_escape "${default_value}")";;
     esac
-    description="--${name}=${escaped_default_value}: ${description}"
+    eval "__IMOSH_FLAGS_DEFAULT_${name}=$(
+              imosh::shell_escape "--${name}=${escaped_default_value}")"
     if [ "${ARGS_alias}" != '' ]; then
       description+=" (Alias: --${ARGS_alias})"
     fi
@@ -100,6 +101,30 @@ DEFINE_string() { imosh::internal::define_flag string "$@"; }
 DEFINE_int() { imosh::internal::define_flag int "$@"; }
 DEFINE_bool() { imosh::internal::define_flag bool "$@"; }
 DEFINE_double() { imosh::internal::define_flag double "$@"; }
+
+imosh::internal::man() {
+  echo ".TH ${0##*/} 1"; echo
+  echo '.SH SYNOPSIS'
+  echo ".B ${0##*/}"; echo '[\fIOPTIONS\fP] [\fIargs...\fP]'; echo
+  echo '.SH OPTIONS';
+  for flag_name in "${__IMOSH_FLAGS[@]}"; do
+    echo '.TP'
+    echo -n '\fB'
+    eval "echo -n \"\${__IMOSH_FLAGS_DEFAULT_${flag_name}}\""
+    echo '\fP'
+    eval "echo \"  \${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\""
+    echo
+  done
+}
+
+imosh::internal::help() {
+  echo "Usage: ${0} [options ...] [args ...]"
+  echo "Options:"
+  for flag_name in "${__IMOSH_FLAGS[@]}"; do
+    eval "echo -n \"  \${__IMOSH_FLAGS_DEFAULT_${flag_name}}:\""
+    eval "echo \" \${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\""
+  done
+}
 
 imosh::internal::init() {
   imosh::internal::parse_args flag "$@"
@@ -116,11 +141,13 @@ imosh::internal::init() {
     readonly "${IMOSH_ARGS[@]}"
   fi
   if (( FLAGS_help )); then
-    echo "Usage: ${0} [options ...] [args ...]" >&2
-    echo "Options:" >&2
-    for flag_name in "${__IMOSH_FLAGS[@]}"; do
-      eval "echo \"  \${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\"" >&2
-    done
+    if [ -t 1 ]; then
+      local man_file="${__IMOSH_CORE_TMPDIR}/man"
+      imosh::internal::man >"${man_file}"
+      man "${man_file}"
+    else
+      imosh::internal::help >&2
+    fi
     exit 0
   fi
 }
