@@ -1,8 +1,11 @@
 concat:
+	@echo '#!/bin/bash' >imosh
+	@echo "# Last update: $$(git log --date=iso --pretty=format:'%cd (%h)' library | head -n 1)" >>imosh
+	@echo '#' >>imosh
 	@for library in library/*.sh; do \
 	  cat "$${library}"; \
 	  echo; \
-	done >imosh
+	done >>imosh
 	@chmod +x imosh
 .PHONY: concat
 

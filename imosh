@@ -1,3 +1,6 @@
+#!/bin/bash
+# Last update: 2014-08-06 03:43:33 +0900 (65ac8e0)
+#
 # imosh - Libraries for BASH.
 
 if ! shopt login_shell >/dev/null; then
@@ -372,6 +375,11 @@ php::isset() {
   return 0
 }
 
+php::ltrim() {
+  local value="$*"
+  print "${value#"${value%%[![:space:]]*}"}"
+}
+
 php::md5() {
   if which openssl >/dev/null 2>/dev/null; then
     print "${1}" | openssl md5 -binary | php::bin2hex
@@ -420,6 +428,7 @@ php::rand() {
   fi
   if [ "${range}" -eq 1 ]; then
     print "${min}"
+    return
   fi
   local rand=0
   (( rand = RANDOM ^ (RANDOM << 8) ^
@@ -428,6 +437,11 @@ php::rand() {
             (RANDOM << 48) ^ (RANDOM << 56) )) || true
   (( rand = min + ( rand % range + range ) % range )) || true
   print "${rand}"
+}
+
+php::rtrim() {
+  local value="$*"
+  print "${value%"${value##*[![:space:]]}"}"
 }
 
 php::internal::set_pivot() {
@@ -509,6 +523,11 @@ php::strtoupper() {
   print "$1" | tr '[a-z]' '[A-Z]'
 }
 
+php::trim() {
+  local value="$*"
+  print "$(php::ltrim "$(php::rtrim "${value}")")"
+}
+
 # Shows a stack trace.  Arguments are used as a message.
 imosh::stack_trace() {
   local max_depth="${#BASH_LINENO[@]}"
@@ -523,7 +542,7 @@ imosh::stack_trace() {
     local file="${BASH_SOURCE[$((i+1))]}"
     local function="${FUNCNAME[$((i+1))]}"
     echo "  at ${function} (${file}:${lineno})" >&2
-    ((i+=1))
+    (( i += 1 )) || true
   done
 }
 
@@ -717,7 +736,7 @@ php::internal::run() {
       read __php_line
       read __php_return_code
       break
-    done <<<"$(printf "%s\n" "${__php_code}" |  php::internal::start)"
+    done < <(printf "%s\n" "${__php_code}" |  php::internal::start)
   fi
 
   if [ "${__php_name}" != '' ]; then

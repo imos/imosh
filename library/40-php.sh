@@ -31,7 +31,7 @@ php::internal::run() {
       read __php_line
       read __php_return_code
       break
-    done <<<"$(printf "%s\n" "${__php_code}" |  php::internal::start)"
+    done < <(printf "%s\n" "${__php_code}" |  php::internal::start)
   fi
 
   if [ "${__php_name}" != '' ]; then

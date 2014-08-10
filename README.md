@@ -9,7 +9,7 @@ imosh is tested on drone.io (https://drone.io/github.com/imos/imosh).
 Supported BASH versions
 -----------------------
 
-* BASH 3.2.51 on Mac OSX Marvericks
+* BASH 3.2.51 on Mac OSX Mavericks
 * BASH 4.2.25 on Ubuntu 14.04
 
 
