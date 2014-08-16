@@ -1,6 +1,6 @@
 __IMOSH_PROGRAM_NAME="${0##*/}"
 __IMOSH_HOSTNAME="$(hostname -s)"
-__IMOSH_USER="${USER}"
+__IMOSH_USER="$(whoami)"
 __IMOSH_LOG_PREFIX="${__IMOSH_PROGRAM_NAME}.${__IMOSH_HOSTNAME}.${__IMOSH_USER}"
 __IMOSH_LOG_DIR="${TMPDIR:-/tmp}"
 __IMOSH_LOG_SUFFIX="$(date +'%Y%m%d.%H%M%S').$$"
