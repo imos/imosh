@@ -138,8 +138,8 @@ LOG() {
       "${level:0:1}${datetime}"
       "${pid}"
       "${BASH_SOURCE[1]##*/}:${BASH_LINENO[0]}]"
-      "$*")
-  message="${message[*]}"
+      "$@")
+  message="$(echo "${message[@]}")"
   if [ "${level}" == 'FATAL' ]; then
     message+=$'\n'
     message+="$(imosh::stack_trace '*** Check failure stack trace: ***' 2>&1)"
