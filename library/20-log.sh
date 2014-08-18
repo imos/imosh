@@ -14,10 +14,12 @@ LOG() {
   if php::isset __IMOSH_LOG_PID; then
     pid="${__IMOSH_LOG_PID}"
   fi
+  local file="${BASH_SOURCE[1]##*/}"
+  if [ "${file}" = '' ]; then file='-'; fi
   local message=(
       "${level:0:1}${datetime}"
       "${pid}"
-      "${BASH_SOURCE[1]##*/}:${BASH_LINENO[0]}]"
+      "${file}:${BASH_LINENO[0]}]"
       "$@")
   message="$(echo "${message[@]}")"
   if [ "${level}" == 'FATAL' ]; then
