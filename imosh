@@ -1,5 +1,5 @@
 #!/bin/bash
-# Last update: 2014-08-19 02:03:45 +0900 (b2fca58)
+# Last update: 2014-08-19 03:39:02 +0900 (9394a1a)
 #
 # imosh - Libraries for BASH.
 
@@ -134,10 +134,12 @@ LOG() {
   if php::isset __IMOSH_LOG_PID; then
     pid="${__IMOSH_LOG_PID}"
   fi
+  local file="${BASH_SOURCE[1]##*/}"
+  if [ "${file}" = '' ]; then file='-'; fi
   local message=(
       "${level:0:1}${datetime}"
       "${pid}"
-      "${BASH_SOURCE[1]##*/}:${BASH_LINENO[0]}]"
+      "${file}:${BASH_LINENO[0]}]"
       "$@")
   message="$(echo "${message[@]}")"
   if [ "${level}" == 'FATAL' ]; then
