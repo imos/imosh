@@ -1,4 +1,4 @@
-source imosh || exit 1
+source "$(dirname "${BASH_SOURCE}")"/../imosh || exit 1
 eval "${IMOSH_INIT}"
 
 EXPECT_EQ() {
