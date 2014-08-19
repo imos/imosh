@@ -6,7 +6,11 @@ run() {
 
 test::help() {
   local pids=()
-  local expected_message="Usage: test/flags.sh [options ...] [args ...]
+  local expected_message="Usage: flags.sh [options...] [args...]
+
+Description:
+  A script to test imosh flags.
+
 Options:
   --help=false: Print this help message and exit. (Alias: --h)
   --alsologtostderr=false: Log messages go to stderr in addition to logfiles.

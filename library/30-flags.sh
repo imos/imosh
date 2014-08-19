@@ -102,10 +102,36 @@ DEFINE_int() { imosh::internal::define_flag int "$@"; }
 DEFINE_bool() { imosh::internal::define_flag bool "$@"; }
 DEFINE_double() { imosh::internal::define_flag double "$@"; }
 
+imosh::internal::get_main_script() {
+  local depth="${#BASH_SOURCE[@]}"
+  local main_script="${BASH_SOURCE[$((depth-1))]}"
+  echo "${main_script}"
+}
+
+imosh::internal::get_usage() {
+  local file="${1}"
+  grep --max-count=1 -B 1000 -v '^#' "${file}" | grep '^#' | while read line; do
+    case "${line}" in
+      '#!'*) continue;;
+      '# '*) echo "${line:2}";;
+      '#'*) echo "${line:1}";;
+    esac
+  done > "${__IMOSH_CORE_TMPDIR}/usage"
+  if [ -s "${__IMOSH_CORE_TMPDIR}/usage" ]; then
+    cat "${__IMOSH_CORE_TMPDIR}/usage"
+  else
+    echo 'No description.'
+  fi
+}
+
 imosh::internal::man() {
   echo ".TH ${0##*/} 1"; echo
   echo '.SH SYNOPSIS'
   echo ".B ${0##*/}"; echo '[\fIOPTIONS\fP] [\fIargs...\fP]'; echo
+
+  echo '.SH DESCRIPTION'
+  imosh::internal::get_usage "$(imosh::internal::get_main_script)"
+
   echo '.SH OPTIONS';
   for flag_name in "${__IMOSH_FLAGS[@]}"; do
     echo '.TP'
@@ -118,7 +144,14 @@ imosh::internal::man() {
 }
 
 imosh::internal::help() {
-  echo "Usage: ${0} [options ...] [args ...]"
+  echo "Usage: ${0##*/} [options...] [args...]"
+  echo
+  echo 'Description:'
+  imosh::internal::get_usage "$(imosh::internal::get_main_script)" | \
+      while read line; do
+    echo "  ${line}"
+  done
+  echo
   echo "Options:"
   for flag_name in "${__IMOSH_FLAGS[@]}"; do
     eval "echo -n \"  \${__IMOSH_FLAGS_DEFAULT_${flag_name}}:\""

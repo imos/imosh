@@ -1,3 +1,6 @@
+#!/bin/bash
+# A script to test imosh flags.
+
 source "$(dirname "${BASH_SOURCE}")"/../imosh || exit 1
 
 DEFINE_string 'flag' '' 'Flag name to show.'
