@@ -22,7 +22,7 @@ LOG() {
       "${file}:${BASH_LINENO[0]}]"
       "$@")
   message="$(echo "${message[@]}")"
-  if [ "${level}" == 'FATAL' ]; then
+  if [ "${level}" = 'FATAL' ]; then
     message+=$'\n'
     message+="$(imosh::stack_trace '*** Check failure stack trace: ***' 2>&1)"
   fi

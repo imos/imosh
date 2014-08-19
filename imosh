@@ -7,7 +7,7 @@ if ! shopt login_shell >/dev/null; then
   set -e -u
 fi
 
-if [ "${__IMOSH_IS_LOADED+loaded}" == 'loaded' ]; then
+if [ "${__IMOSH_IS_LOADED+loaded}" = 'loaded' ]; then
   return
 fi
 __IMOSH_IS_LOADED=loaded
@@ -142,7 +142,7 @@ LOG() {
       "${file}:${BASH_LINENO[0]}]"
       "$@")
   message="$(echo "${message[@]}")"
-  if [ "${level}" == 'FATAL' ]; then
+  if [ "${level}" = 'FATAL' ]; then
     message+=$'\n'
     message+="$(imosh::stack_trace '*** Check failure stack trace: ***' 2>&1)"
   fi
@@ -212,7 +212,7 @@ imosh::internal::parse_args() {
       IMOSH_ARGV+=("${arg}")
       continue
     fi
-    if [ "${arg}" == '--' ]; then
+    if [ "${arg}" = '--' ]; then
       IMOSH_ARGV+=("$@")
       break
     fi
@@ -226,7 +226,7 @@ imosh::internal::parse_args() {
     fi
     arg_value="${arg:${#arg_name}}"
     if [ "${arg_value:0:1}" != '=' ]; then
-      if [ "${arg_name:0:2}" == 'no' ]; then
+      if [ "${arg_name:0:2}" = 'no' ]; then
         if php::isset "${upper_class_name}S_${arg_name:2}"; then
           if [ "${class_name}" != 'flag' ] || \
              [ "$(imosh::internal::flag_type "${arg_name:2}")" = 'bool' ]; then
@@ -254,7 +254,7 @@ imosh::internal::parse_args() {
     fi
     arg_value="${arg_value:1}"
     if php::isset "${upper_class_name}S_${arg_name}"; then
-      if [ "${class_name}" == 'flag' ]; then
+      if [ "${class_name}" = 'flag' ]; then
         if ! imosh::internal::convert_type \
                "$(imosh::internal::flag_type "${arg_name}")" \
                "${arg_value}" >/dev/null; then
@@ -380,7 +380,7 @@ php::implode() {
 php::isset() {
   local variable_name="$1"
 
-  if [ "$(eval echo '${'"${variable_name}"'+set}')" == '' ]; then
+  if [ "$(eval echo '${'"${variable_name}"'+set}')" = '' ]; then
     return 1
   fi
   return 0
@@ -543,7 +543,7 @@ php::trim() {
 imosh::stack_trace() {
   local max_depth="${#BASH_LINENO[@]}"
   local i=0
-  if [ "$*" == '' ]; then
+  if [ "$*" = '' ]; then
     echo 'imosh::stack_trace is called' >&2
   else
     echo "$*" >&2
@@ -763,7 +763,7 @@ DEFINE_bool 'logtostderr' false \
 imosh::mktemp() {
   TMPDIR="${TMPDIR%/}"
   export IMOSH_TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/imosh.XXXXXX")"
-  if [ "${IMOSH_TMPDIR}" == '' -o  "${IMOSH_TMPDIR}" == '/' ]; then
+  if [ "${IMOSH_TMPDIR}" = '' -o  "${IMOSH_TMPDIR}" = '/' ]; then
     LOG FATAL 'failed to create a temporary directory.'
   fi
 
@@ -815,7 +815,7 @@ php::internal::run() {
   if [ "${__php_name}" != '' ]; then
     eval "${__php_name}=${__php_line//@/\\}"
   fi
-  if [ "${__php_return_code}" == '' ]; then return 1; fi
+  if [ "${__php_return_code}" = '' ]; then return 1; fi
   return "${__php_return_code}"
 }
 

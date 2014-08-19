@@ -1,7 +1,7 @@
 imosh::mktemp() {
   TMPDIR="${TMPDIR%/}"
   export IMOSH_TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/imosh.XXXXXX")"
-  if [ "${IMOSH_TMPDIR}" == '' -o  "${IMOSH_TMPDIR}" == '/' ]; then
+  if [ "${IMOSH_TMPDIR}" = '' -o  "${IMOSH_TMPDIR}" = '/' ]; then
     LOG FATAL 'failed to create a temporary directory.'
   fi
 

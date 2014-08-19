@@ -2,7 +2,7 @@
 imosh::stack_trace() {
   local max_depth="${#BASH_LINENO[@]}"
   local i=0
-  if [ "$*" == '' ]; then
+  if [ "$*" = '' ]; then
     echo 'imosh::stack_trace is called' >&2
   else
     echo "$*" >&2
