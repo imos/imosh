@@ -1,4 +1,4 @@
-source imosh || exit 1
+source "$(dirname "${BASH_SOURCE}")"/../imosh || exit 1
 
 DEFINE_string 'flag' '' 'Flag name to show.'
 DEFINE_bool 'show_argv' false 'Output extra argv.'

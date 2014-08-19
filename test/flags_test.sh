@@ -58,9 +58,23 @@ test::int_flag() {
   ASSERT_EQ 'FLAGS_int=012345' "$(get_flag --flag=int --int=012345)" &
   pids+=("$!")
 
+  ASSERT_EQ 'FLAGS_int=0' "$(get_flag --flag=int --int 0)" &
+  pids+=("$!")
+  ASSERT_EQ 'FLAGS_int=12345' "$(get_flag --flag=int --int 12345)" &
+  pids+=("$!")
+  ASSERT_EQ 'FLAGS_int=-12345' "$(get_flag --flag=int --int -12345)" &
+  pids+=("$!")
+  ASSERT_EQ 'FLAGS_int=012345' "$(get_flag --flag=int --int 012345)" &
+  pids+=("$!")
+
   ASSERT_EQ 'invalid' "$(get_flag --flag=int --int)" &
   pids+=("$!")
   ASSERT_EQ 'invalid' "$(get_flag --flag=int --int=abc)" &
+  pids+=("$!")
+
+  ASSERT_EQ 'invalid' "$(get_flag --flag=int --int)" &
+  pids+=("$!")
+  ASSERT_EQ 'invalid' "$(get_flag --flag=int --int abc)" &
   pids+=("$!")
 
   for pid in "${pids[@]}"; do
@@ -78,6 +92,11 @@ test::string_flag() {
   ASSERT_EQ 'FLAGS_string=' "$(get_flag --flag=string --string=)" &
   pids+=("$!")
   ASSERT_EQ 'FLAGS_string=abc' "$(get_flag --flag=string --string=abc)" &
+  pids+=("$!")
+
+  ASSERT_EQ 'FLAGS_string=' "$(get_flag --flag=string --string '')" &
+  pids+=("$!")
+  ASSERT_EQ 'FLAGS_string=abc' "$(get_flag --flag=string --string abc)" &
   pids+=("$!")
 
   ASSERT_EQ 'invalid' "$(get_flag --flag=string --string)" &
