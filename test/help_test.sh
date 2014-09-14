@@ -6,21 +6,24 @@ run() {
 
 test::help() {
   local pids=()
-  local expected_message="Usage: flags.sh [options...] [args...]
+  local expected_message="USAGE: flags.sh [options...] [args...]
 
-Description:
+DESCRIPTION:
   A script to test imosh flags.
 
-Options:
-  --help=false: Print this help message and exit. (Alias: --h)
-  --alsologtostderr=false: Log messages go to stderr in addition to logfiles.
-  --logtostderr=false: Log messages go to stderr instead of logfiles.
-  --disown_php=false: Disown a PHP process.
-  --flag='': Flag name to show.
-  --show_argv=false: Output extra argv.
-  --string='default': String flag.
-  --int=100: Integer flag.
-  --bool=false: Boolean flag."
+OPTIONS:
+  MAIN OPTIONS:
+    --bool=false: Boolean flag.
+    --disown_php=false: Disown a PHP process.
+    --flag='': Flag name to show.
+    --int=100: Integer flag.
+    --show_argv=false: Output extra argv.
+    --string='default': String flag.
+  IMOSH OPTIONS:
+    --alsologtostderr=false: Log messages go to stderr in addition to logfiles.
+    --help=false: Print this help message and exit. (Alias: --h)
+    --help_groff=false: Use groff for help output.
+    --logtostderr=false: Log messages go to stderr instead of logfiles."
   ASSERT_EQ "${expected_message}" "$(run --help 2>&1 >/dev/null)" &
   pids+=("$!")
   ASSERT_EQ "${expected_message}" "$(run -h 2>&1 >/dev/null)" &
@@ -35,4 +38,58 @@ Options:
       IMOSH_TEST_IS_FAILED=1
     fi
   done
+}
+
+test::help_groff() {
+  local expected_message='.TH flags.sh 1
+
+.SH SYNOPSIS
+.B flags.sh
+[\fIOPTIONS\fP] [\fIargs...\fP]
+
+.SH DESCRIPTION
+A script to test imosh flags.
+.SH OPTIONS
+.SS MAIN OPTIONS
+.TP
+\fB--bool=false\fP
+Boolean flag.
+
+.TP
+\fB--disown_php=false\fP
+Disown a PHP process.
+
+.TP
+\fB--flag='\'\''\fP
+Flag name to show.
+
+.TP
+\fB--int=100\fP
+Integer flag.
+
+.TP
+\fB--show_argv=false\fP
+Output extra argv.
+
+.TP
+\fB--string='\''default'\''\fP
+String flag.
+
+.SS IMOSH OPTIONS
+.TP
+\fB--alsologtostderr=false\fP
+Log messages go to stderr in addition to logfiles.
+
+.TP
+\fB--help=false\fP
+Print this help message and exit. (Alias: --h)
+
+.TP
+\fB--help_groff=false\fP
+Use groff for help output.
+
+.TP
+\fB--logtostderr=false\fP
+Log messages go to stderr instead of logfiles.'
+  ASSERT_EQ "${expected_message}" "$(run --help --help_groff)"
 }

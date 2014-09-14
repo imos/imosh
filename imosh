@@ -1,5 +1,5 @@
 #!/bin/bash
-# Last update: 2014-08-20 02:04:02 +0900 (c4c869c)
+# Last update: 2014-09-14 14:28:18 +0900 (bf3b97b)
 #
 # imosh - Libraries for BASH.
 
@@ -7,7 +7,7 @@ if ! shopt login_shell >/dev/null; then
   set -e -u
 fi
 
-if [ "${__IMOSH_IS_LOADED+loaded}" == 'loaded' ]; then
+if [ "${__IMOSH_IS_LOADED+loaded}" = 'loaded' ]; then
   return
 fi
 __IMOSH_IS_LOADED=loaded
@@ -142,7 +142,7 @@ LOG() {
       "${file}:${BASH_LINENO[0]}]"
       "$@")
   message="$(echo "${message[@]}")"
-  if [ "${level}" == 'FATAL' ]; then
+  if [ "${level}" = 'FATAL' ]; then
     message+=$'\n'
     message+="$(imosh::stack_trace '*** Check failure stack trace: ***' 2>&1)"
   fi
@@ -212,7 +212,7 @@ imosh::internal::parse_args() {
       IMOSH_ARGV+=("${arg}")
       continue
     fi
-    if [ "${arg}" == '--' ]; then
+    if [ "${arg}" = '--' ]; then
       IMOSH_ARGV+=("$@")
       break
     fi
@@ -226,7 +226,7 @@ imosh::internal::parse_args() {
     fi
     arg_value="${arg:${#arg_name}}"
     if [ "${arg_value:0:1}" != '=' ]; then
-      if [ "${arg_name:0:2}" == 'no' ]; then
+      if [ "${arg_name:0:2}" = 'no' ]; then
         if php::isset "${upper_class_name}S_${arg_name:2}"; then
           if [ "${class_name}" != 'flag' ] || \
              [ "$(imosh::internal::flag_type "${arg_name:2}")" = 'bool' ]; then
@@ -254,7 +254,7 @@ imosh::internal::parse_args() {
     fi
     arg_value="${arg_value:1}"
     if php::isset "${upper_class_name}S_${arg_name}"; then
-      if [ "${class_name}" == 'flag' ]; then
+      if [ "${class_name}" = 'flag' ]; then
         if ! imosh::internal::convert_type \
                "$(imosh::internal::flag_type "${arg_name}")" \
                "${arg_value}" >/dev/null; then
@@ -380,7 +380,7 @@ php::implode() {
 php::isset() {
   local variable_name="$1"
 
-  if [ "$(eval echo '${'"${variable_name}"'+set}')" == '' ]; then
+  if [ "$(eval echo '${'"${variable_name}"'+set}')" = '' ]; then
     return 1
   fi
   return 0
@@ -543,7 +543,7 @@ php::trim() {
 imosh::stack_trace() {
   local max_depth="${#BASH_LINENO[@]}"
   local i=0
-  if [ "$*" == '' ]; then
+  if [ "$*" = '' ]; then
     echo 'imosh::stack_trace is called' >&2
   else
     echo "$*" >&2
@@ -602,7 +602,7 @@ imosh::internal::flag_type() {
 imosh::internal::define_flag() {
   local type="$1"; shift
 
-  local ARGS_alias='' ARGS_alias_flag=0
+  local ARGS_alias='' ARGS_alias_flag=0 ARGS_group='main'
   eval "${IMOSH_PARSE_ARGUMENTS}"
 
   if [ "$#" -lt 3 ]; then
@@ -611,6 +611,7 @@ imosh::internal::define_flag() {
   local name="$1"; shift
   local default_value="$1"; shift
   local description="$*"
+  local group="$(php::strtoupper "${ARGS_group}")"
 
   # Change the default value based on its corresponding environment variable.
   if php::isset "IMOSH_FLAGS_${name}"; then
@@ -652,7 +653,7 @@ imosh::internal::define_flag() {
     fi
     eval "__IMOSH_FLAGS_DESCRIPTION_${name}=$(
               imosh::shell_escape "${description}")"
-    __IMOSH_FLAGS+=("${name}")
+    __IMOSH_FLAGS+=("${group}:${name}")
   fi
 }
 
@@ -683,6 +684,57 @@ imosh::internal::get_usage() {
   fi
 }
 
+imosh::internal::flag_groups() {
+  local groups=()
+  local group=''
+  local main_group_exists=0
+  local imosh_group_exists=0
+  for flag_name in "${__IMOSH_FLAGS[@]}"; do
+    local parts=()
+    php::explode parts ':' "${flag_name}"
+    group="${parts[0]}"
+    local lower_group="$(php::strtolower "${group}")"
+    if [ "${lower_group}" == 'main' ]; then
+      main_group_exists=1
+    elif [ "${lower_group}" == 'imosh' ]; then
+      imosh_group_exists=1
+    else
+      groups+=("${group}")
+    fi
+  done
+  if (( main_group_exists )); then
+    echo 'main'
+  fi
+  if [ "${#groups[@]}" -ne 0 ]; then
+    php::array_unique groups
+    for group in "${groups[@]}"; do
+      echo "${group}"
+    done
+  fi
+  if (( imosh_group_exists )); then
+    echo 'imosh'
+  fi
+}
+
+imosh::internal::group_flags() {
+  local group="$1"
+  local lower_group="$(php::strtolower "${group}")"
+
+  local flags=()
+  for flag_name in "${__IMOSH_FLAGS[@]}"; do
+    local parts=()
+    php::explode parts ':' "${flag_name}"
+    if [ "${lower_group}" != "$(php::strtolower "${parts[0]}")" ]; then
+      continue
+    fi
+    flags+=("${parts[1]}")
+  done
+  php::sort flags
+  for flag in "${flags[@]}"; do
+    echo "${flag}"
+  done
+}
+
 imosh::internal::man() {
   echo ".TH ${0##*/} 1"; echo
   echo '.SH SYNOPSIS'
@@ -691,30 +743,36 @@ imosh::internal::man() {
   echo '.SH DESCRIPTION'
   imosh::internal::get_usage "$(imosh::internal::get_main_script)"
 
-  echo '.SH OPTIONS';
-  for flag_name in "${__IMOSH_FLAGS[@]}"; do
-    echo '.TP'
-    echo -n '\fB'
-    eval "echo -n \"\${__IMOSH_FLAGS_DEFAULT_${flag_name}}\""
-    echo '\fP'
-    eval "echo \"\${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\""
-    echo
+  echo '.SH OPTIONS'
+  for flag_group in $(imosh::internal::flag_groups); do
+    echo ".SS $(php::strtoupper "${flag_group}") OPTIONS"
+    for flag_name in $(imosh::internal::group_flags "${flag_group}"); do
+      echo '.TP'
+      echo -n '\fB'
+      eval "echo -n \"\${__IMOSH_FLAGS_DEFAULT_${flag_name}}\""
+      echo '\fP'
+      eval "echo \"\${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\""
+      echo
+    done
   done
 }
 
 imosh::internal::help() {
-  echo "Usage: ${0##*/} [options...] [args...]"
+  echo "USAGE: ${0##*/} [options...] [args...]"
   echo
-  echo 'Description:'
+  echo 'DESCRIPTION:'
   imosh::internal::get_usage "$(imosh::internal::get_main_script)" | \
       while read line; do
     echo "  ${line}"
   done
   echo
-  echo "Options:"
-  for flag_name in "${__IMOSH_FLAGS[@]}"; do
-    eval "echo -n \"  \${__IMOSH_FLAGS_DEFAULT_${flag_name}}:\""
-    eval "echo \" \${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\""
+  echo "OPTIONS:"
+  for flag_group in $(imosh::internal::flag_groups); do
+    echo "  $(php::strtoupper "${flag_group}") OPTIONS:"
+    for flag_name in $(imosh::internal::group_flags "${flag_group}"); do
+      eval "echo -n \"    \${__IMOSH_FLAGS_DEFAULT_${flag_name}}:\""
+      eval "echo \" \${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\""
+    done
   done
 }
 
@@ -730,13 +788,15 @@ imosh::internal::init() {
     done
   fi
   if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
-    readonly "${IMOSH_ARGS[@]}"
+    eval "${IMOSH_ARGS[@]}"
   fi
   if (( FLAGS_help )); then
     if [ -t 1 ]; then
       local man_file="${__IMOSH_CORE_TMPDIR}/man"
       imosh::internal::man >"${man_file}"
       man "${man_file}"
+    elif (( FLAGS_help_groff )); then
+      imosh::internal::man
     else
       imosh::internal::help >&2
     fi
@@ -754,16 +814,19 @@ readonly IMOSH_INIT='
 __IMOSH_FLAGS=()
 __IMOSH_FLAGS_ALIASES=()
 
-DEFINE_bool --alias=h help false 'Print this help message and exit.'
-DEFINE_bool 'alsologtostderr' false \
-            'Log messages go to stderr in addition to logfiles.'
-DEFINE_bool 'logtostderr' false \
-            'Log messages go to stderr instead of logfiles.'
+DEFINE_bool --group=imosh --alias=h help false \
+    'Print this help message and exit.'
+DEFINE_bool --group=imosh 'alsologtostderr' false \
+    'Log messages go to stderr in addition to logfiles.'
+DEFINE_bool --group=imosh 'logtostderr' false \
+    'Log messages go to stderr instead of logfiles.'
+DEFINE_bool --group=imosh 'help_groff' false \
+    'Use groff for help output.'
 
 imosh::mktemp() {
   TMPDIR="${TMPDIR%/}"
   export IMOSH_TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/imosh.XXXXXX")"
-  if [ "${IMOSH_TMPDIR}" == '' -o  "${IMOSH_TMPDIR}" == '/' ]; then
+  if [ "${IMOSH_TMPDIR}" = '' -o  "${IMOSH_TMPDIR}" = '/' ]; then
     LOG FATAL 'failed to create a temporary directory.'
   fi
 
@@ -815,7 +878,7 @@ php::internal::run() {
   if [ "${__php_name}" != '' ]; then
     eval "${__php_name}=${__php_line//@/\\}"
   fi
-  if [ "${__php_return_code}" == '' ]; then return 1; fi
+  if [ "${__php_return_code}" = '' ]; then return 1; fi
   return "${__php_return_code}"
 }
 

@@ -37,7 +37,7 @@ php::internal::run() {
   if [ "${__php_name}" != '' ]; then
     eval "${__php_name}=${__php_line//@/\\}"
   fi
-  if [ "${__php_return_code}" == '' ]; then return 1; fi
+  if [ "${__php_return_code}" = '' ]; then return 1; fi
   return "${__php_return_code}"
 }
 

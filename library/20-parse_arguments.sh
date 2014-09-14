@@ -17,7 +17,7 @@ imosh::internal::parse_args() {
       IMOSH_ARGV+=("${arg}")
       continue
     fi
-    if [ "${arg}" == '--' ]; then
+    if [ "${arg}" = '--' ]; then
       IMOSH_ARGV+=("$@")
       break
     fi
@@ -31,7 +31,7 @@ imosh::internal::parse_args() {
     fi
     arg_value="${arg:${#arg_name}}"
     if [ "${arg_value:0:1}" != '=' ]; then
-      if [ "${arg_name:0:2}" == 'no' ]; then
+      if [ "${arg_name:0:2}" = 'no' ]; then
         if php::isset "${upper_class_name}S_${arg_name:2}"; then
           if [ "${class_name}" != 'flag' ] || \
              [ "$(imosh::internal::flag_type "${arg_name:2}")" = 'bool' ]; then
@@ -59,7 +59,7 @@ imosh::internal::parse_args() {
     fi
     arg_value="${arg_value:1}"
     if php::isset "${upper_class_name}S_${arg_name}"; then
-      if [ "${class_name}" == 'flag' ]; then
+      if [ "${class_name}" = 'flag' ]; then
         if ! imosh::internal::convert_type \
                "$(imosh::internal::flag_type "${arg_name}")" \
                "${arg_value}" >/dev/null; then
