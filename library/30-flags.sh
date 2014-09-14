@@ -236,6 +236,8 @@ imosh::internal::init() {
       local man_file="${__IMOSH_CORE_TMPDIR}/man"
       imosh::internal::man >"${man_file}"
       man "${man_file}"
+    elif (( FLAGS_help_groff )); then
+      imosh::internal::man
     else
       imosh::internal::help >&2
     fi
@@ -256,6 +258,8 @@ __IMOSH_FLAGS_ALIASES=()
 DEFINE_bool --group=imosh --alias=h help false \
     'Print this help message and exit.'
 DEFINE_bool --group=imosh 'alsologtostderr' false \
-            'Log messages go to stderr in addition to logfiles.'
+    'Log messages go to stderr in addition to logfiles.'
 DEFINE_bool --group=imosh 'logtostderr' false \
-            'Log messages go to stderr instead of logfiles.'
+    'Log messages go to stderr instead of logfiles.'
+DEFINE_bool --group=imosh 'help_groff' false \
+    'Use groff for help output.'
