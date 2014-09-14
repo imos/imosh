@@ -16,14 +16,14 @@ Supported BASH versions
 Features
 ========
 
-Help like man page
-------------------
+Man-like help
+-------------
 
 imosh can show a help page like a man page.
 
 ![imosh help page](https://raw.github.com/wiki/imos/imosh/images/help.png)
 
-Flag definitions like gflags
+gflags-like flag definitions
 ----------------------------
 
 imosh enables shell scripts to use flag definitions like gflags.
@@ -34,7 +34,7 @@ DEFINE_int 'int' 100 'Integer flag.'
 DEFINE_bool 'bool' false 'Boolean flag.'
 ```
 
-Logging like glog
+Glog-like logging
 -----------------
 
 imosh provides a standard way for logging like glog.
