@@ -6,21 +6,23 @@ run() {
 
 test::help() {
   local pids=()
-  local expected_message="Usage: flags.sh [options...] [args...]
+  local expected_message="USAGE: flags.sh [options...] [args...]
 
-Description:
+DESCRIPTION:
   A script to test imosh flags.
 
-Options:
-  --help=false: Print this help message and exit. (Alias: --h)
-  --alsologtostderr=false: Log messages go to stderr in addition to logfiles.
-  --logtostderr=false: Log messages go to stderr instead of logfiles.
-  --disown_php=false: Disown a PHP process.
-  --flag='': Flag name to show.
-  --show_argv=false: Output extra argv.
-  --string='default': String flag.
-  --int=100: Integer flag.
-  --bool=false: Boolean flag."
+OPTIONS:
+  MAIN OPTIONS:
+    --bool=false: Boolean flag.
+    --disown_php=false: Disown a PHP process.
+    --flag='': Flag name to show.
+    --int=100: Integer flag.
+    --show_argv=false: Output extra argv.
+    --string='default': String flag.
+  IMOSH OPTIONS:
+    --alsologtostderr=false: Log messages go to stderr in addition to logfiles.
+    --help=false: Print this help message and exit. (Alias: --h)
+    --logtostderr=false: Log messages go to stderr instead of logfiles."
   ASSERT_EQ "${expected_message}" "$(run --help 2>&1 >/dev/null)" &
   pids+=("$!")
   ASSERT_EQ "${expected_message}" "$(run -h 2>&1 >/dev/null)" &

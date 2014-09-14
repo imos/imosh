@@ -43,7 +43,7 @@ imosh::internal::flag_type() {
 imosh::internal::define_flag() {
   local type="$1"; shift
 
-  local ARGS_alias='' ARGS_alias_flag=0
+  local ARGS_alias='' ARGS_alias_flag=0 ARGS_group='main'
   eval "${IMOSH_PARSE_ARGUMENTS}"
 
   if [ "$#" -lt 3 ]; then
@@ -52,6 +52,7 @@ imosh::internal::define_flag() {
   local name="$1"; shift
   local default_value="$1"; shift
   local description="$*"
+  local group="$(php::strtoupper "${ARGS_group}")"
 
   # Change the default value based on its corresponding environment variable.
   if php::isset "IMOSH_FLAGS_${name}"; then
@@ -93,7 +94,7 @@ imosh::internal::define_flag() {
     fi
     eval "__IMOSH_FLAGS_DESCRIPTION_${name}=$(
               imosh::shell_escape "${description}")"
-    __IMOSH_FLAGS+=("${name}")
+    __IMOSH_FLAGS+=("${group}:${name}")
   fi
 }
 
@@ -124,6 +125,57 @@ imosh::internal::get_usage() {
   fi
 }
 
+imosh::internal::flag_groups() {
+  local groups=()
+  local group=''
+  local main_group_exists=0
+  local imosh_group_exists=0
+  for flag_name in "${__IMOSH_FLAGS[@]}"; do
+    local parts=()
+    php::explode parts ':' "${flag_name}"
+    group="${parts[0]}"
+    local lower_group="$(php::strtolower "${group}")"
+    if [ "${lower_group}" == 'main' ]; then
+      main_group_exists=1
+    elif [ "${lower_group}" == 'imosh' ]; then
+      imosh_group_exists=1
+    else
+      groups+=("${group}")
+    fi
+  done
+  if (( main_group_exists )); then
+    echo 'main'
+  fi
+  if [ "${#groups[@]}" -ne 0 ]; then
+    php::array_unique groups
+    for group in "${groups[@]}"; do
+      echo "${group}"
+    done
+  fi
+  if (( imosh_group_exists )); then
+    echo 'imosh'
+  fi
+}
+
+imosh::internal::group_flags() {
+  local group="$1"
+  local lower_group="$(php::strtolower "${group}")"
+
+  local flags=()
+  for flag_name in "${__IMOSH_FLAGS[@]}"; do
+    local parts=()
+    php::explode parts ':' "${flag_name}"
+    if [ "${lower_group}" != "$(php::strtolower "${parts[0]}")" ]; then
+      continue
+    fi
+    flags+=("${parts[1]}")
+  done
+  php::sort flags
+  for flag in "${flags[@]}"; do
+    echo "${flag}"
+  done
+}
+
 imosh::internal::man() {
   echo ".TH ${0##*/} 1"; echo
   echo '.SH SYNOPSIS'
@@ -132,30 +184,36 @@ imosh::internal::man() {
   echo '.SH DESCRIPTION'
   imosh::internal::get_usage "$(imosh::internal::get_main_script)"
 
-  echo '.SH OPTIONS';
-  for flag_name in "${__IMOSH_FLAGS[@]}"; do
-    echo '.TP'
-    echo -n '\fB'
-    eval "echo -n \"\${__IMOSH_FLAGS_DEFAULT_${flag_name}}\""
-    echo '\fP'
-    eval "echo \"\${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\""
-    echo
+  echo '.SH OPTIONS'
+  for flag_group in $(imosh::internal::flag_groups); do
+    echo ".SS $(php::strtoupper "${flag_group}") OPTIONS"
+    for flag_name in $(imosh::internal::group_flags "${flag_group}"); do
+      echo '.TP'
+      echo -n '\fB'
+      eval "echo -n \"\${__IMOSH_FLAGS_DEFAULT_${flag_name}}\""
+      echo '\fP'
+      eval "echo \"\${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\""
+      echo
+    done
   done
 }
 
 imosh::internal::help() {
-  echo "Usage: ${0##*/} [options...] [args...]"
+  echo "USAGE: ${0##*/} [options...] [args...]"
   echo
-  echo 'Description:'
+  echo 'DESCRIPTION:'
   imosh::internal::get_usage "$(imosh::internal::get_main_script)" | \
       while read line; do
     echo "  ${line}"
   done
   echo
-  echo "Options:"
-  for flag_name in "${__IMOSH_FLAGS[@]}"; do
-    eval "echo -n \"  \${__IMOSH_FLAGS_DEFAULT_${flag_name}}:\""
-    eval "echo \" \${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\""
+  echo "OPTIONS:"
+  for flag_group in $(imosh::internal::flag_groups); do
+    echo "  $(php::strtoupper "${flag_group}") OPTIONS:"
+    for flag_name in $(imosh::internal::group_flags "${flag_group}"); do
+      eval "echo -n \"    \${__IMOSH_FLAGS_DEFAULT_${flag_name}}:\""
+      eval "echo \" \${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\""
+    done
   done
 }
 
@@ -195,8 +253,9 @@ readonly IMOSH_INIT='
 __IMOSH_FLAGS=()
 __IMOSH_FLAGS_ALIASES=()
 
-DEFINE_bool --alias=h help false 'Print this help message and exit.'
-DEFINE_bool 'alsologtostderr' false \
+DEFINE_bool --group=imosh --alias=h help false \
+    'Print this help message and exit.'
+DEFINE_bool --group=imosh 'alsologtostderr' false \
             'Log messages go to stderr in addition to logfiles.'
-DEFINE_bool 'logtostderr' false \
+DEFINE_bool --group=imosh 'logtostderr' false \
             'Log messages go to stderr instead of logfiles.'
