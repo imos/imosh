@@ -1,5 +1,5 @@
 #!/bin/bash
-# Last update: 2014-09-14 14:28:18 +0900 (bf3b97b)
+# Last update: 2014-09-14 14:46:26 +0900 (80902ea)
 #
 # imosh - Libraries for BASH.
 
@@ -20,29 +20,40 @@ __IMOSH_PROGRAM_NAME="${0##*/}"
 __IMOSH_HOSTNAME="$(hostname -s)"
 __IMOSH_USER="$(whoami)"
 __IMOSH_LOG_PREFIX="${__IMOSH_PROGRAM_NAME}.${__IMOSH_HOSTNAME}.${__IMOSH_USER}"
-__IMOSH_LOG_DIR="${TMPDIR:-/tmp}"
 __IMOSH_LOG_SUFFIX="$(date +'%Y%m%d.%H%M%S').$$"
 
 imosh::internal::log_file() {
   local severity="${1}"
   local path=''
-  path+="${__IMOSH_LOG_DIR}/"
+  if [ "${FLAGS_log_dir}" == '' ]; then
+    return
+  fi
+  path+="${FLAGS_log_dir}/"
   path+="${__IMOSH_LOG_PREFIX}.${severity}.${__IMOSH_LOG_SUFFIX}"
   print "${path}"
 }
 
+imosh::internal::init_log() {
+  # Close descriptors for logs beforehand for BASH3's bug.
+  exec 101>&- 102>&- 103>&- 104>&-
+  if [ "${FLAGS_log_dir}" != '' -a -w "${FLAGS_log_dir}" ]; then
+    exec 101>"$(imosh::internal::log_file INFO)"
+    exec 102>"$(imosh::internal::log_file WARNING)"
+    exec 103>"$(imosh::internal::log_file ERROR)"
+    exec 104>"$(imosh::internal::log_file FATAL)"
+    return
+  fi
+  exec 101>/dev/null 102>/dev/null 103>/dev/null 104>/dev/null
+  if [ "${FLAGS_log_dir}" == '' ]; then
+    return
+  fi
+  LOG ERROR "failed to open files to write logs: ${__IMOSH_LOG_DIR}"
+}
+
 # Close descriptors for logs beforehand for BASH3's bug.
 exec 101>&- 102>&- 103>&- 104>&-
-
-if [ -w "${__IMOSH_LOG_DIR}" ]; then
-  exec 101>"$(imosh::internal::log_file INFO)"
-  exec 102>"$(imosh::internal::log_file WARNING)"
-  exec 103>"$(imosh::internal::log_file ERROR)"
-  exec 104>"$(imosh::internal::log_file FATAL)"
-else
-  exec 101>/dev/null 102>/dev/null 103>/dev/null 104>/dev/null
-  echo "failed to open files to write logs: ${__IMOSH_LOG_DIR}" >&2
-fi
+# Open descriptors for LOG without calling init_log.
+exec 101>/dev/null 102>/dev/null 103>/dev/null 104>/dev/null
 
 imosh::get_child_processes() {
   local ppid="$1"
@@ -96,7 +107,7 @@ imosh::internal::exit_handler() {
   local severity=''
   for severity in INFO WARNING ERROR FATAL; do
     local path="$(imosh::internal::log_file "${severity}")"
-    if [ ! -s "${path}" ]; then
+    if [ "${path}" != '' -a ! -s "${path}" ]; then
       rm "${path}"
     fi
   done
@@ -781,6 +792,7 @@ imosh::internal::init() {
   if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
     eval "${IMOSH_ARGS[@]}"
   fi
+  imosh::internal::init_log
   if [ "${#__IMOSH_FLAGS_ALIASES[@]}" -ne 0 ]; then
     for alias in "${__IMOSH_FLAGS_ALIASES[@]}"; do
       eval "FLAGS_${alias%%:*}=\"\${FLAGS_${alias#*:}}\""
@@ -820,6 +832,8 @@ DEFINE_bool --group=imosh 'alsologtostderr' false \
     'Log messages go to stderr in addition to logfiles.'
 DEFINE_bool --group=imosh 'logtostderr' false \
     'Log messages go to stderr instead of logfiles.'
+DEFINE_string --group=imosh 'log_dir' '' \
+    'Directory to output log files.  Output no files if this flag is empty.'
 DEFINE_bool --group=imosh 'help_groff' false \
     'Use groff for help output.'
 

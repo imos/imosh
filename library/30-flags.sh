@@ -222,6 +222,7 @@ imosh::internal::init() {
   if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
     eval "${IMOSH_ARGS[@]}"
   fi
+  imosh::internal::init_log
   if [ "${#__IMOSH_FLAGS_ALIASES[@]}" -ne 0 ]; then
     for alias in "${__IMOSH_FLAGS_ALIASES[@]}"; do
       eval "FLAGS_${alias%%:*}=\"\${FLAGS_${alias#*:}}\""
@@ -261,5 +262,7 @@ DEFINE_bool --group=imosh 'alsologtostderr' false \
     'Log messages go to stderr in addition to logfiles.'
 DEFINE_bool --group=imosh 'logtostderr' false \
     'Log messages go to stderr instead of logfiles.'
+DEFINE_string --group=imosh 'log_dir' '' \
+    'Directory to output log files.  Output no files if this flag is empty.'
 DEFINE_bool --group=imosh 'help_groff' false \
     'Use groff for help output.'

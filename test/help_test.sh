@@ -23,6 +23,7 @@ OPTIONS:
     --alsologtostderr=false: Log messages go to stderr in addition to logfiles.
     --help=false: Print this help message and exit. (Alias: --h)
     --help_groff=false: Use groff for help output.
+    --log_dir='': Directory to output log files.  Output no files if this flag is empty.
     --logtostderr=false: Log messages go to stderr instead of logfiles."
   ASSERT_EQ "${expected_message}" "$(run --help 2>&1 >/dev/null)" &
   pids+=("$!")
@@ -87,6 +88,10 @@ Print this help message and exit. (Alias: --h)
 .TP
 \fB--help_groff=false\fP
 Use groff for help output.
+
+.TP
+\fB--log_dir='\'\''\fP
+Directory to output log files.  Output no files if this flag is empty.
 
 .TP
 \fB--logtostderr=false\fP
