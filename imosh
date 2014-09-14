@@ -1,5 +1,5 @@
 #!/bin/bash
-# Last update: 2014-09-14 14:46:26 +0900 (80902ea)
+# Last update: 2014-09-14 19:36:06 +0900 (5f21a94)
 #
 # imosh - Libraries for BASH.
 
@@ -949,7 +949,7 @@ EOM
   exec 110<"${__IMOSH_PHP_STDOUT}"
 }
 
-DEFINE_bool disown_php false 'Disown a PHP process.'
+DEFINE_bool --group=imosh disown_php false 'Disown a PHP process.'
 
 php::stop() {
   php::internal::kill

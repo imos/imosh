@@ -14,13 +14,13 @@ DESCRIPTION:
 OPTIONS:
   MAIN OPTIONS:
     --bool=false: Boolean flag.
-    --disown_php=false: Disown a PHP process.
     --flag='': Flag name to show.
     --int=100: Integer flag.
     --show_argv=false: Output extra argv.
     --string='default': String flag.
   IMOSH OPTIONS:
     --alsologtostderr=false: Log messages go to stderr in addition to logfiles.
+    --disown_php=false: Disown a PHP process.
     --help=false: Print this help message and exit. (Alias: --h)
     --help_groff=false: Use groff for help output.
     --log_dir='': Directory to output log files.  Output no files if this flag is empty.
@@ -57,10 +57,6 @@ A script to test imosh flags.
 Boolean flag.
 
 .TP
-\fB--disown_php=false\fP
-Disown a PHP process.
-
-.TP
 \fB--flag='\'\''\fP
 Flag name to show.
 
@@ -80,6 +76,10 @@ String flag.
 .TP
 \fB--alsologtostderr=false\fP
 Log messages go to stderr in addition to logfiles.
+
+.TP
+\fB--disown_php=false\fP
+Disown a PHP process.
 
 .TP
 \fB--help=false\fP
