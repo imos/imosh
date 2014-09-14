@@ -788,7 +788,7 @@ imosh::internal::init() {
     done
   fi
   if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
-    readonly "${IMOSH_ARGS[@]}"
+    eval "${IMOSH_ARGS[@]}"
   fi
   if (( FLAGS_help )); then
     if [ -t 1 ]; then
