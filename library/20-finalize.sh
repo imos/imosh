@@ -20,7 +20,7 @@ imosh::internal::exit_handler() {
   local severity=''
   for severity in INFO WARNING ERROR FATAL; do
     local path="$(imosh::internal::log_file "${severity}")"
-    if [ ! -s "${path}" ]; then
+    if [ "${path}" != '' -a ! -s "${path}" ]; then
       rm "${path}"
     fi
   done
