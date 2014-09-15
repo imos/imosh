@@ -35,9 +35,17 @@ imosh::internal::exit_handler() {
 
 imosh::internal::signal_handler() {
   local signal="$1"
-  LOG ERROR "$(imosh::stack_trace "terminated by signal: ${signal}" 2>&1)"
   trap - "${signal}"
-  kill -s "${signal}" $$
+  imosh::set_pid
+  if [ "${IMOSH_PID}" == "${IMOSH_ROOT_PID}" ]; then
+    LOG INFO 'killing child processes.'
+    imosh::internal::kill "${IMOSH_ROOT_PID}"
+    if [ -f "${__IMOSH_CORE_TMPDIR}/status" ]; then
+      exit "$(cat "${__IMOSH_CORE_TMPDIR}/status")"
+    fi
+  fi
+  LOG ERROR "$(imosh::stack_trace "terminated by signal: ${signal}" 2>&1)"
+  kill -s "${signal}" "${IMOSH_PID}"
 }
 
 trap imosh::internal::exit_handler EXIT

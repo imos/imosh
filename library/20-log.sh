@@ -22,9 +22,12 @@ LOG() {
   # For systems not supporting %N in date.
   datetime="${datetime/.N/.000000}"
   datetime="${datetime:0:20}"
-  local pid="$$"
+  local pid
   if php::isset __IMOSH_LOG_PID; then
     pid="${__IMOSH_LOG_PID}"
+  else
+    imosh::set_pid
+    pid="${IMOSH_PID}"
   fi
   local file="${BASH_SOURCE[1]##*/}"
   if [ "${file}" = '' ]; then file='-'; fi
@@ -81,7 +84,7 @@ LOG() {
         echo "${message}" >&103
         echo "${message}" >&104
       fi
-      exit 1
+      imosh::quiet_die 1
       ;;
   esac
 }

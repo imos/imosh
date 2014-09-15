@@ -122,9 +122,17 @@ imosh::internal::exit_handler() {
 
 imosh::internal::signal_handler() {
   local signal="$1"
-  LOG ERROR "$(imosh::stack_trace "terminated by signal: ${signal}" 2>&1)"
   trap - "${signal}"
-  kill -s "${signal}" $$
+  imosh::set_pid
+  if [ "${IMOSH_PID}" == "${IMOSH_ROOT_PID}" ]; then
+    LOG INFO 'killing child processes.'
+    imosh::internal::kill "${IMOSH_ROOT_PID}"
+    if [ -f "${__IMOSH_CORE_TMPDIR}/status" ]; then
+      exit "$(cat "${__IMOSH_CORE_TMPDIR}/status")"
+    fi
+  fi
+  LOG ERROR "$(imosh::stack_trace "terminated by signal: ${signal}" 2>&1)"
+  kill -s "${signal}" "${IMOSH_PID}"
 }
 
 trap imosh::internal::exit_handler EXIT
@@ -135,6 +143,64 @@ if ! shopt login_shell >/dev/null; then
     trap "imosh::internal::signal_handler ${signal}" "${signal}"
   done
 fi
+
+IMOSH_ROOT_PID="$$"
+
+imosh::internal::kill() {
+  local pid="$1"
+  LOG INFO "killing ${pid}..."
+  local keep_alive=0
+  if [ "${pid}" == "${IMOSH_PID}" -o "${pid}" == "${IMOSH_ROOT_PID}" ]; then
+    keep_alive=1
+  fi
+  if (( ! keep_alive )); then
+    kill -STOP "${pid}" 2>/dev/null || true
+  fi
+  local child_pids="$(
+      ps -o ppid,pid | grep "^${pid}[[:space:]]" | awk '{ print $2 }')"
+  if [ "${child_pids}" != '' ]; then
+    local child
+    for child in ${child_pids}; do
+      imosh::internal::kill "${child}"
+    done
+  fi
+  if (( ! keep_alive )); then
+    kill -KILL "${pid}" 2>/dev/null || true
+  fi
+}
+
+imosh::quiet_die() {
+  local status='0'
+  if [ "$#" -ge 1 ]; then
+    status="$1"
+  fi
+
+  echo "${status}" >"${__IMOSH_CORE_TMPDIR}/status"
+  LOG INFO 'exiting...'
+  imosh::set_pid
+  kill -TERM "${IMOSH_ROOT_PID}"
+  if [ "${IMOSH_PID}" == "${IMOSH_ROOT_PID}" ]; then
+    exit 0
+  fi
+  for i in {1..20}; do
+    if ! kill -0 "${IMOSH_ROOT_PID}" 2>/dev/null; then
+      exit 0
+    fi
+    sleep 0.05
+  done
+  imosh::internal::kill "${IMOSH_ROOT_PID}"
+  exit 0
+}
+
+imosh::die() {
+  local status='0'
+  if [ "$#" -ge 1 ]; then
+    status="$1"
+  fi
+
+  imosh::stack_trace "*** imosh::die stack trace: ***"
+  imosh::quiet_die "${status}"
+}
 
 imosh::internal::loglevel() {
   case "$1" in
@@ -160,9 +226,12 @@ LOG() {
   # For systems not supporting %N in date.
   datetime="${datetime/.N/.000000}"
   datetime="${datetime:0:20}"
-  local pid="$$"
+  local pid
   if php::isset __IMOSH_LOG_PID; then
     pid="${__IMOSH_LOG_PID}"
+  else
+    imosh::set_pid
+    pid="${IMOSH_PID}"
   fi
   local file="${BASH_SOURCE[1]##*/}"
   if [ "${file}" = '' ]; then file='-'; fi
@@ -219,7 +288,7 @@ LOG() {
         echo "${message}" >&103
         echo "${message}" >&104
       fi
-      exit 1
+      imosh::quiet_die 1
       ;;
   esac
 }
@@ -568,6 +637,16 @@ php::strtoupper() {
 php::trim() {
   local value="$*"
   print "$(php::ltrim "$(php::rtrim "${value}")")"
+}
+
+imosh::set_pid() {
+  if php::isset BASHPID; then
+    IMOSH_PID="${BASHPID}"
+  else
+    local pid_file="$(mktemp "${__IMOSH_CORE_TMPDIR}/pid.XXXXXX")"
+    "${SHELL}" -c 'echo "${PPID}"' >"${pid_file}"
+    IMOSH_PID="$(cat "${pid_file}")"
+  fi
 }
 
 # Shows a stack trace.  Arguments are used as a message.
