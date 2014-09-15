@@ -1,12 +1,19 @@
+__IMOSH_STACK_TRACED=0
+
 imosh::on_exit() {
   echo "$@" >>"${__IMOSH_CORE_TMPDIR}/on_exit.sh"
 }
 
 imosh::internal::error_handler() {
+  __IMOSH_STACK_TRACED=1
   imosh::stack_trace "error status: $?"
 }
 
 imosh::internal::exit_handler() {
+  local exit_code="$?"
+  if (( exit_code && ! __IMOSH_STACK_TRACED )); then
+    imosh::stack_trace "error status: ${exit_code}"
+  fi
   LOG INFO "finalizing..."
 
   set +e
