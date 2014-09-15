@@ -29,21 +29,13 @@ imosh::quiet_die() {
     status="$1"
   fi
 
-  echo "${status}" >"${__IMOSH_CORE_TMPDIR}/status"
   LOG INFO 'exiting...'
   imosh::set_pid
-  kill -TERM "${IMOSH_ROOT_PID}"
-  if [ "${IMOSH_PID}" == "${IMOSH_ROOT_PID}" ]; then
-    exit 0
-  fi
-  for i in {1..20}; do
-    if ! kill -0 "${IMOSH_ROOT_PID}" 2>/dev/null; then
-      exit 0
-    fi
-    sleep 0.05
-  done
+  echo "${status}" >"${__IMOSH_CORE_TMPDIR}/status"
+  imosh::internal::kill "${IMOSH_PID}"
   imosh::internal::kill "${IMOSH_ROOT_PID}"
-  exit 0
+  kill -TERM "${IMOSH_ROOT_PID}" 2>/dev/null || true
+  exit "${status}"
 }
 
 imosh::die() {
