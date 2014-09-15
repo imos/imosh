@@ -23,6 +23,13 @@ imosh can show a help page like a man page.
 
 ![imosh help page](https://raw.github.com/wiki/imos/imosh/images/help.png)
 
+Stack trace
+-----------
+
+imosh shows a stack trace when some error arises.
+
+![imosh stack trace](https://raw.github.com/wiki/imos/imosh/images/stacktrace.png)
+
 gflags-like flag definitions
 ----------------------------
 

@@ -1,3 +1,15 @@
+imosh::internal::loglevel() {
+  case "$1" in
+    ALL)     echo 0;;
+    INFO)    echo 1;;
+    WARNING) echo 2;;
+    ERROR)   echo 3;;
+    FATAL)   echo 4;;
+    NONE)    echo 5;;
+    *)       LOG FATAL "unknown level: $1";;
+  esac
+}
+
 LOG() {
   local level="$1"
   shift
@@ -10,9 +22,12 @@ LOG() {
   # For systems not supporting %N in date.
   datetime="${datetime/.N/.000000}"
   datetime="${datetime:0:20}"
-  local pid="$$"
+  local pid
   if php::isset __IMOSH_LOG_PID; then
     pid="${__IMOSH_LOG_PID}"
+  else
+    imosh::set_pid
+    pid="${IMOSH_PID}"
   fi
   local file="${BASH_SOURCE[1]##*/}"
   if [ "${file}" = '' ]; then file='-'; fi
@@ -22,9 +37,10 @@ LOG() {
       "${file}:${BASH_LINENO[0]}]"
       "$@")
   message="$(echo "${message[@]}")"
-  if [ "${level}" = 'FATAL' ]; then
+  if [ "$(imosh::internal::loglevel "${level}")" -ge \
+       "$(imosh::internal::loglevel "${FLAGS_stacktrace_threshold}")" ]; then
     message+=$'\n'
-    message+="$(imosh::stack_trace '*** Check failure stack trace: ***' 2>&1)"
+    message+="$(imosh::stack_trace "*** LOG ${level} stack trace: ***" 2>&1)"
   fi
   local logtostderr=0
   if php::isset FLAGS_logtostderr; then
@@ -68,7 +84,7 @@ LOG() {
         echo "${message}" >&103
         echo "${message}" >&104
       fi
-      exit 1
+      imosh::quiet_die 1
       ;;
   esac
 }

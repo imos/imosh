@@ -1,5 +1,5 @@
 #!/bin/bash
-# Last update: 2014-09-14 19:36:06 +0900 (5f21a94)
+# Last update: 2014-09-15 21:33:44 +0900 (2547256)
 #
 # imosh - Libraries for BASH.
 
@@ -85,15 +85,22 @@ imosh::shell_escape() {
   done
 }
 
+__IMOSH_STACK_TRACED=0
+
 imosh::on_exit() {
   echo "$@" >>"${__IMOSH_CORE_TMPDIR}/on_exit.sh"
 }
 
 imosh::internal::error_handler() {
+  __IMOSH_STACK_TRACED=1
   imosh::stack_trace "error status: $?"
 }
 
 imosh::internal::exit_handler() {
+  local exit_code="$?"
+  if (( exit_code && ! __IMOSH_STACK_TRACED )); then
+    imosh::stack_trace "error status: ${exit_code}"
+  fi
   LOG INFO "finalizing..."
 
   set +e
@@ -115,9 +122,17 @@ imosh::internal::exit_handler() {
 
 imosh::internal::signal_handler() {
   local signal="$1"
-  LOG ERROR "$(imosh::stack_trace "terminated by signal: ${signal}" 2>&1)"
   trap - "${signal}"
-  kill -s "${signal}" $$
+  imosh::set_pid
+  if [ "${IMOSH_PID}" == "${IMOSH_ROOT_PID}" ]; then
+    LOG INFO 'killing child processes.'
+    imosh::internal::kill "${IMOSH_ROOT_PID}"
+    if [ -f "${__IMOSH_CORE_TMPDIR}/status" ]; then
+      exit "$(cat "${__IMOSH_CORE_TMPDIR}/status")"
+    fi
+  fi
+  LOG ERROR "$(imosh::stack_trace "terminated by signal: ${signal}" 2>&1)"
+  kill -s "${signal}" "${IMOSH_PID}"
 }
 
 trap imosh::internal::exit_handler EXIT
@@ -128,6 +143,68 @@ if ! shopt login_shell >/dev/null; then
     trap "imosh::internal::signal_handler ${signal}" "${signal}"
   done
 fi
+
+IMOSH_ROOT_PID="$$"
+
+imosh::internal::kill() {
+  local pid="$1"
+  LOG INFO "killing ${pid}..."
+  local keep_alive=0
+  if [ "${pid}" == "${IMOSH_PID}" -o "${pid}" == "${IMOSH_ROOT_PID}" ]; then
+    keep_alive=1
+  fi
+  if (( ! keep_alive )); then
+    kill -STOP "${pid}" 2>/dev/null || true
+  fi
+  local child_pids="$(
+      ps -o ppid,pid | grep "^${pid}[[:space:]]" | awk '{ print $2 }')"
+  if [ "${child_pids}" != '' ]; then
+    local child
+    for child in ${child_pids}; do
+      imosh::internal::kill "${child}"
+    done
+  fi
+  if (( ! keep_alive )); then
+    kill -KILL "${pid}" 2>/dev/null || true
+  fi
+}
+
+imosh::quiet_die() {
+  local status='0'
+  if [ "$#" -ge 1 ]; then
+    status="$1"
+  fi
+
+  LOG INFO 'exiting...'
+  imosh::set_pid
+  echo "${status}" >"${__IMOSH_CORE_TMPDIR}/status"
+  imosh::internal::kill "${IMOSH_PID}"
+  imosh::internal::kill "${IMOSH_ROOT_PID}"
+  kill -TERM "${IMOSH_ROOT_PID}" 2>/dev/null || true
+  exit "${status}"
+}
+
+imosh::die() {
+  local status='0'
+  if [ "$#" -ge 1 ]; then
+    status="$1"
+  fi
+
+  imosh::stack_trace "*** imosh::die stack trace: ***"
+  imosh::quiet_die "${status}"
+}
+
+imosh::internal::loglevel() {
+  case "$1" in
+    ALL)     echo 0;;
+    INFO)    echo 1;;
+    WARNING) echo 2;;
+    ERROR)   echo 3;;
+    FATAL)   echo 4;;
+    NONE)    echo 5;;
+    *)       LOG FATAL "unknown level: $1";;
+  esac
+}
 
 LOG() {
   local level="$1"
@@ -141,9 +218,12 @@ LOG() {
   # For systems not supporting %N in date.
   datetime="${datetime/.N/.000000}"
   datetime="${datetime:0:20}"
-  local pid="$$"
+  local pid
   if php::isset __IMOSH_LOG_PID; then
     pid="${__IMOSH_LOG_PID}"
+  else
+    imosh::set_pid
+    pid="${IMOSH_PID}"
   fi
   local file="${BASH_SOURCE[1]##*/}"
   if [ "${file}" = '' ]; then file='-'; fi
@@ -153,9 +233,10 @@ LOG() {
       "${file}:${BASH_LINENO[0]}]"
       "$@")
   message="$(echo "${message[@]}")"
-  if [ "${level}" = 'FATAL' ]; then
+  if [ "$(imosh::internal::loglevel "${level}")" -ge \
+       "$(imosh::internal::loglevel "${FLAGS_stacktrace_threshold}")" ]; then
     message+=$'\n'
-    message+="$(imosh::stack_trace '*** Check failure stack trace: ***' 2>&1)"
+    message+="$(imosh::stack_trace "*** LOG ${level} stack trace: ***" 2>&1)"
   fi
   local logtostderr=0
   if php::isset FLAGS_logtostderr; then
@@ -199,7 +280,7 @@ LOG() {
         echo "${message}" >&103
         echo "${message}" >&104
       fi
-      exit 1
+      imosh::quiet_die 1
       ;;
   esac
 }
@@ -550,6 +631,16 @@ php::trim() {
   print "$(php::ltrim "$(php::rtrim "${value}")")"
 }
 
+imosh::set_pid() {
+  if php::isset BASHPID; then
+    IMOSH_PID="${BASHPID}"
+  else
+    local pid_file="$(mktemp "${__IMOSH_CORE_TMPDIR}/pid.XXXXXX")"
+    "${SHELL}" -c 'echo "${PPID}"' >"${pid_file}"
+    IMOSH_PID="$(cat "${pid_file}")"
+  fi
+}
+
 # Shows a stack trace.  Arguments are used as a message.
 imosh::stack_trace() {
   local max_depth="${#BASH_LINENO[@]}"
@@ -834,6 +925,8 @@ DEFINE_bool --group=imosh 'logtostderr' false \
     'Log messages go to stderr instead of logfiles.'
 DEFINE_string --group=imosh 'log_dir' '' \
     'Directory to output log files.  Output no files if this flag is empty.'
+DEFINE_string --group=imosh 'stacktrace_threshold' 'FATAL' \
+    'Threshold to show stacktrace.'
 DEFINE_bool --group=imosh 'help_groff' false \
     'Use groff for help output.'
 

@@ -24,7 +24,8 @@ OPTIONS:
     --help=false: Print this help message and exit. (Alias: --h)
     --help_groff=false: Use groff for help output.
     --log_dir='': Directory to output log files.  Output no files if this flag is empty.
-    --logtostderr=false: Log messages go to stderr instead of logfiles."
+    --logtostderr=false: Log messages go to stderr instead of logfiles.
+    --stacktrace_threshold='FATAL': Threshold to show stacktrace."
   ASSERT_EQ "${expected_message}" "$(run --help 2>&1 >/dev/null)" &
   pids+=("$!")
   ASSERT_EQ "${expected_message}" "$(run -h 2>&1 >/dev/null)" &
@@ -95,6 +96,10 @@ Directory to output log files.  Output no files if this flag is empty.
 
 .TP
 \fB--logtostderr=false\fP
-Log messages go to stderr instead of logfiles.'
+Log messages go to stderr instead of logfiles.
+
+.TP
+\fB--stacktrace_threshold='\''FATAL'\''\fP
+Threshold to show stacktrace.'
   ASSERT_EQ "${expected_message}" "$(run --help --help_groff)"
 }
