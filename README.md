@@ -47,7 +47,7 @@ Glog-like logging
 imosh provides a standard way for logging like glog.
 
 ```sh
-LOG ERROR 'something bad happends!'
+LOG ERROR 'some error happens!'
 ```
 
 Usage
