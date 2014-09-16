@@ -60,21 +60,6 @@ imosh::get_child_processes() {
   ps -axo ppid,pid | awk "{ if (\$1 == ${ppid}) print \$2; }"
 }
 
-imosh::internal::style() {
-  echo -en "\\033[${1}m"
-}
-
-IMOSH_STYLE_DEFAULT="$(imosh::internal::style '0')"
-IMOSH_COLOR_DEFAULT="$(imosh::internal::style '0;39')"
-IMOSH_COLOR_BLACK="$(imosh::internal::style '0;30')"
-IMOSH_COLOR_RED="$(imosh::internal::style '0;31')"
-IMOSH_COLOR_GREEN="$(imosh::internal::style '0;32')"
-IMOSH_COLOR_YELLOW="$(imosh::internal::style '0;33')"
-IMOSH_COLOR_BLUE="$(imosh::internal::style '0;34')"
-IMOSH_COLOR_MAGENTA="$(imosh::internal::style '0;35')"
-IMOSH_COLOR_CYAN="$(imosh::internal::style '0;36')"
-IMOSH_COLOR_WHITE="$(imosh::internal::style '0;37')"
-
 imosh::shell_escape() {
   local arg
   local search="'"
@@ -1053,6 +1038,20 @@ php::start() {
     php::internal::start
   fi
 }
+
+# Color definitions.  A shell script should restore terminal's original color
+# using IMOSH_STYLE_DEFAULT when it changes color or style.
+
+IMOSH_STYLE_DEFAULT=$'\033[0m'
+IMOSH_COLOR_DEFAULT=$'\033[0;39m'
+IMOSH_COLOR_BLACK=$'\033[0;30m'
+IMOSH_COLOR_RED=$'\033[0;31m'
+IMOSH_COLOR_GREEN=$'\033[0;32m'
+IMOSH_COLOR_YELLOW=$'\033[0;33m'
+IMOSH_COLOR_BLUE=$'\033[0;34m'
+IMOSH_COLOR_MAGENTA=$'\033[0;35m'
+IMOSH_COLOR_CYAN=$'\033[0;36m'
+IMOSH_COLOR_WHITE=$'\033[0;37m'
 
 # Usage:
 #   imosh::internal::set destination source
