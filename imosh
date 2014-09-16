@@ -1,7 +1,7 @@
 #!/bin/bash
-# Last update: 2014-09-15 21:33:44 +0900 (2547256)
-#
-# imosh - Libraries for BASH.
+# imos is a utility library for BASH.
+
+IMOSH_VERSION='2014-09-17 02:59:02 +0900 (432c910)'
 
 if ! shopt login_shell >/dev/null; then
   set -e -u

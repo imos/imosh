@@ -1,7 +1,9 @@
 concat:
 	@echo '#!/bin/bash' >imosh
-	@echo "# Last update: $$(git log --date=iso --pretty=format:'%cd (%h)' library | head -n 1)" >>imosh
-	@echo '#' >>imosh
+	@echo '# imos is a utility library for BASH.' >>imosh
+	@echo '' >>imosh
+	@echo "IMOSH_VERSION='$$(git log --pretty=format:'%ci (%h)' library | head -n 1)'" >>imosh
+	@echo '' >>imosh
 	@for library in library/*.sh library/*/*.sh; do \
 	  cat "$${library}"; \
 	  echo; \

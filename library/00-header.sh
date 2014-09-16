@@ -1,5 +1,3 @@
-# imosh - Libraries for BASH.
-
 if ! shopt login_shell >/dev/null; then
   set -e -u
 fi
