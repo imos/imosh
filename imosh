@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-09-17 03:33:09 +0900 (6f7844d)'
+IMOSH_VERSION='2014-09-17 03:39:17 +0900 (4c6446a)'
 
 if ! shopt login_shell >/dev/null; then
   set -e -u
@@ -54,11 +54,6 @@ imosh::internal::init_log() {
 exec 101>&- 102>&- 103>&- 104>&-
 # Open descriptors for LOG without calling init_log.
 exec 101>/dev/null 102>/dev/null 103>/dev/null 104>/dev/null
-
-imosh::get_child_processes() {
-  local ppid="$1"
-  ps -axo ppid,pid | awk "{ if (\$1 == ${ppid}) print \$2; }"
-}
 
 imosh::shell_escape() {
   local arg
