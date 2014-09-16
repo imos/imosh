@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-09-17 03:19:15 +0900 (c70aa14)'
+IMOSH_VERSION='2014-09-17 03:33:09 +0900 (6f7844d)'
 
 if ! shopt login_shell >/dev/null; then
   set -e -u
