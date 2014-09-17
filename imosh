@@ -1049,14 +1049,14 @@ IMOSH_COLOR_CYAN=$'\033[0;36m'
 IMOSH_COLOR_WHITE=$'\033[0;37m'
 
 # Usage:
-#   imosh::internal::set destination source
+#   func::strcpy destination source
 #
-# Sets the content of a variable specfied in source into destination.
-imosh::internal::set() {
-  local __set_destination="$1"
-  local __set_source="$2"
+# Assigns the content of a variable specified as source into destination.
+func::strcpy() {
+  local __strcpy_destination="$1"
+  local __strcpy_source="$2"
 
-  eval "${__set_destination}=\"\${${__set_source}}\""
+  eval "${__strcpy_destination}=\"\${${__strcpy_source}}\""
 }
 
 LOG INFO 'imosh is ready.'
