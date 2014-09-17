@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-09-17 03:39:17 +0900 (4c6446a)'
+IMOSH_VERSION='2014-09-18 01:47:29 +0900 (e6c0893)'
 
 if ! shopt login_shell >/dev/null; then
   set -e -u
@@ -1047,6 +1047,18 @@ IMOSH_COLOR_BLUE=$'\033[0;34m'
 IMOSH_COLOR_MAGENTA=$'\033[0;35m'
 IMOSH_COLOR_CYAN=$'\033[0;36m'
 IMOSH_COLOR_WHITE=$'\033[0;37m'
+
+# Usage:
+#   func::escapeshellarg variable
+#
+# Escapes variable's content.
+func::escapeshellarg() {
+  local __escapeshellarg_variable="$1"
+  local __escapeshellarg_search="'"
+  local __escapeshellarg_replace="'\\''"
+
+  eval "${__escapeshellarg_variable}=\"'\${${__escapeshellarg_variable}//\${__escapeshellarg_search}/\${__escapeshellarg_replace}}'\""
+}
 
 # Usage:
 #   func::strcpy destination source
