@@ -94,8 +94,6 @@ EOM
   exec 110<"${__IMOSH_PHP_STDOUT}"
 }
 
-DEFINE_bool --group=imosh disown_php false 'Disown a PHP process.'
-
 php::stop() {
   php::internal::kill
 }

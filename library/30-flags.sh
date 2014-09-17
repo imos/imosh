@@ -66,13 +66,12 @@ imosh::internal::define_flag() {
   if php::isset "__IMOSH_FLAGS_TYPE_${name}"; then
     LOG FATAL "already defined flag: ${name}"
   fi
-  eval "FLAGS_${name}=$(imosh::shell_escape "${default_value}")"
-  eval "__IMOSH_FLAGS_TYPE_${name}=${type}"
+  func::strcpy "FLAGS_${name}" 'default_value'
+  func::strcpy "__IMOSH_FLAGS_TYPE_${name}" 'type'
   if [ "${ARGS_alias}" != '' ]; then
     imosh::internal::define_flag "${type}" --alias_flag \
         "${ARGS_alias}" "${default_value}" "${description}"
-    eval "__IMOSH_FLAGS_ALIASES+=( \
-              $(imosh::shell_escape "${name}:${ARGS_alias}"))"
+    __IMOSH_FLAGS_ALIASES+=("${name}:${ARGS_alias}")
   fi
   if (( ! ARGS_alias_flag )); then
     local escaped_default_value=''
@@ -85,15 +84,17 @@ imosh::internal::define_flag() {
           escaped_default_value='false'
         fi
         ;;
-      *) escaped_default_value="$(imosh::shell_escape "${default_value}")";;
+      *)
+        escaped_default_value="${default_value}"
+        func::escapeshellarg escaped_default_value
+        ;;
     esac
-    eval "__IMOSH_FLAGS_DEFAULT_${name}=$(
-              imosh::shell_escape "--${name}=${escaped_default_value}")"
+    func::let "__IMOSH_FLAGS_DEFAULT_${name}" \
+              "--${name}=${escaped_default_value}"
     if [ "${ARGS_alias}" != '' ]; then
       description+=" (Alias: --${ARGS_alias})"
     fi
-    eval "__IMOSH_FLAGS_DESCRIPTION_${name}=$(
-              imosh::shell_escape "${description}")"
+    func::let "__IMOSH_FLAGS_DESCRIPTION_${name}" "${description}"
     __IMOSH_FLAGS+=("${group}:${name}")
   fi
 }
@@ -255,16 +256,3 @@ readonly IMOSH_INIT='
 
 __IMOSH_FLAGS=()
 __IMOSH_FLAGS_ALIASES=()
-
-DEFINE_bool --group=imosh --alias=h help false \
-    'Print this help message and exit.'
-DEFINE_bool --group=imosh 'alsologtostderr' false \
-    'Log messages go to stderr in addition to logfiles.'
-DEFINE_bool --group=imosh 'logtostderr' false \
-    'Log messages go to stderr instead of logfiles.'
-DEFINE_string --group=imosh 'log_dir' '' \
-    'Directory to output log files.  Output no files if this flag is empty.'
-DEFINE_string --group=imosh 'stacktrace_threshold' 'FATAL' \
-    'Threshold to show stacktrace.'
-DEFINE_bool --group=imosh 'help_groff' false \
-    'Use groff for help output.'
