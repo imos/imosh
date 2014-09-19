@@ -1,7 +1,7 @@
 # Usage:
-#   func::let destination value
+#   func::let(string* destination, string value)
 #
-# Assigns value into destination.
+# Assigns value into *destination.
 func::let() {
   local __let_destination="$1"
   local __let_value="$2"

@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-09-18 02:42:36 +0900 (285bb11)'
+IMOSH_VERSION='2014-09-18 03:27:50 +0900 (58398f3)'
 
 if ! shopt login_shell >/dev/null; then
   set -e -u
@@ -1008,6 +1008,22 @@ func::escapeshellarg() {
 }
 
 # Usage:
+#   func::floatval variable
+#
+# Casts variable into float type.  If it fails, returns 1.
+func::floatval() {
+  local __floatval_variable="$1"
+
+  local __floatval_value
+  eval "__floatval_value=\"\${${__floatval_variable}}\""
+  if [[ "${__floatval_value}" =~ ^[[:space:]]*(-?[0-9]+(\.[0-9]+)?) ]]; then
+    func::let "${__floatval_variable}" "${BASH_REMATCH[1]}"
+  else
+    return 1
+  fi
+}
+
+# Usage:
 #   func::intval variable
 #
 # Casts variable into integer type.  If it fails, returns 1.
@@ -1024,14 +1040,29 @@ func::intval() {
 }
 
 # Usage:
-#   func::let destination value
+#   func::let(string* destination, string value)
 #
-# Assigns value into destination.
+# Assigns value into *destination.
 func::let() {
   local __let_destination="$1"
   local __let_value="$2"
 
   eval "${__let_destination}=\"\${__let_value}\""
+}
+
+# Usage:
+#   void func::str_replace(string* subject, string search, string replace)
+#
+# Replace search with replace in *subject.
+func::str_replace() {
+  if [ "$#" -ne 3 ]; then
+    LOG FATAL 'func::str_replace takes exactly 3 arguments.'
+  fi
+  local __str_replace_subject_variable="${1}"
+  local __str_replace_search="${2}"
+  local __str_replace_replace="${3}"
+
+  eval "${__str_replace_subject_variable}=\"\${${__str_replace_subject_variable}//\${__str_replace_search}/\${__str_replace_replace}}\""
 }
 
 # Usage:
@@ -1043,6 +1074,16 @@ func::strcpy() {
   local __strcpy_source="$2"
 
   eval "${__strcpy_destination}=\"\${${__strcpy_source}}\""
+}
+
+# Usage:
+#   func::strval variable
+#
+# Casts variable into string type.  If it fails, returns 1.
+func::strval() {
+  local __strval_variable="$1"
+
+  eval "${__strval_variable}=\"\${${__strval_variable}}\""
 }
 
 imosh::internal::convert_type() {
