@@ -1,8 +1,16 @@
 # Usage:
 #   func::implode(string* variable, string glue, array* pieces)
+#   func::implode(string glue, array* pieces) > result
 #
 # Joins array elements with a string.
 func::implode() {
+  if [ "$#" -eq 2 ]; then
+    local __implode_output=''
+    func::implode __implode_output "$1" "$2"
+    func::print "${__implode_output}"
+    return
+  fi
+
   local __implode_variable="${1}"
   local __implode_glue="${2}"
   local __implode_pieces=()
