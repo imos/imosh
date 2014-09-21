@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-09-18 03:27:50 +0900 (58398f3)'
+IMOSH_VERSION='2014-09-20 04:19:39 +0900 (838c2fc)'
 
 if ! shopt login_shell >/dev/null; then
   set -e -u
@@ -1037,6 +1037,23 @@ func::intval() {
   else
     return 1
   fi
+}
+
+# Usage:
+#   bool func::isset(variant* variable)
+#
+# Returns true iff variable exists.
+#
+# CAVEATS: func::isset returns true for uninitialized variables in BASH 3, and
+#          returns false for them in BASH 4.
+func::isset() {
+  local __isset_variable="$1"
+
+  eval "local __isset_state=\"\${${__isset_variable}+set}\""
+  if [ "${__isset_state}" = 'set' ]; then
+    return 0
+  fi
+  return 1
 }
 
 # Usage:
