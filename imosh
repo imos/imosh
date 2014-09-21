@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-09-22 03:08:47 +0900 (1793a4a)'
+IMOSH_VERSION='2014-09-22 03:15:37 +0900 (75aa50c)'
 
 if ! shopt login_shell >/dev/null; then
   set -e -u
@@ -1122,7 +1122,7 @@ func::str_replace() {
   local __str_replace_search="${2}"
   local __str_replace_replace="${3}"
 
-  eval "${__str_replace_subject_variable}=\"\${${__str_replace_subject_variable}//\${__str_replace_search}/\${__str_replace_replace}}\""
+  eval "${__str_replace_subject_variable}=\"\${${__str_replace_subject_variable}//\"\${__str_replace_search}\"/\${__str_replace_replace}}\""
 }
 
 # Usage:

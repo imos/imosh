@@ -10,5 +10,5 @@ func::str_replace() {
   local __str_replace_search="${2}"
   local __str_replace_replace="${3}"
 
-  eval "${__str_replace_subject_variable}=\"\${${__str_replace_subject_variable}//\${__str_replace_search}/\${__str_replace_replace}}\""
+  eval "${__str_replace_subject_variable}=\"\${${__str_replace_subject_variable}//\"\${__str_replace_search}\"/\${__str_replace_replace}}\""
 }
