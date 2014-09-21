@@ -12,6 +12,6 @@ php::preg_match() {
       echo implode(\"\\x02\", \$match); return 0;" __preg_match_result; then
     return 1
   else
-    php::explode "${__preg_match_name}" $'\x02' "${__preg_match_result}"
+    func::explode "${__preg_match_name}" $'\x02' "${__preg_match_result}"
   fi
 }

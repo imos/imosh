@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-09-22 01:32:37 +0900 (a3f00ac)'
+IMOSH_VERSION='2014-09-22 02:35:32 +0900 (ff432b4)'
 
 if ! shopt login_shell >/dev/null; then
   set -e -u
@@ -385,16 +385,6 @@ php::bin2hex() {
   fi
 }
 
-php::explode() {
-  local __explode_name="${1}"
-  local __explode_delimiter="${2}"
-  local __explode_value="${3}"
-
-  __explode_value="$(
-      php::str_replace "${__explode_delimiter}" $'\x02' "${__explode_value}")"
-  eval "IFS=\$'\\x02' ${__explode_name}=(\$__explode_value)"
-}
-
 php::hex2bin() {
   local message="$(
       print "$*" | tr -c -d '[0-9a-fA-F]' | fold -w 2 \
@@ -458,7 +448,7 @@ php::preg_match() {
       echo implode(\"\\x02\", \$match); return 0;" __preg_match_result; then
     return 1
   else
-    php::explode "${__preg_match_name}" $'\x02' "${__preg_match_result}"
+    func::explode "${__preg_match_name}" $'\x02' "${__preg_match_result}"
   fi
 }
 
@@ -702,7 +692,7 @@ imosh::internal::flag_groups() {
   local imosh_group_exists=0
   for flag_name in "${__IMOSH_FLAGS[@]}"; do
     local parts=()
-    php::explode parts ':' "${flag_name}"
+    func::explode parts ':' "${flag_name}"
     group="${parts[0]}"
     local lower_group="$(php::strtolower "${group}")"
     if [ "${lower_group}" == 'main' ]; then
@@ -734,7 +724,7 @@ imosh::internal::group_flags() {
   local flags=()
   for flag_name in "${__IMOSH_FLAGS[@]}"; do
     local parts=()
-    php::explode parts ':' "${flag_name}"
+    func::explode parts ':' "${flag_name}"
     if [ "${lower_group}" != "$(php::strtolower "${parts[0]}")" ]; then
       continue
     fi
@@ -1030,7 +1020,7 @@ func::floatval() {
 # Usage:
 #   func::implode(string* variable, string glue, array* pieces)
 #
-# Join array elements with a string.
+# Joins array elements with a string.
 func::implode() {
   local __implode_variable="${1}"
   local __implode_glue="${2}"

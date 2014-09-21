@@ -104,7 +104,7 @@ imosh::internal::flag_groups() {
   local imosh_group_exists=0
   for flag_name in "${__IMOSH_FLAGS[@]}"; do
     local parts=()
-    php::explode parts ':' "${flag_name}"
+    func::explode parts ':' "${flag_name}"
     group="${parts[0]}"
     local lower_group="$(php::strtolower "${group}")"
     if [ "${lower_group}" == 'main' ]; then
@@ -136,7 +136,7 @@ imosh::internal::group_flags() {
   local flags=()
   for flag_name in "${__IMOSH_FLAGS[@]}"; do
     local parts=()
-    php::explode parts ':' "${flag_name}"
+    func::explode parts ':' "${flag_name}"
     if [ "${lower_group}" != "$(php::strtolower "${parts[0]}")" ]; then
       continue
     fi

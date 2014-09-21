@@ -1,7 +1,7 @@
 # Usage:
 #   func::implode(string* variable, string glue, array* pieces)
 #
-# Join array elements with a string.
+# Joins array elements with a string.
 func::implode() {
   local __implode_variable="${1}"
   local __implode_glue="${2}"
