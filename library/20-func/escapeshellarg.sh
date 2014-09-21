@@ -1,5 +1,5 @@
 # Usage:
-#   func::escapeshellarg variable
+#   void func::escapeshellarg(string* variable)
 #
 # Escapes variable's content.
 func::escapeshellarg() {

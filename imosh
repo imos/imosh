@@ -996,8 +996,8 @@ IMOSH_COLOR_CYAN=$'\033[0;36m'
 IMOSH_COLOR_WHITE=$'\033[0;37m'
 
 # Usage:
-#   func::bin2hex(string* destination, string data)
-#   func::bin2hex() < string > string
+#   void func::bin2hex(string* destination, string data)
+#   void func::bin2hex() < string > string
 #
 # Converts binary data into hexadecimal representation.
 func::bin2hex() {
@@ -1016,7 +1016,7 @@ func::bin2hex() {
 }
 
 # Usage:
-#   func::escapeshellarg variable
+#   void func::escapeshellarg(string* variable)
 #
 # Escapes variable's content.
 func::escapeshellarg() {
@@ -1028,7 +1028,7 @@ func::escapeshellarg() {
 }
 
 # Usage:
-#   func::floatval variable
+#   bool func::floatval(string* variable)
 #
 # Casts variable into float type.  If it fails, returns 1.
 func::floatval() {
@@ -1044,7 +1044,7 @@ func::floatval() {
 }
 
 # Usage:
-#   func::intval variable
+#   bool func::intval(string* variable)
 #
 # Casts variable into integer type.  If it fails, returns 1.
 func::intval() {
@@ -1088,7 +1088,7 @@ func::let() {
 }
 
 # Usage:
-#   func::print(string message...) > output
+#   void func::print(string message...) > output
 #
 # Print message to the standard output.  While "echo" consumes flags,
 # func::print does not consume any flags, so this is theoretically safe.
@@ -1097,7 +1097,7 @@ func::print() {
 }
 
 # Usage:
-#   func::println(string message...) > output
+#   void func::println(string message...) > output
 #
 # Print message to the standard output with a new line.  While "echo" consumes
 # flags, func::println does not consume any flags, so this is theoretically
@@ -1122,7 +1122,7 @@ func::str_replace() {
 }
 
 # Usage:
-#   func::strcpy destination source
+#   void func::strcpy(string* destination, string *source)
 #
 # Assigns the content of a variable specified as source into destination.
 func::strcpy() {
@@ -1133,9 +1133,9 @@ func::strcpy() {
 }
 
 # Usage:
-#   func::strval variable
+#   void func::strval(string* variable)
 #
-# Casts variable into string type.  If it fails, returns 1.
+# Casts variable into string type.
 func::strval() {
   local __strval_variable="$1"
 

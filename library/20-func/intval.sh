@@ -1,5 +1,5 @@
 # Usage:
-#   func::intval variable
+#   bool func::intval(string* variable)
 #
 # Casts variable into integer type.  If it fails, returns 1.
 func::intval() {

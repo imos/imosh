@@ -1,7 +1,7 @@
 # Usage:
-#   func::strval variable
+#   void func::strval(string* variable)
 #
-# Casts variable into string type.  If it fails, returns 1.
+# Casts variable into string type.
 func::strval() {
   local __strval_variable="$1"
 

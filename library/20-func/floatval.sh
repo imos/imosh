@@ -1,5 +1,5 @@
 # Usage:
-#   func::floatval variable
+#   bool func::floatval(string* variable)
 #
 # Casts variable into float type.  If it fails, returns 1.
 func::floatval() {

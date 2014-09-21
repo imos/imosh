@@ -1,6 +1,6 @@
 # Usage:
-#   func::bin2hex(string* destination, string data)
-#   func::bin2hex() < string > string
+#   void func::bin2hex(string* destination, string data)
+#   void func::bin2hex() < string > string
 #
 # Converts binary data into hexadecimal representation.
 func::bin2hex() {

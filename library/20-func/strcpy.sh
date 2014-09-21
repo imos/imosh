@@ -1,5 +1,5 @@
 # Usage:
-#   func::strcpy destination source
+#   void func::strcpy(string* destination, string *source)
 #
 # Assigns the content of a variable specified as source into destination.
 func::strcpy() {
