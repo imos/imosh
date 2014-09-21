@@ -1,14 +1,17 @@
 # Usage:
-#   void func::bin2hex(string* destination, string data)
-#   void func::bin2hex() < string > string
+#   void func::bin2hex(string* hexadecimal_output, string binary_input)
+#   void func::bin2hex(string binary_input) > hexadecimal_output
+#   void func::bin2hex() < binary_input > hexadecimal_output
 #
 # Converts binary data into hexadecimal representation.
 func::bin2hex() {
   if [ "$#" -eq 0 ]; then
     od -An -tx1 | tr -d ' \n'
     return
-  fi
-  if [ "$#" -ne 2 ]; then
+  elif [ "$#" -eq 1 ]; then
+    func::bin2hex <<<"$1"
+    return
+  elif [ "$#" -ne 2 ]; then
     LOG FATAL "func::bin2hex requires two arguments, but $# arguments."
     return 1
   fi

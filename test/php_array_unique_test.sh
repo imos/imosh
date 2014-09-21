@@ -24,11 +24,11 @@ test::php::array_unique() {
   expected+=$'\x09 \x0a \x0b \x0c \x0d \x0e \x0f \x10 '
   expected+=$'\x11 \x12 \x13 \x14 \x15 \x16 \x17 \x18 '
   expected+=$'\x19 \x1a \x1b \x1c \x1d \x1e \x1f \x20'
-  EXPECT_EQ "$(php::bin2hex "${expected}")" \
-            "$(php::bin2hex "$(func::implode ' ' values)")"
+  EXPECT_EQ "$(func::bin2hex "${expected}")" \
+            "$(func::bin2hex "$(func::implode ' ' values)")"
   php::array_unique values
-  EXPECT_EQ "$(php::bin2hex "${expected}")" \
-            "$(php::bin2hex "$(func::implode ' ' values)")"
+  EXPECT_EQ "$(func::bin2hex "${expected}")" \
+            "$(func::bin2hex "$(func::implode ' ' values)")"
   local values=($'\x1a' $'\x11' "${c1}" $'\x16' $'\x09' $'\x03' $'\x1c' $'\x05'
                 $'\x1d' $'\x1b' $'\x0a' $'\x19' $'\x1e' $'\x0e' $'\x15' $'\x0f'
                 $'\x0d' $'\x08' $'\x04' $'\x13' $'\x02' $'\x07' $'\x1f' $'\x0c'
