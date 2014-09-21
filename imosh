@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-09-21 14:38:26 +0900 (5bb905e)'
+IMOSH_VERSION='2014-09-22 01:08:03 +0900 (10268d1)'
 
 if ! shopt login_shell >/dev/null; then
   set -e -u
@@ -1070,6 +1070,16 @@ func::let() {
 }
 
 # Usage:
+#   void func::ltrim(string* variable)
+#
+# Strips whitespace (or other characters) from the beginning of a string.
+func::ltrim() {
+  local __ltrim_variable="$1"
+
+  eval "${__ltrim_variable}=\"\${${__ltrim_variable}#\"\${${__ltrim_variable}%%[![:space:]]*}\"}\""
+}
+
+# Usage:
 #   void func::print(string message...) > output
 #
 # Print message to the standard output.  While "echo" consumes flags,
@@ -1086,6 +1096,16 @@ func::print() {
 # safe.
 func::println() {
   printf "%s\n" "$*"
+}
+
+# Usage:
+#   void func::rtrim(string* variable)
+#
+# Strips whitespace (or other characters) from the end of a string.
+func::rtrim() {
+  local __rtrim_variable="$1"
+
+  eval "${__rtrim_variable}=\"\${${__rtrim_variable}%\"\${${__rtrim_variable}##*[![:space:]]}\"}\""
 }
 
 # Usage:
@@ -1122,6 +1142,16 @@ func::strval() {
   local __strval_variable="$1"
 
   eval "${__strval_variable}=\"\${${__strval_variable}}\""
+}
+
+# Usage:
+#   void func::trim(string* variable)
+#
+# Strips whitespace (or other characters) from the beginning and end of a
+# string.
+func::trim() {
+  func::rtrim "$1"
+  func::ltrim "$1"
 }
 
 imosh::internal::convert_type() {
