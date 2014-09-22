@@ -26,7 +26,7 @@ imosh::internal::define_flag() {
   local group="$(php::strtoupper "${ARGS_group}")"
 
   # Change the default value based on its corresponding environment variable.
-  if php::isset "IMOSH_FLAGS_${name}"; then
+  if func::isset "IMOSH_FLAGS_${name}"; then
     default_value="$(eval print "\${IMOSH_FLAGS_${name}}")"
   fi
   if ! imosh::internal::convert_type \
@@ -34,7 +34,7 @@ imosh::internal::define_flag() {
     LOG FATAL "${type}'s default value should be ${type}: ${default_value}"
   fi
   default_value="$(imosh::internal::convert_type "${type}" "${default_value}")"
-  if php::isset "__IMOSH_FLAGS_TYPE_${name}"; then
+  if func::isset "__IMOSH_FLAGS_TYPE_${name}"; then
     LOG FATAL "already defined flag: ${name}"
   fi
   func::strcpy "FLAGS_${name}" 'default_value'

@@ -23,7 +23,7 @@ LOG() {
   datetime="${datetime/.N/.000000}"
   datetime="${datetime:0:20}"
   local pid
-  if php::isset __IMOSH_LOG_PID; then
+  if func::isset __IMOSH_LOG_PID; then
     pid="${__IMOSH_LOG_PID}"
   else
     imosh::set_pid
@@ -43,11 +43,11 @@ LOG() {
     message+="$(imosh::stack_trace "*** LOG ${level} stack trace: ***" 2>&1)"
   fi
   local logtostderr=0
-  if php::isset FLAGS_logtostderr; then
+  if func::isset FLAGS_logtostderr; then
     logtostderr="${FLAGS_logtostderr}"
   fi
   local alsologtostderr=0
-  if php::isset FLAGS_alsologtostderr; then
+  if func::isset FLAGS_alsologtostderr; then
     alsologtostderr="${FLAGS_alsologtostderr}"
   fi
   case "${level}" in

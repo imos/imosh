@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-09-23 03:18:25 +0900 (c4e5b3d)'
+IMOSH_VERSION='2014-09-23 03:54:44 +0900 (205db94)'
 
 if ! shopt login_shell >/dev/null; then
   set -e -u
@@ -189,7 +189,7 @@ LOG() {
   datetime="${datetime/.N/.000000}"
   datetime="${datetime:0:20}"
   local pid
-  if php::isset __IMOSH_LOG_PID; then
+  if func::isset __IMOSH_LOG_PID; then
     pid="${__IMOSH_LOG_PID}"
   else
     imosh::set_pid
@@ -209,11 +209,11 @@ LOG() {
     message+="$(imosh::stack_trace "*** LOG ${level} stack trace: ***" 2>&1)"
   fi
   local logtostderr=0
-  if php::isset FLAGS_logtostderr; then
+  if func::isset FLAGS_logtostderr; then
     logtostderr="${FLAGS_logtostderr}"
   fi
   local alsologtostderr=0
-  if php::isset FLAGS_alsologtostderr; then
+  if func::isset FLAGS_alsologtostderr; then
     alsologtostderr="${FLAGS_alsologtostderr}"
   fi
   case "${level}" in
@@ -289,7 +289,7 @@ imosh::internal::parse_args() {
     arg_value="${arg:${#arg_name}}"
     if [ "${arg_value:0:1}" != '=' ]; then
       if [ "${arg_name:0:2}" = 'no' ]; then
-        if php::isset "${upper_class_name}S_${arg_name:2}"; then
+        if func::isset "${upper_class_name}S_${arg_name:2}"; then
           if [ "${class_name}" != 'flag' ] || \
              [ "$(imosh::internal::flag_type "${arg_name:2}")" = 'bool' ]; then
             IMOSH_ARGS+=("${upper_class_name}S_${arg_name:2}=0")
@@ -297,14 +297,14 @@ imosh::internal::parse_args() {
           fi
         fi
       fi
-      if php::isset "${upper_class_name}S_${arg_name}"; then
+      if func::isset "${upper_class_name}S_${arg_name}"; then
         if [ "${class_name}" != 'flag' ] ||
            [ "$(imosh::internal::flag_type "${arg_name}")" = 'bool' ]; then
           IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=1")
           continue
         fi
       fi
-      if ! php::isset "${upper_class_name}S_${arg_name}"; then
+      if ! func::isset "${upper_class_name}S_${arg_name}"; then
         LOG FATAL "no such bool ${class_name} is defined:" \
                   "(${upper_class_name}S_)${arg_name}"
       fi
@@ -315,7 +315,7 @@ imosh::internal::parse_args() {
       shift
     fi
     arg_value="${arg_value:1}"
-    if php::isset "${upper_class_name}S_${arg_name}"; then
+    if func::isset "${upper_class_name}S_${arg_name}"; then
       if [ "${class_name}" = 'flag' ]; then
         if ! imosh::internal::convert_type \
                "$(imosh::internal::flag_type "${arg_name}")" \
@@ -384,18 +384,6 @@ php::hex2bin() {
   printf "${message}"
 }
 
-# CAVEATS:
-#     isset returns true for uninitialized variables in BASH 3, and returns
-#     false for them in BASH 4.
-php::isset() {
-  local variable_name="$1"
-
-  if [ "$(eval echo '${'"${variable_name}"'+set}')" = '' ]; then
-    return 1
-  fi
-  return 0
-}
-
 php::md5() {
   if which openssl >/dev/null 2>/dev/null; then
     print "${1}" | openssl md5 -binary | func::bin2hex
@@ -408,24 +396,6 @@ php::md5() {
 
 php::ord() {
   printf '%d' \'"${1}"
-}
-
-php::preg_match() {
-  local __preg_match_pattern="${1}"
-  local __preg_match_subject="${2}"
-  local __preg_match_name=''
-
-  if [ "$#" -ge 3 ]; then __preg_match_name="${3}"; fi
-  local __preg_match_result
-  if ! php::internal::run "
-      if (!preg_match('$(php::addslashes "${__preg_match_pattern}")',
-                      '$(php::addslashes "${__preg_match_subject}")',
-                      \$match)) { return 1; }
-      echo implode(\"\\x02\", \$match); return 0;" __preg_match_result; then
-    return 1
-  else
-    func::explode "${__preg_match_name}" $'\x02' "${__preg_match_result}"
-  fi
 }
 
 php::rand() {
@@ -535,7 +505,7 @@ php::strtoupper() {
 }
 
 imosh::set_pid() {
-  if php::isset BASHPID; then
+  if func::isset BASHPID; then
     IMOSH_PID="${BASHPID}"
   else
     local pid_file="$(mktemp "${__IMOSH_CORE_TMPDIR}/pid.XXXXXX")"
@@ -572,7 +542,7 @@ imosh::internal::define_flag() {
   local group="$(php::strtoupper "${ARGS_group}")"
 
   # Change the default value based on its corresponding environment variable.
-  if php::isset "IMOSH_FLAGS_${name}"; then
+  if func::isset "IMOSH_FLAGS_${name}"; then
     default_value="$(eval print "\${IMOSH_FLAGS_${name}}")"
   fi
   if ! imosh::internal::convert_type \
@@ -580,7 +550,7 @@ imosh::internal::define_flag() {
     LOG FATAL "${type}'s default value should be ${type}: ${default_value}"
   fi
   default_value="$(imosh::internal::convert_type "${type}" "${default_value}")"
-  if php::isset "__IMOSH_FLAGS_TYPE_${name}"; then
+  if func::isset "__IMOSH_FLAGS_TYPE_${name}"; then
     LOG FATAL "already defined flag: ${name}"
   fi
   func::strcpy "FLAGS_${name}" 'default_value'

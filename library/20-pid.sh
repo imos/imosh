@@ -1,5 +1,5 @@
 imosh::set_pid() {
-  if php::isset BASHPID; then
+  if func::isset BASHPID; then
     IMOSH_PID="${BASHPID}"
   else
     local pid_file="$(mktemp "${__IMOSH_CORE_TMPDIR}/pid.XXXXXX")"
