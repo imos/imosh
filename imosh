@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-09-22 03:27:25 +0900 (c3fbafa)'
+IMOSH_VERSION='2014-09-23 03:18:25 +0900 (c4e5b3d)'
 
 if ! shopt login_shell >/dev/null; then
   set -e -u
@@ -542,24 +542,6 @@ imosh::set_pid() {
     "${SHELL}" -c 'echo "${PPID}"' >"${pid_file}"
     IMOSH_PID="$(cat "${pid_file}")"
   fi
-}
-
-# Shows a stack trace.  Arguments are used as a message.
-imosh::stack_trace() {
-  local max_depth="${#BASH_LINENO[@]}"
-  local i=0
-  if [ "$*" = '' ]; then
-    echo 'imosh::stack_trace is called' >&2
-  else
-    echo "$*" >&2
-  fi
-  while (( i < max_depth - 1 )); do
-    local lineno="${BASH_LINENO[$((i))]}"
-    local file="${BASH_SOURCE[$((i+1))]}"
-    local function="${FUNCNAME[$((i+1))]}"
-    echo "  at ${function} (${file}:${lineno})" >&2
-    (( i += 1 )) || true
-  done
 }
 
 # __IMOSH_FLAGS_TYPE_<flag name>=<flag type>
@@ -1204,6 +1186,42 @@ func::trim() {
   func::ltrim "$1"
 }
 
+CHECK() {
+  if ! "$@"; then
+    IFS=' ' eval 'imosh::stack_trace "*** Check failure: $* ***"'
+  fi
+}
+
+# Usage:
+#   imosh::stack_trace [--skip_imosh] [message...]
+#
+# Shows a stack trace.  Arguments are used as a message.
+imosh::stack_trace() {
+  local ARGS_skip_imosh=0
+  eval "${IMOSH_PARSE_ARGUMENTS}"
+
+  local max_depth="${#BASH_LINENO[@]}"
+  local i=0
+  if [ "$*" = '' ]; then
+    echo 'imosh::stack_trace is called' >&2
+  else
+    echo "$*" >&2
+  fi
+  while (( i < max_depth - 1 )); do
+    if [ "${BASH_SOURCE[$((i+1))]}" != "${BASH_SOURCE[0]}" ]; then
+      break
+    fi
+    (( i += 1 )) || true
+  done
+  while (( i < max_depth - 1 )); do
+    local lineno="${BASH_LINENO[$((i))]}"
+    local file="${BASH_SOURCE[$((i+1))]}"
+    local function="${FUNCNAME[$((i+1))]}"
+    echo "  at ${function} (${file}:${lineno})" >&2
+    (( i += 1 )) || true
+  done
+}
+
 imosh::internal::convert_type() {
   local type="$1"; shift
   local value="$1"; shift
@@ -1258,11 +1276,16 @@ ASSERT() {
   IMOSH_TEST_IS_FAILED="${last_state}"
 }
 
+FAILURE() {
+  IMOSH_TEST_IS_FAILED=1
+  imosh::stack_trace --skip_imosh '*** Check failure ***'
+}
+
 EXPECT_TRUE() {
   if ! "$@"; then
     echo '  Actual: false' >&2
     echo 'Expected: true' >&2
-    IMOSH_TEST_IS_FAILED=1
+    FAILURE
     return 1
   fi
 }
@@ -1271,7 +1294,7 @@ EXPECT_FALSE() {
   if "$@"; then
     echo '  Actual: true' >&2
     echo 'Expected: false' >&2
-    IMOSH_TEST_IS_FAILED=1
+    FAILURE
     return 1
   fi
 }
