@@ -997,6 +997,54 @@ func::floatval() {
 }
 
 # Usage:
+#   void func::greg_match(string pattern, string subject)
+#
+# Replace pattern with replace in *subject.
+func::greg_match() {
+  if ! shopt extglob >/dev/null; then
+    shopt -s extglob
+    func::greg_match "$@"
+    local result="$?"
+    shopt -u extglob
+    return "${result}"
+  fi
+
+  if [ "$#" -ne 2 ]; then
+    LOG FATAL 'func::greg_match takes exactly 2 arguments.'
+  fi
+  local __greg_match_pattern="${1}"
+  local __greg_match_subject="${2}"
+
+  if [[ "${__greg_match_subject}" = ${__greg_match_pattern} ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+# Usage:
+#   void func::greg_replace(string* subject, string pattern, string replace)
+#
+# Replace pattern with replace in *subject.
+func::greg_replace() {
+  if ! shopt extglob >/dev/null; then
+    shopt -s extglob
+    func::greg_replace "$@"
+    shopt -u extglob
+    return "$?"
+  fi
+
+  if [ "$#" -ne 3 ]; then
+    LOG FATAL 'func::greg_replace takes exactly 3 arguments.'
+  fi
+  local __greg_replace_subject_variable="${1}"
+  local __greg_replace_search="${2}"
+  local __greg_replace_replace="${3}"
+
+  eval "${__greg_replace_subject_variable}=\"\${${__greg_replace_subject_variable}//\${__greg_replace_search}/\${__greg_replace_replace}}\""
+}
+
+# Usage:
 #   func::implode(string* variable, string glue, array* pieces)
 #   func::implode(string glue, array* pieces) > result
 #
@@ -1199,6 +1247,42 @@ DEFINE_bool --group=imosh 'help_groff' false \
     'Use groff for help output.'
 
 DEFINE_bool --group=imosh disown_php false 'Disown a PHP process.'
+
+ASSERT() {
+  local last_state="${IMOSH_TEST_IS_FAILED}"
+  IMOSH_TEST_IS_FAILED=0
+  "$@"
+  if (( IMOSH_TEST_IS_FAILED )); then
+    exit 1
+  fi
+  IMOSH_TEST_IS_FAILED="${last_state}"
+}
+
+EXPECT_TRUE() {
+  if ! "$@"; then
+    echo '  Actual: false' >&2
+    echo 'Expected: true' >&2
+    IMOSH_TEST_IS_FAILED=1
+    return 1
+  fi
+}
+
+EXPECT_FALSE() {
+  if "$@"; then
+    echo '  Actual: true' >&2
+    echo 'Expected: false' >&2
+    IMOSH_TEST_IS_FAILED=1
+    return 1
+  fi
+}
+
+ASSERT_TRUE() {
+  ASSERT EXPECT_TRUE "$@"
+}
+
+ASSERT_FALSE() {
+  ASSERT EXPECT_FALSE "$@"
+}
 
 LOG INFO 'imosh is ready.'
 
