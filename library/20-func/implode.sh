@@ -9,7 +9,8 @@
 #   void func::implode(string glue) < input > output
 #
 # func::implode joins `pieces` with `glue`.
-# *Stream form* uses IFS as an input separator and processes line by line.
+# *Stream form* uses the IFS environment variable as an input separator and
+# processes line by line.
 #
 # ### Alias
 # func::join is an alias of func::implode.
