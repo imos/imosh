@@ -1,41 +1,38 @@
 get_flag() {
-  bash test/flags.sh "$@" 2>/dev/null &
-  if ! wait $!; then func::print invalid; fi
+  if ! bash test/flags.sh "$@" 2>/dev/null; then
+    func::print invalid
+  fi
+}
+
+run_testcase() {
+  local expected="$1"; shift
+  local flags=("$@")
+
+  func::throttle 4
+  ASSERT_EQ "${expected}" "$(get_flag "${flags[@]}")" &
+  pids+=("$!")
 }
 
 test::bool_flag() {
   local pids=()
-  ASSERT_EQ 'FLAGS_bool=0' "$(get_flag --flag=bool)" &
-  pids+=("$!")
 
-  ASSERT_EQ 'FLAGS_bool=0' "$(get_flag --flag=bool --nobool)" &
-  pids+=("$!")
-  ASSERT_EQ 'FLAGS_bool=0' "$(get_flag --flag=bool --bool=false)" &
-  pids+=("$!")
-  ASSERT_EQ 'FLAGS_bool=0' "$(get_flag --flag=bool --bool=False)" &
-  pids+=("$!")
-  ASSERT_EQ 'FLAGS_bool=0' "$(get_flag --flag=bool --bool=f)" &
-  pids+=("$!")
-  ASSERT_EQ 'FLAGS_bool=0' "$(get_flag --flag=bool --bool=F)" &
-  pids+=("$!")
-  ASSERT_EQ 'FLAGS_bool=0' "$(get_flag --flag=bool --bool=0)" &
-  pids+=("$!")
+  run_testcase 'FLAGS_bool=0' --flag=bool
 
-  ASSERT_EQ 'FLAGS_bool=1' "$(get_flag --flag=bool --bool)" &
-  pids+=("$!")
-  ASSERT_EQ 'FLAGS_bool=1' "$(get_flag --flag=bool --bool=true)" &
-  pids+=("$!")
-  ASSERT_EQ 'FLAGS_bool=1' "$(get_flag --flag=bool --bool=True)" &
-  pids+=("$!")
-  ASSERT_EQ 'FLAGS_bool=1' "$(get_flag --flag=bool --bool=t)" &
-  pids+=("$!")
-  ASSERT_EQ 'FLAGS_bool=1' "$(get_flag --flag=bool --bool=T)" &
-  pids+=("$!")
-  ASSERT_EQ 'FLAGS_bool=1' "$(get_flag --flag=bool --bool=1)" &
-  pids+=("$!")
+  run_testcase 'FLAGS_bool=0' --flag=bool --nobool
+  run_testcase 'FLAGS_bool=0' --flag=bool --bool=false
+  run_testcase 'FLAGS_bool=0' --flag=bool --bool=False
+  run_testcase 'FLAGS_bool=0' --flag=bool --bool=f
+  run_testcase 'FLAGS_bool=0' --flag=bool --bool=F
+  run_testcase 'FLAGS_bool=0' --flag=bool --bool=0
 
-  ASSERT_EQ 'invalid' "$(get_flag --flag=bool --bool=invalid)" &
-  pids+=("$!")
+  run_testcase 'FLAGS_bool=1' --flag=bool --bool
+  run_testcase 'FLAGS_bool=1' --flag=bool --bool=true
+  run_testcase 'FLAGS_bool=1' --flag=bool --bool=True
+  run_testcase 'FLAGS_bool=1' --flag=bool --bool=t
+  run_testcase 'FLAGS_bool=1' --flag=bool --bool=T
+  run_testcase 'FLAGS_bool=1' --flag=bool --bool=1
+
+  run_testcase 'invalid' --flag=bool --bool=invalid
 
   for pid in "${pids[@]}"; do
     if ! wait "${pid}"; then
@@ -46,36 +43,24 @@ test::bool_flag() {
 
 test::int_flag() {
   local pids=()
-  ASSERT_EQ 'FLAGS_int=100' "$(get_flag --flag=int)" &
-  pids+=("$!")
 
-  ASSERT_EQ 'FLAGS_int=0' "$(get_flag --flag=int --int=0)" &
-  pids+=("$!")
-  ASSERT_EQ 'FLAGS_int=12345' "$(get_flag --flag=int --int=12345)" &
-  pids+=("$!")
-  ASSERT_EQ 'FLAGS_int=-12345' "$(get_flag --flag=int --int=-12345)" &
-  pids+=("$!")
-  ASSERT_EQ 'FLAGS_int=012345' "$(get_flag --flag=int --int=012345)" &
-  pids+=("$!")
+  run_testcase 'FLAGS_int=100' --flag=int
 
-  ASSERT_EQ 'FLAGS_int=0' "$(get_flag --flag=int --int 0)" &
-  pids+=("$!")
-  ASSERT_EQ 'FLAGS_int=12345' "$(get_flag --flag=int --int 12345)" &
-  pids+=("$!")
-  ASSERT_EQ 'FLAGS_int=-12345' "$(get_flag --flag=int --int -12345)" &
-  pids+=("$!")
-  ASSERT_EQ 'FLAGS_int=012345' "$(get_flag --flag=int --int 012345)" &
-  pids+=("$!")
+  run_testcase 'FLAGS_int=0' --flag=int --int=0
+  run_testcase 'FLAGS_int=12345' --flag=int --int=12345
+  run_testcase 'FLAGS_int=-12345' --flag=int --int=-12345
+  run_testcase 'FLAGS_int=012345' --flag=int --int=012345
 
-  ASSERT_EQ 'invalid' "$(get_flag --flag=int --int)" &
-  pids+=("$!")
-  ASSERT_EQ 'invalid' "$(get_flag --flag=int --int=abc)" &
-  pids+=("$!")
+  run_testcase 'FLAGS_int=0' --flag=int --int 0
+  run_testcase 'FLAGS_int=12345' --flag=int --int 12345
+  run_testcase 'FLAGS_int=-12345' --flag=int --int -12345
+  run_testcase 'FLAGS_int=012345' --flag=int --int 012345
 
-  ASSERT_EQ 'invalid' "$(get_flag --flag=int --int)" &
-  pids+=("$!")
-  ASSERT_EQ 'invalid' "$(get_flag --flag=int --int abc)" &
-  pids+=("$!")
+  run_testcase 'invalid' --flag=int --int
+  run_testcase 'invalid' --flag=int --int=abc
+
+  run_testcase 'invalid' --flag=int --int
+  run_testcase 'invalid' --flag=int --int abc
 
   for pid in "${pids[@]}"; do
     if ! wait "${pid}"; then
@@ -86,21 +71,16 @@ test::int_flag() {
 
 test::string_flag() {
   local pids=()
-  ASSERT_EQ 'FLAGS_string=default' "$(get_flag --flag=string)" &
-  pids+=("$!")
 
-  ASSERT_EQ 'FLAGS_string=' "$(get_flag --flag=string --string=)" &
-  pids+=("$!")
-  ASSERT_EQ 'FLAGS_string=abc' "$(get_flag --flag=string --string=abc)" &
-  pids+=("$!")
+  run_testcase 'FLAGS_string=default' --flag=string
 
-  ASSERT_EQ 'FLAGS_string=' "$(get_flag --flag=string --string '')" &
-  pids+=("$!")
-  ASSERT_EQ 'FLAGS_string=abc' "$(get_flag --flag=string --string abc)" &
-  pids+=("$!")
+  run_testcase 'FLAGS_string=' --flag=string --string=
+  run_testcase 'FLAGS_string=abc' --flag=string --string=abc
 
-  ASSERT_EQ 'invalid' "$(get_flag --flag=string --string)" &
-  pids+=("$!")
+  run_testcase 'FLAGS_string=' --flag=string --string ''
+  run_testcase 'FLAGS_string=abc' --flag=string --string abc
+
+  run_testcase 'invalid' --flag=string --string
 
   for pid in "${pids[@]}"; do
     if ! wait "${pid}"; then
