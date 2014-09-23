@@ -121,7 +121,7 @@ imosh::internal::flag_groups() {
     echo 'main'
   fi
   if [ "${#groups[@]}" -ne 0 ]; then
-    php::array_unique groups
+    func::array_unique groups
     for group in "${groups[@]}"; do
       echo "${group}"
     done
