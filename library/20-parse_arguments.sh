@@ -2,7 +2,8 @@
 imosh::internal::parse_args() {
   local class_name="$1"; shift
 
-  local upper_class_name="$(php::strtoupper "${class_name}")"
+  local upper_class_name="${class_name}"
+  func::strtoupper upper_class_name
   local arg arg_name arg_value
   IMOSH_ARGV=()
   IMOSH_ARGS=()
@@ -32,7 +33,7 @@ imosh::internal::parse_args() {
     arg_value="${arg:${#arg_name}}"
     if [ "${arg_value:0:1}" != '=' ]; then
       if [ "${arg_name:0:2}" = 'no' ]; then
-        if php::isset "${upper_class_name}S_${arg_name:2}"; then
+        if func::isset "${upper_class_name}S_${arg_name:2}"; then
           if [ "${class_name}" != 'flag' ] || \
              [ "$(imosh::internal::flag_type "${arg_name:2}")" = 'bool' ]; then
             IMOSH_ARGS+=("${upper_class_name}S_${arg_name:2}=0")
@@ -40,14 +41,14 @@ imosh::internal::parse_args() {
           fi
         fi
       fi
-      if php::isset "${upper_class_name}S_${arg_name}"; then
+      if func::isset "${upper_class_name}S_${arg_name}"; then
         if [ "${class_name}" != 'flag' ] ||
            [ "$(imosh::internal::flag_type "${arg_name}")" = 'bool' ]; then
           IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=1")
           continue
         fi
       fi
-      if ! php::isset "${upper_class_name}S_${arg_name}"; then
+      if ! func::isset "${upper_class_name}S_${arg_name}"; then
         LOG FATAL "no such bool ${class_name} is defined:" \
                   "(${upper_class_name}S_)${arg_name}"
       fi
@@ -58,7 +59,7 @@ imosh::internal::parse_args() {
       shift
     fi
     arg_value="${arg_value:1}"
-    if php::isset "${upper_class_name}S_${arg_name}"; then
+    if func::isset "${upper_class_name}S_${arg_name}"; then
       if [ "${class_name}" = 'flag' ]; then
         if ! imosh::internal::convert_type \
                "$(imosh::internal::flag_type "${arg_name}")" \

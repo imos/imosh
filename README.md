@@ -47,7 +47,7 @@ Glog-like logging
 imosh provides a standard way for logging like glog.
 
 ```sh
-LOG ERROR 'something bad happends!'
+LOG ERROR 'some error happens!'
 ```
 
 Usage
@@ -128,263 +128,265 @@ Path to Output
 
 imosh outputs log files to `${TMPDIR}/<program name>.<host name>.<user>.<severity>.<date>.<time>.<process ID>`.
 
+<!-- MARKER:AUTO_GENERATED -->
 
-PHP-like Functions
-==================
+# Functions
 
-Required commands are specified inside parenthes.
-php takes much time to execute, so functions avoids using PHP if possible.
---disown_php disowns a PHP process and speeds up php functions.
+## func::addslashes -- Quotes a string with backslahses.
 
-php::bin2hex (od)
------------------
-
-```sh
-php::bin2hex <message>
+```cpp
+void func::addslashes(string* subject)
 ```
 
-Outputs an ASCII string containing the hexadecimal representation of `message` with no trailing new line. The conversion is done byte-wise with the high-nibble first.
 
-### Examples
+Quotes string with backslashes. Single quote, double quote and backslash in
+subject are escaped.
 
-```sh
-$ php::bin2hex hoge; echo
-686f6765
+## func::array_unique -- Remove duplicated elements from an array variable.
+
+```cpp
+void func::array_unique(string[]* variable)
 ```
 
-php::explode
-------------
 
-```sh
-php::explode <variable> <delimiter> <string>
+
+## func::bin2hex -- Converts a binary string into hexadecimal representation.
+
+```cpp
+void func::bin2hex(string* hexadecimal_output, string binary_input)
+void func::bin2hex(string binary_input) > hexadecimal_output
+void func::bin2hex() < binary_input > hexadecimal_output
 ```
 
-Assigns an array of strings to `variable`, each of which is a substring of `string` formed by splitting it on boundaries formed by the string `delimiter`.
 
-### Examples
+Converts binary data into hexadecimal representation.
 
-```sh
-$ php::explode values 'xyz' 'abcxyzdefxyzghi'
-$ php::implode ',' values; echo
-abc,def,ghi
+## func::escapeshellarg - Escapes a variable as a shell argument.
+
+```cpp
+void func::escapeshellarg(string* variable)
 ```
 
-php::hex2bin (printf, sed, tr)
-------------------------------
 
-```sh
-php::hex2bin <message>
+Escapes variable's content.
+
+## func::explode -- Splits a string by a substring.
+
+```cpp
+void func::explode(string* variable, string delimiter, string value)
 ```
 
-Decodes a hexadecimally encoded binary string `message` with no trailing new line.
 
-### Examples
+Splits a string by string.
 
-```sh
-$ php::hex2bin 686f6765; echo
-hoge
+## func::floatval -- Casts a variable as a float value.
+
+```cpp
+bool func::floatval(string* variable)
 ```
 
-php::implode
-------------
 
-```sh
-php::implode <glue> <pieces>
+Casts variable into float type.  If it fails, returns 1.
+
+## func::greg_match -- Checks if a string matches a GREG pattern.
+
+```cpp
+void func::greg_match(string pattern, string subject)
 ```
 
-Joins array elements of `pieces` with a `glue` string.
 
-### Examples
+Replace pattern with replace in *subject.
 
-```sh
-$ pieces=('abc' 'def' 'ghi')
-$ php::implode 'xyz' pieces; echo
-abcxyzdefxyzghi
+## func::greg_replace -- Replace a GREG pattern with a string.
+
+```cpp
+void func::greg_replace(string* subject, string pattern, string replace)
 ```
 
-php::isset
-----------
 
-```sh
-php::isset <variable>
+Replace pattern with replace in *subject.
+
+## func::hex2bin -- Decodes a hexadecimally encoded binary string.
+
+```cpp
+void func::hex2bin(string* output, string input)
+void func::hex2bin(string* variable)
+void func::hex2bin() < input > output
 ```
 
-Returns true iff `variable` exists.
 
-### Caveats
+Decodes a hexadecimally encoded binary string.
 
-BASH 4 does not initialize variables without "=" in declaration, so this function returns false for them.
+## func::implode -- Joins array elements with a string.
 
-```sh
-func() {
-  # BASH 3 initializes variable1, but BASH 4 does not.
-  local variable1
-  # BASH 4 also initializes variable2.
-  local variable2=
-}
+```cpp
+func::implode(string* variable, string glue, array* pieces)
+func::implode(string glue, array* pieces) > result
 ```
 
-### Examples
 
-```sh
-$ if php::isset undefined_variable; then echo defined; else echo undefined; fi
-undefined
-$ variable=foo
-$ if php::isset variable; then echo defined; else echo undefined; fi
-defined
+Joins array elements with a string.
+
+## func::intval -- Casts a variable as an integer value.
+
+```cpp
+bool func::intval(string* variable)
 ```
 
-php::md5 (openssl OR md5sum)
-----------------------------
 
-```sh
-php::md5 <message>
+Casts variable into integer type.  If it fails, returns 1.
+
+## func::isset -- Checks if a variable exists.
+
+```cpp
+bool func::isset(variant* variable)
 ```
 
-Calculates the MD5 hash of `message` using the MD5 Message-Digest Algorithm, and outputs that hash.
 
-### Examples
+Returns true iff variable exists.
 
-```sh
-$ php::md5 ''; echo
-d41d8cd98f00b204e9800998ecf8427e
-$ php::md5 'foo'; echo
-acbd18db4cc2f85cedef654fccc4a4d8
+CAVEATS: func::isset returns true for uninitialized variables in BASH 3, and
+         returns false for them in BASH 4.
+
+## func::let -- Assigns a value into a variable.
+
+```cpp
+func::let(string* destination, string value)
 ```
 
-php::ord (printf)
------------------
 
-```sh
-php::ord <string>
+Assigns value into *destination.
+
+## func::ltrim -- Strips whitespace(s) from the beginning of a string.
+
+```cpp
+void func::ltrim(string* variable)
 ```
 
-Returns the ASCII value of the first character of `string`.
 
-### Examples
+Strips whitespace (or other characters) from the beginning of a string.
 
-```sh
-$ php::ord 'abc'; echo
-97
-$ php::ord ''; echo
-0
+## func::md5 -- Calculates a MD5 hash.
+
+```cpp
+void func::md5() < input > hash
+void func::md5(string data) > hash
+void func::md5(string* variable, string data)
 ```
 
-php::preg_match (php)
----------------------
 
-```sh
-php::preg_match <pattern> <subject> [<matches>]
+
+## func::ord -- Gets a character's ASCII code.
+
+```cpp
+func::ord(string* variable, string character)
 ```
 
-Searches `subject` for a match to the regular expression given in `pattern`.
-Returns true iff `pattern` is found in `subject`.
-If `matches` is provided, then it is filled with the results of search.
-`${matches[0]}` will contain the text that matched the full pattern, `${matches[1]}` will have the text that matched the first captured parenthesized subpattern, and so on.
 
-### Examples
+Sets ASCII value of character to variable.
 
-```sh
-$ php::preg_match '%(\d{4})-(\d{2})-(\d{2})%' 'date: 2014-08-04 12:13:14' match
-$ php::implode ',' match
-2014-08-04,2014,08,04
+## func::print -- Prints a message.
+
+```cpp
+void func::print(string message...) > output
 ```
 
-php::rand
----------
 
-```sh
-php::rand
-php::rand <min> <max>
+Print message to the standard output.  While "echo" consumes flags,
+func::print does not consume any flags, so this is theoretically safe.
+
+## func::println -- Prints a message with a new line.
+
+```cpp
+void func::println(string message...) > output
 ```
 
-If called without the optional `min`, `max` arguments php::rand returns a pseudo-random integer between 0 and 2^31-1. If you want a random number between 5 and 15 (inclusive), for example, use `php::rand 5 15`.
 
-### Examples
+Print message to the standard output with a new line.  While "echo" consumes
+flags, func::println does not consume any flags, so this is theoretically
+safe.
 
-```sh
-$ php::rand; echo
-572738859
-$ php::rand 100 200; echo
-143
+## func::rand -- Generates a random integer.
+
+```cpp
+void func::rand(int* variable)
+void func::rand(int* variable, int minimum, int maximum)
 ```
 
-php::sort
----------
 
-```sh
-php::sort <array variable>
+Generates a random integer.
+
+## func::rtrim -- Strips whitespace(s) from the end of a string.
+
+```cpp
+void func::rtrim(string* variable)
 ```
 
-Sorts `array variable`. Elements will be arranged from lowest to highest when this function has completed.
 
-### Examples
+Strips whitespace (or other characters) from the end of a string.
 
-```sh
-$ values=(9 3 8 1)
-$ php::sort values
-$ echo "${values[@]}"
-1 3 8 9
-$ values=()
-$ php::sort values
-$ echo "${values[@]}"
+## func::sort -- Sorts a string-array variable.
 
-$ values=(10 9 3 8 1)
-$ php::sort values
-$ echo "${values[@]}"
-1 10 3 8 9
-$ values=(a ab ABC ' abc')
-$ php::sort values
-$ php::implode ',' values; echo
- abc,ABC,a,ab
+```cpp
+void func::sort(string[]* variable)
 ```
 
-php::str_replace (printf)
--------------------------
 
-```sh
-php::str_replace <search> <replace> <subject>
+
+## func::str_replace -- Replaces a substring with another substring.
+
+```cpp
+void func::str_replace(string* subject, string search, string replace)
 ```
 
-Outputs a string with all occurrences of `search` in `subject` replaced with the given `replace` value.
 
-### Examples
+Replace search with replace in *subject.
 
-```sh
-$ php::str_replace ' ' 'x' 'abc def ghi'; echo
-abcxdefxghi
-$ php::str_replace 'aaa' 'bbb' 'aaaaaaaa'; echo
-bbbbbbaa
+## func::strcpy -- Copies a string from a variable to another variable.
+
+```cpp
+void func::strcpy(string* destination, string *source)
 ```
 
-php::strtolower (printf, tr)
-----------------------------
 
-```sh
-php::strtolower <message>
+Assigns the content of a variable specified as source into destination.
+
+## func::strtolower -- Makes a string lowercase.
+
+```cpp
+void func::strtolower(string* variable)
+void func::strtolower() < input > output
 ```
 
-Outputs a string with all alphabetic characters converted to lowercase.
 
-### Examples
+Makes variable lowercase.
 
-```sh
-$ php::strtolower 'ABC def Ghi 123 ひらがな 漢字 カタカナ'; echo
-abc def ghi 123 ひらがな 漢字 カタカナ
+## func::strtoupper -- Makes a string uppercase.
+
+```cpp
+void func::strtoupper(string* variable)
+void func::strtoupper() < input > output
 ```
 
-php::strtoupper (printf, tr)
-----------------------------
 
-```sh
-php::strtoupper <message>
+Makes variable uppercase.
+
+## func::strval -- Casts a variable as a string value.
+
+```cpp
+void func::strval(string* variable)
 ```
 
-Outputs a string with all alphabetic characters converted to uppercase.
 
-### Examples
+Casts variable into string type.
 
-```sh
-$ php::strtoupper 'ABC def Ghi 123 ひらがな 漢字 カタカナ'; echo
-ABC DEF GHI 123 ひらがな 漢字 カタカナ
+## func::trim -- Strips whitespaces from both sides.
+
+```cpp
+void func::trim(string* variable)
 ```
+
+
+Strips whitespace (or other characters) from the beginning and end of a
+string.
+
