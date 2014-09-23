@@ -346,16 +346,6 @@ readonly IMOSH_PARSE_ARGUMENTS='
       set -- "${IMOSH_ARGV[@]}"
     fi'
 
-php::md5() {
-  if which openssl >/dev/null 2>/dev/null; then
-    print "${1}" | openssl md5 -binary | func::bin2hex
-  elif which md5sum >/dev/null 2>/dev/null; then
-    print "${1}" | md5sum -b | func::bin2hex
-  else
-    LOG FATAL 'no command for md5 is found.'
-  fi
-}
-
 imosh::set_pid() {
   if func::isset BASHPID; then
     IMOSH_PID="${BASHPID}"
@@ -1008,6 +998,18 @@ func::ltrim() {
   local __ltrim_variable="$1"
 
   eval "${__ltrim_variable}=\"\${${__ltrim_variable}#\"\${${__ltrim_variable}%%[![:space:]]*}\"}\""
+}
+
+func::md5() {
+  if [ "$#" -eq 0 ]; then
+    openssl md5 -binary | func::bin2hex
+  elif [ "$#" -eq 1 ]; then
+    func::print "${1}" | func::md5
+  elif [ "$#" -eq 2 ]; then
+    local __md5_variable="$1"
+    local __md5_data="$2"
+    eval "${__md5_variable}=\"\$(func::md5 \"\${__md5_data}\")\""
+  fi
 }
 
 # Usage:
