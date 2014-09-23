@@ -1,15 +1,30 @@
 # func::implode -- Joins array elements with a string.
 #
 # Usage:
-#   func::implode(string* variable, string glue, array* pieces)
-#   func::implode(string glue, array* pieces) > result
+#   // 1. Function form.
+#   void func::implode(string* variable, string glue, string[]* pieces)
+#   // 2. Command form.
+#   void func::implode(string glue, string[]* pieces) > result
+#   // 3. Stream form.
+#   void func::implode(string glue) < input > output
 #
-# Joins array elements with a string.
+# Alias:
+#   func::join is an alias of func::implode.
+#
+# func::implode joins `pieces` with `glue`.
+# **Stream form** uses IFS as an input separator and processes line by line.
 func::implode() {
-  if [ "$#" -eq 2 ]; then
+  if [ "$#" -eq 1 ]; then
+    local __implode_line=''
+    while read -r __implode_line; do
+      local pieces=(${__implode_line})
+      func::implode "$1" pieces
+    done
+    return
+  elif [ "$#" -eq 2 ]; then
     local __implode_output=''
     func::implode __implode_output "$1" "$2"
-    func::print "${__implode_output}"
+    func::println "${__implode_output}"
     return
   fi
 
@@ -30,3 +45,5 @@ func::implode() {
   done
   func::let "${__implode_variable}" "${__implode_result}"
 }
+
+func::join() { func::implode "$@"; }
