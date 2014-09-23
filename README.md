@@ -188,6 +188,22 @@ bool func::floatval(string* variable)
 
 Casts variable into float type.  If it fails, returns 1.
 
+## func::getchildpids -- Gets child process IDs.
+
+```cpp
+func::getchildpids(int[]* variable)
+```
+
+
+
+## func::getmypid -- Gets the current process ID.
+
+```cpp
+func::pid(int* variable)
+```
+
+
+
 ## func::greg_match -- Checks if a string matches a GREG pattern.
 
 ```cpp
@@ -220,12 +236,24 @@ Decodes a hexadecimally encoded binary string.
 ## func::implode -- Joins array elements with a string.
 
 ```cpp
-func::implode(string* variable, string glue, array* pieces)
-func::implode(string glue, array* pieces) > result
+// 1. Function form.
+void func::implode(string* variable, string glue, string[]* pieces)
+// 2. Command form.
+void func::implode(string glue, string[]* pieces) > result
+// 3. Stream form.
+void func::implode(string glue) < input > output
 ```
 
 
-Joins array elements with a string.
+### Alias
+
+```sh
+func::join is an alias of func::implode.
+```
+
+
+func::implode joins `pieces` with `glue`.
+**Stream form** uses IFS as an input separator and processes line by line.
 
 ## func::intval -- Casts a variable as an integer value.
 
@@ -379,6 +407,14 @@ void func::strval(string* variable)
 
 
 Casts variable into string type.
+
+## func::throttle -- Throttles by the number of child processes.
+
+```cpp
+func::throttle(int limit)
+```
+
+
 
 ## func::trim -- Strips whitespaces from both sides.
 
