@@ -253,7 +253,7 @@ func::join is an alias of func::implode.
 
 
 func::implode joins `pieces` with `glue`.
-**Stream form** uses IFS as an input separator and processes line by line.
+*Stream form* uses IFS as an input separator and processes line by line.
 
 ## func::intval -- Casts a variable as an integer value.
 
