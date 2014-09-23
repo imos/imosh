@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-09-24 01:04:47 +0900 (fa81d39)'
+IMOSH_VERSION='2014-09-24 01:17:35 +0900 (5b4929a)'
 
 if ! shopt login_shell >/dev/null; then
   set -e -u
@@ -590,22 +590,6 @@ readonly IMOSH_INIT='
 
 __IMOSH_FLAGS=()
 __IMOSH_FLAGS_ALIASES=()
-
-imosh::mktemp() {
-  TMPDIR="${TMPDIR%/}"
-  export IMOSH_TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/imosh.XXXXXX")"
-  if [ "${IMOSH_TMPDIR}" = '' -o  "${IMOSH_TMPDIR}" = '/' ]; then
-    LOG FATAL 'failed to create a temporary directory.'
-  fi
-
-  export __IMOSH_CORE_TMPDIR="${IMOSH_TMPDIR}/.imosh"
-  mkdir "${__IMOSH_CORE_TMPDIR}"
-  imosh::on_exit "rm -rf ${IMOSH_TMPDIR}"
-}
-
-TMPDIR="${TMPDIR:-/tmp}"
-export TMPDIR="${TMPDIR%/}"
-imosh::mktemp
 
 # Color definitions.  A shell script should restore terminal's original color
 # using IMOSH_STYLE_DEFAULT when it changes color or style.
@@ -1272,6 +1256,25 @@ imosh::internal::convert_type() {
     *) LOG FATAL "no such type: ${type}";;
   esac
 }
+
+__imosh::mktemp() {
+  TMPDIR="${TMPDIR:-/tmp}"
+  TMPDIR="${TMPDIR%/}"
+  export TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/imosh.XXXXXX")"
+  if [ "${TMPDIR}" = '' -o "${TMPDIR}" = '/' ]; then
+    LOG FATAL 'failed to create a temporary directory.'
+  fi
+
+  export __IMOSH_CORE_TMPDIR="${TMPDIR}/.imosh"
+  mkdir "${__IMOSH_CORE_TMPDIR}"
+  imosh::on_exit "rm -rf ${TMPDIR}"
+
+  # For backward compatibility.
+  export IMOSH_TMPDIR="${TMPDIR}"
+}
+
+# Prepares a temporary directory and sets its path to TMPDIR.
+__imosh::mktemp
 
 DEFINE_bool --group=imosh --alias=h help false \
     'Print this help message and exit.'
