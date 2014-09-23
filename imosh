@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-09-24 01:36:37 +0900 (f74bd0b)'
+IMOSH_VERSION='2014-09-24 02:16:13 +0900 (c3ef99e)'
 
 if ! shopt login_shell >/dev/null; then
   set -e -u
@@ -721,6 +721,28 @@ func::floatval() {
   fi
 }
 
+# func::getchildpids -- Gets child process IDs.
+#
+# Usage:
+#   func::getchildpids(int[]* variable)
+func::getchildpids() {
+  local __getchildpids_variable="$1"
+  local __getchildpids_mypid=''
+  func::getmypid __getchildpids_mypid
+  local __getchildpids_pid='' __getchildpids_ppid=''
+  local __getchildpids_result=()
+  while IFS=$' \t\n' read -r -d $'\n' __getchildpids_ppid __getchildpids_pid; do
+    if [ "${__getchildpids_ppid}" = "${__getchildpids_mypid}" ]; then
+      __getchildpids_result+=("${__getchildpids_pid}")
+    fi
+  done <<<"$(ps -o ppid,pid)"
+  if [ "${#__getchildpids_result[*]}" -eq 0 ]; then
+    eval "${__getchildpids_variable}=()"
+  else
+    eval "${__getchildpids_variable}=(\"\${__getchildpids_result[@]}\")"
+  fi
+}
+
 # func::getmypid -- Gets the current process ID.
 #
 # Usage:
@@ -1197,6 +1219,28 @@ func::strval() {
   local __strval_variable="$1"
 
   eval "${__strval_variable}=\"\${${__strval_variable}}\""
+}
+
+# func::throttle -- Throttles by the number of child processes.
+#
+# Usage:
+#   func::throttle(int limit)
+func::throttle() {
+  local __throttle_limit="$1"
+  local __throttle_pids=()
+  local __throttle_sleep=0
+
+  while :; do
+    func::getchildpids __throttle_pids
+    if [ "${#__throttle_pids[*]}" -lt "${__throttle_limit}" ]; then
+      break
+    fi
+    if (( __throttle_sleep += 1, __throttle_sleep < 10 )); then
+      sleep "0.${__throttle_sleep}"
+    else
+      sleep 1
+    fi
+  done
 }
 
 # func::trim -- Strips whitespaces from both sides.
