@@ -128,6 +128,7 @@ Path to Output
 
 imosh outputs log files to `${TMPDIR}/<program name>.<host name>.<user>.<severity>.<date>.<time>.<process ID>`.
 
+<!-- MARKER:AUTO_GENERATED -->
 
 PHP-like Functions
 ==================
