@@ -344,16 +344,6 @@ readonly IMOSH_PARSE_ARGUMENTS='
       set -- "${IMOSH_ARGV[@]}"
     fi'
 
-imosh::set_pid() {
-  if func::isset BASHPID; then
-    IMOSH_PID="${BASHPID}"
-  else
-    local pid_file="$(mktemp "${__IMOSH_CORE_TMPDIR}/pid.XXXXXX")"
-    "${SHELL}" -c 'echo "${PPID}"' >"${pid_file}"
-    IMOSH_PID="$(cat "${pid_file}")"
-  fi
-}
-
 # __IMOSH_FLAGS_TYPE_<flag name>=<flag type>
 # __IMOSH_FLAGS_DESCRIPTION_<flag name>=<description>
 # __IMOSH_FLAGS_ALIASES=(from:to ...)
