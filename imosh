@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-09-24 04:15:50 +0900 (c310ac8)'
+IMOSH_VERSION='2014-09-24 04:17:29 +0900 (753b5ef)'
 
 if ! shopt login_shell >/dev/null; then
   set -e -u
@@ -854,7 +854,7 @@ __func::hex2bin() {
 #   func::join is an alias of func::implode.
 #
 # func::implode joins `pieces` with `glue`.
-# **Stream form** uses IFS as an input separator and processes line by line.
+# *Stream form* uses IFS as an input separator and processes line by line.
 func::implode() {
   # 1. Function form.
   if [ "$#" -eq 3 ]; then
