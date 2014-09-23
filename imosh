@@ -850,11 +850,11 @@ __func::hex2bin() {
 #   // 3. Stream form.
 #   void func::implode(string glue) < input > output
 #
-# Alias:
-#   func::join is an alias of func::implode.
-#
 # func::implode joins `pieces` with `glue`.
 # *Stream form* uses IFS as an input separator and processes line by line.
+#
+# ### Alias
+# func::join is an alias of func::implode.
 func::implode() {
   # 1. Function form.
   if [ "$#" -eq 3 ]; then

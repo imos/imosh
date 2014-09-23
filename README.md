@@ -245,15 +245,11 @@ void func::implode(string glue) < input > output
 ```
 
 
-### Alias
-
-```sh
-func::join is an alias of func::implode.
-```
-
-
 func::implode joins `pieces` with `glue`.
 *Stream form* uses IFS as an input separator and processes line by line.
+
+### Alias
+func::join is an alias of func::implode.
 
 ## func::intval -- Casts a variable as an integer value.
 
