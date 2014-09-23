@@ -2,7 +2,8 @@
 imosh::internal::parse_args() {
   local class_name="$1"; shift
 
-  local upper_class_name="$(php::strtoupper "${class_name}")"
+  local upper_class_name="${class_name}"
+  func::strtoupper upper_class_name
   local arg arg_name arg_value
   IMOSH_ARGV=()
   IMOSH_ARGS=()

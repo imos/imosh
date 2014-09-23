@@ -23,7 +23,8 @@ imosh::internal::define_flag() {
   local name="$1"; shift
   local default_value="$1"; shift
   local description="$*"
-  local group="$(php::strtoupper "${ARGS_group}")"
+  local group="${ARGS_group}"
+  func::strtoupper group
 
   # Change the default value based on its corresponding environment variable.
   if func::isset "IMOSH_FLAGS_${name}"; then
@@ -106,7 +107,8 @@ imosh::internal::flag_groups() {
     local parts=()
     func::explode parts ':' "${flag_name}"
     group="${parts[0]}"
-    local lower_group="$(php::strtolower "${group}")"
+    local lower_group="${group}"
+    func::strtolower lower_group
     if [ "${lower_group}" == 'main' ]; then
       main_group_exists=1
     elif [ "${lower_group}" == 'imosh' ]; then
@@ -131,13 +133,16 @@ imosh::internal::flag_groups() {
 
 imosh::internal::group_flags() {
   local group="$1"
-  local lower_group="$(php::strtolower "${group}")"
+  local lower_group="${group}"
+  func::strtolower lower_group
 
   local flags=()
   for flag_name in "${__IMOSH_FLAGS[@]}"; do
     local parts=()
     func::explode parts ':' "${flag_name}"
-    if [ "${lower_group}" != "$(php::strtolower "${parts[0]}")" ]; then
+    local lower_part="${parts[0]}"
+    func::strtolower lower_part
+    if [ "${lower_group}" != "${lower_part}" ]; then
       continue
     fi
     flags+=("${parts[1]}")
@@ -158,7 +163,9 @@ imosh::internal::man() {
 
   echo '.SH OPTIONS'
   for flag_group in $(imosh::internal::flag_groups); do
-    echo ".SS $(php::strtoupper "${flag_group}") OPTIONS"
+    local upper_flag_group="${flag_group}"
+    func::strtoupper upper_flag_group
+    echo ".SS ${upper_flag_group} OPTIONS"
     for flag_name in $(imosh::internal::group_flags "${flag_group}"); do
       echo '.TP'
       echo -n '\fB'
@@ -181,7 +188,9 @@ imosh::internal::help() {
   echo
   echo "OPTIONS:"
   for flag_group in $(imosh::internal::flag_groups); do
-    echo "  $(php::strtoupper "${flag_group}") OPTIONS:"
+    local upper_flag_group="${flag_group}"
+    func::strtoupper upper_flag_group
+    echo "  ${upper_flag_group} OPTIONS:"
     for flag_name in $(imosh::internal::group_flags "${flag_group}"); do
       eval "echo -n \"    \${__IMOSH_FLAGS_DEFAULT_${flag_name}}:\""
       eval "echo \" \${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\""
