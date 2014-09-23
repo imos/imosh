@@ -1,3 +1,5 @@
+# func::intval -- Casts a variable as an integer value.
+#
 # Usage:
 #   bool func::intval(string* variable)
 #

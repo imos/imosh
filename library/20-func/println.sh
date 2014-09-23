@@ -1,3 +1,5 @@
+# func::println -- Prints a message with a new line.
+#
 # Usage:
 #   void func::println(string message...) > output
 #

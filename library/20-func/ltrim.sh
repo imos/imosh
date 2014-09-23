@@ -1,3 +1,5 @@
+# func::ltrim -- Strips whitespace(s) from the beginning of a string.
+#
 # Usage:
 #   void func::ltrim(string* variable)
 #

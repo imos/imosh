@@ -1,3 +1,5 @@
+# func::rtrim -- Strips whitespace(s) from the end of a string.
+#
 # Usage:
 #   void func::rtrim(string* variable)
 #

@@ -1,3 +1,5 @@
+# func::print -- Prints a message.
+#
 # Usage:
 #   void func::print(string message...) > output
 #

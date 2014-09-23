@@ -1,3 +1,7 @@
+# func::array_unique -- Remove duplicated elements from an array variable.
+#
+# Usage:
+#   void func::array_unique(string[]* variable)
 func::array_unique() {
   local __array_unique_variable="${1}"
   if eval "[ \"\${#${__array_unique_variable}[*]}\" -eq 0 ]"; then

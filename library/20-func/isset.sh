@@ -1,3 +1,5 @@
+# func::isset -- Checks if a variable exists.
+#
 # Usage:
 #   bool func::isset(variant* variable)
 #

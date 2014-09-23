@@ -1,3 +1,5 @@
+# func::implode -- Joins array elements with a string.
+#
 # Usage:
 #   func::implode(string* variable, string glue, array* pieces)
 #   func::implode(string glue, array* pieces) > result

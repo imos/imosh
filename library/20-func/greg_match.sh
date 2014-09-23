@@ -1,3 +1,5 @@
+# func::greg_match -- Checks if a string matches a GREG pattern.
+#
 # Usage:
 #   void func::greg_match(string pattern, string subject)
 #

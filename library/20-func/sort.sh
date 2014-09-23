@@ -1,3 +1,18 @@
+# func::sort -- Sorts a string-array variable.
+#
+# Usage:
+#   void func::sort(string[]* variable)
+func::sort() {
+  local __sort_name="${1}"
+  eval "local __sort_size=\"\${#${__sort_name}[*]}\""
+  if [ "${__sort_size}" -lt 2 ]; then
+    return
+  fi
+  eval "local __sort_values=(\"\${${__sort_name}[@]}\")"
+  __func::quick_sort
+  eval "${__sort_name}=(\"\${__sort_values[@]}\")"
+}
+
 __func::quick_sort() {
   local size="${#__sort_values[@]}"
   local pivot="${__sort_values[$(( size / 2 ))]}"
@@ -24,15 +39,4 @@ __func::quick_sort() {
   if [ "${#values3[*]}" -ne 0 ]; then
     __sort_values+=("${values3[@]}")
   fi
-}
-
-func::sort() {
-  local __sort_name="${1}"
-  eval "local __sort_size=\"\${#${__sort_name}[*]}\""
-  if [ "${__sort_size}" -lt 2 ]; then
-    return
-  fi
-  eval "local __sort_values=(\"\${${__sort_name}[@]}\")"
-  __func::quick_sort
-  eval "${__sort_name}=(\"\${__sort_values[@]}\")"
 }

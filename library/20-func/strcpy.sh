@@ -1,3 +1,5 @@
+# func::strcpy -- Copies a string from a variable to another variable.
+#
 # Usage:
 #   void func::strcpy(string* destination, string *source)
 #
