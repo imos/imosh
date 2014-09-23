@@ -9,7 +9,7 @@ test::func_rand() {
                 "${value}"
     fi
   done
-  php::array_unique values
+  func::array_unique values
   if [ "${#values[@]}" -lt 98 ]; then
     LOG FATAL "func::rand's distribution may be bad: ${#values[@]}"
   fi
@@ -22,7 +22,7 @@ test::func_rand() {
       LOG FATAL "func::rand(0, 4) should be between 0 and 4 inclusive: ${value}"
     fi
   done
-  php::array_unique values
+  func::array_unique values
   # This should pass in 99.999999898148%.
   if [ "${#values[@]}" -ne 5 ]; then
     LOG FATAL "func::rand's distribution may be bad: ${#values[@]}"

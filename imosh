@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-09-23 20:26:57 +0900 (ecf9064)'
+IMOSH_VERSION='2014-09-23 20:27:32 +0900 (eac3f8f)'
 
 if ! shopt login_shell >/dev/null; then
   set -e -u
@@ -345,27 +345,6 @@ readonly IMOSH_PARSE_ARGUMENTS='
     if [ "${#IMOSH_ARGV[@]}" -ne 0 ]; then
       set -- "${IMOSH_ARGV[@]}"
     fi'
-
-php::array_unique() {
-  if [ "$#" -ne 1 ]; then
-    LOG FATAL 'php::array_unique requires one argument.'
-  fi
-
-  local __array_unique_name="${1}"
-  eval "local __array_unique_values=(\"\${${__array_unique_name}[@]}\")"
-  php::sort __array_unique_values
-  local __array_unique_i=1 __array_unique_size="${#__array_unique_values[@]}"
-  while (( __array_unique_i < __array_unique_size )); do
-    local __array_unique_last_i=0
-    (( __array_unique_last_i = __array_unique_i - 1 )) || true
-    if [ "${__array_unique_values[${__array_unique_i}]}" == \
-         "${__array_unique_values[${__array_unique_last_i}]}" ]; then
-      unset __array_unique_values["${__array_unique_last_i}"]
-    fi
-    (( __array_unique_i += 1 )) || true
-  done
-  eval "${__array_unique_name}=(\"\${__array_unique_values[@]}\")"
-}
 
 php::md5() {
   if which openssl >/dev/null 2>/dev/null; then
@@ -832,6 +811,25 @@ func::addslashes() {
   func::str_replace "${1}" '\' '\\'
   func::str_replace "${1}" "'" "\\'"
   func::str_replace "${1}" '"' '\"'
+}
+
+func::array_unique() {
+  local __array_unique_variable="${1}"
+  if eval "[ \"\${#${__array_unique_variable}[*]}\" -eq 0 ]"; then
+    return
+  fi
+  eval "local __array_unique_values=(\"\${${__array_unique_variable}[@]}\")"
+  func::sort __array_unique_values
+  local __array_unique_i=0
+  local __array_unique_size="${#__array_unique_values[*]}"
+  local __array_unique_result=("${__array_unique_values[0]}")
+  while (( __array_unique_i += 1, __array_unique_i < __array_unique_size )); do
+    if [ "${__array_unique_values[$(( __array_unique_i - 1 ))]}" != \
+         "${__array_unique_values[${__array_unique_i}]}" ]; then
+      __array_unique_result+=("${__array_unique_values[${__array_unique_i}]}")
+    fi
+  done
+  eval "${__array_unique_variable}=(\"\${__array_unique_result[@]}\")"
 }
 
 # Usage:
