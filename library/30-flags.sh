@@ -147,7 +147,7 @@ imosh::internal::group_flags() {
     fi
     flags+=("${parts[1]}")
   done
-  php::sort flags
+  func::sort flags
   for flag in "${flags[@]}"; do
     echo "${flag}"
   done
