@@ -18,6 +18,7 @@ EXPECT_EQ() {
     FAILURE
     return 1
   fi
+  LOG INFO "EXPECT_EQ passes: '$1' == '$2'"
 }
 
 ASSERT_EQ() {

@@ -26,8 +26,7 @@ LOG() {
   if func::isset __IMOSH_LOG_PID; then
     pid="${__IMOSH_LOG_PID}"
   else
-    imosh::set_pid
-    pid="${IMOSH_PID}"
+    func::getmypid pid
   fi
   local file="${BASH_SOURCE[1]##*/}"
   if [ "${file}" = '' ]; then file='-'; fi

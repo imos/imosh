@@ -5,6 +5,7 @@ EXPECT_TRUE() {
     FAILURE
     return 1
   fi
+  IFS=' ' eval 'LOG INFO "EXPECT_TRUE passes: $*"'
 }
 
 EXPECT_FALSE() {
@@ -14,6 +15,7 @@ EXPECT_FALSE() {
     FAILURE
     return 1
   fi
+  IFS=' ' eval 'LOG INFO "EXPECT_FALSE passes: $*"'
 }
 
 ASSERT_TRUE() {

@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-09-24 01:17:35 +0900 (5b4929a)'
+IMOSH_VERSION='2014-09-24 01:36:37 +0900 (f74bd0b)'
 
 if ! shopt login_shell >/dev/null; then
   set -e -u
@@ -89,8 +89,9 @@ imosh::internal::exit_handler() {
 imosh::internal::signal_handler() {
   local signal="$1"
   trap - "${signal}"
-  imosh::set_pid
-  if [ "${IMOSH_PID}" == "${IMOSH_ROOT_PID}" ]; then
+  local pid=''
+  imosh::getmypid pid
+  if [ "${pid}" == "${IMOSH_ROOT_PID}" ]; then
     LOG INFO 'killing child processes.'
     imosh::internal::kill "${IMOSH_ROOT_PID}"
     if [ -f "${__IMOSH_CORE_TMPDIR}/status" ]; then
@@ -98,7 +99,7 @@ imosh::internal::signal_handler() {
     fi
   fi
   LOG ERROR "$(imosh::stack_trace "terminated by signal: ${signal}" 2>&1)"
-  kill -s "${signal}" "${IMOSH_PID}"
+  kill -s "${signal}" "${pid}"
 }
 
 trap imosh::internal::exit_handler EXIT
@@ -113,17 +114,18 @@ fi
 IMOSH_ROOT_PID="$$"
 
 imosh::internal::kill() {
-  local pid="$1"
-  LOG INFO "killing ${pid}..."
+  local target_pid="$1"
+  LOG INFO "killing ${target_pid}..."
   local keep_alive=0
-  if [ "${pid}" == "${IMOSH_PID}" -o "${pid}" == "${IMOSH_ROOT_PID}" ]; then
+  if [ "${target_pid}" == "${PID}" -o \
+       "${target_pid}" == "${IMOSH_ROOT_PID}" ]; then
     keep_alive=1
   fi
   if (( ! keep_alive )); then
-    kill -STOP "${pid}" 2>/dev/null || true
+    kill -STOP "${target_pid}" 2>/dev/null || true
   fi
   local child_pids="$(
-      ps -o ppid,pid | grep "^${pid}[[:space:]]" | awk '{ print $2 }')"
+      ps -o ppid,pid | grep "^${target_pid}[[:space:]]" | awk '{ print $2 }')"
   if [ "${child_pids}" != '' ]; then
     local child
     for child in ${child_pids}; do
@@ -131,7 +133,7 @@ imosh::internal::kill() {
     done
   fi
   if (( ! keep_alive )); then
-    kill -KILL "${pid}" 2>/dev/null || true
+    kill -KILL "${target_pid}" 2>/dev/null || true
   fi
 }
 
@@ -142,9 +144,10 @@ imosh::quiet_die() {
   fi
 
   LOG INFO 'exiting...'
-  imosh::set_pid
+  local PID=''
+  func::getmypid PID
   echo "${status}" >"${__IMOSH_CORE_TMPDIR}/status"
-  imosh::internal::kill "${IMOSH_PID}"
+  imosh::internal::kill "${PID}"
   imosh::internal::kill "${IMOSH_ROOT_PID}"
   kill -TERM "${IMOSH_ROOT_PID}" 2>/dev/null || true
   exit "${status}"
@@ -188,8 +191,7 @@ LOG() {
   if func::isset __IMOSH_LOG_PID; then
     pid="${__IMOSH_LOG_PID}"
   else
-    imosh::set_pid
-    pid="${IMOSH_PID}"
+    func::getmypid pid
   fi
   local file="${BASH_SOURCE[1]##*/}"
   if [ "${file}" = '' ]; then file='-'; fi
@@ -605,6 +607,8 @@ IMOSH_COLOR_MAGENTA=$'\033[0;35m'
 IMOSH_COLOR_CYAN=$'\033[0;36m'
 IMOSH_COLOR_WHITE=$'\033[0;37m'
 
+readonly UNAME="$(uname)"
+
 # func::addslashes -- Quotes a string with backslahses.
 #
 # Usage:
@@ -714,6 +718,21 @@ func::floatval() {
     func::let "${__floatval_variable}" "${BASH_REMATCH[1]}"
   else
     return 1
+  fi
+}
+
+# func::getmypid -- Gets the current process ID.
+#
+# Usage:
+#   func::pid(int* variable)
+func::getmypid() {
+  local __getmypid_variable="$1"
+  if func::isset BASHPID; then
+    func::let "${__getmypid_variable}" "${BASHPID}"
+  else
+    local __getmypid_pid_file="$(mktemp "${__IMOSH_CORE_TMPDIR}/pid.XXXXXX")"
+    "${SHELL}" -c 'echo "${PPID}"' >"${__getmypid_pid_file}"
+    read "${__getmypid_variable}" <"${__getmypid_pid_file}"
   fi
 }
 
@@ -1313,6 +1332,7 @@ EXPECT_TRUE() {
     FAILURE
     return 1
   fi
+  IFS=' ' eval 'LOG INFO "EXPECT_TRUE passes: $*"'
 }
 
 EXPECT_FALSE() {
@@ -1322,6 +1342,7 @@ EXPECT_FALSE() {
     FAILURE
     return 1
   fi
+  IFS=' ' eval 'LOG INFO "EXPECT_FALSE passes: $*"'
 }
 
 ASSERT_TRUE() {
@@ -1352,6 +1373,7 @@ EXPECT_EQ() {
     FAILURE
     return 1
   fi
+  LOG INFO "EXPECT_EQ passes: '$1' == '$2'"
 }
 
 ASSERT_EQ() {
@@ -1360,6 +1382,36 @@ ASSERT_EQ() {
 
 EXPECT_STREQ() { EXPECT_EQ "$@"; }
 ASSERT_STREQ() { ASSERT_EQ "$@"; }
+
+# EXPECT_NE, ASSERT_NE -- Check if two values are not equal.
+#
+# Usage:
+#   bool EXPECT_NE(string expected, string actual)
+#   void ASSERT_NE(string expected, string actual)
+#
+# Aliases:
+#   EXPECT_STRNE is an alias of EXPECT_NE, and ASSERT_STRNE is an alias of
+#   ASSERT_NE.
+EXPECT_NE() {
+  if [ "$#" -ne 2 ]; then
+    LOG ERROR 'EXPECT_NE requires two arguments.'
+    return 1
+  fi
+  if [ "$1" = "$2" ]; then
+    echo "Actual: $2" >&2
+    echo "Target: $1" >&2
+    FAILURE
+    return 1
+  fi
+  LOG INFO "EXPECT_NE passes: '$1' != '$2'"
+}
+
+ASSERT_NE() {
+  ASSERT EXPECT_NE "$@"
+}
+
+EXPECT_STRNE() { EXPECT_NE "$@"; }
+ASSERT_STRNE() { ASSERT_NE "$@"; }
 
 LOG INFO 'imosh is ready.'
 
