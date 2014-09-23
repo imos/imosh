@@ -12,10 +12,6 @@ if [ "${__IMOSH_IS_LOADED+loaded}" = 'loaded' ]; then
 fi
 __IMOSH_IS_LOADED=loaded
 
-print() {
-  printf "%s" "$*"
-}
-
 __IMOSH_PROGRAM_NAME="${0##*/}"
 __IMOSH_HOSTNAME="$(hostname -s)"
 __IMOSH_USER="$(whoami)"
@@ -30,7 +26,7 @@ imosh::internal::log_file() {
   fi
   path+="${FLAGS_log_dir}/"
   path+="${__IMOSH_LOG_PREFIX}.${severity}.${__IMOSH_LOG_SUFFIX}"
-  print "${path}"
+  func::print "${path}"
 }
 
 imosh::internal::init_log() {
@@ -366,7 +362,7 @@ imosh::internal::flag_type() {
   if [ "$#" -ne 1 ]; then
     LOG FATAL 'flag_type requires 1 arugument.'
   fi
-  eval print '${__IMOSH_FLAGS_TYPE_'"${name}"'}'
+  eval "func::print \"\${__IMOSH_FLAGS_TYPE_${name}}\""
 }
 
 imosh::internal::define_flag() {
@@ -386,7 +382,7 @@ imosh::internal::define_flag() {
 
   # Change the default value based on its corresponding environment variable.
   if func::isset "IMOSH_FLAGS_${name}"; then
-    default_value="$(eval print "\${IMOSH_FLAGS_${name}}")"
+    func::strcpy default_value "IMOSH_FLAGS_${name}"
   fi
   if ! imosh::internal::convert_type \
            "${type}" "${default_value}" >/dev/null; then
@@ -1255,23 +1251,23 @@ imosh::internal::convert_type() {
   case "${type}" in
     int)
       if [[ "${value}" =~ ^-?[0-9]+$ ]]; then
-        print "${value}"
+        func::print "${value}"
       else
         return 1
       fi
       ;;
     string)
-      print "${value}"
+      func::print "${value}"
       ;;
     bool)
       case "${value}" in
-        1|T|t|[Tt]rue) print 1;;
-        0|F|f|[Ff]alse) print 0;;
+        1|T|t|[Tt]rue) func::print 1;;
+        0|F|f|[Ff]alse) func::print 0;;
         *) return 1;;
       esac
       ;;
     variant)
-      print "${value}"
+      func::print "${value}"
       ;;
     *) LOG FATAL "no such type: ${type}";;
   esac

@@ -5,23 +5,23 @@ imosh::internal::convert_type() {
   case "${type}" in
     int)
       if [[ "${value}" =~ ^-?[0-9]+$ ]]; then
-        print "${value}"
+        func::print "${value}"
       else
         return 1
       fi
       ;;
     string)
-      print "${value}"
+      func::print "${value}"
       ;;
     bool)
       case "${value}" in
-        1|T|t|[Tt]rue) print 1;;
-        0|F|f|[Ff]alse) print 0;;
+        1|T|t|[Tt]rue) func::print 1;;
+        0|F|f|[Ff]alse) func::print 0;;
         *) return 1;;
       esac
       ;;
     variant)
-      print "${value}"
+      func::print "${value}"
       ;;
     *) LOG FATAL "no such type: ${type}";;
   esac

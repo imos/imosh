@@ -8,7 +8,7 @@ imosh::internal::flag_type() {
   if [ "$#" -ne 1 ]; then
     LOG FATAL 'flag_type requires 1 arugument.'
   fi
-  eval print '${__IMOSH_FLAGS_TYPE_'"${name}"'}'
+  eval "func::print \"\${__IMOSH_FLAGS_TYPE_${name}}\""
 }
 
 imosh::internal::define_flag() {
@@ -28,7 +28,7 @@ imosh::internal::define_flag() {
 
   # Change the default value based on its corresponding environment variable.
   if func::isset "IMOSH_FLAGS_${name}"; then
-    default_value="$(eval print "\${IMOSH_FLAGS_${name}}")"
+    func::strcpy default_value "IMOSH_FLAGS_${name}"
   fi
   if ! imosh::internal::convert_type \
            "${type}" "${default_value}" >/dev/null; then

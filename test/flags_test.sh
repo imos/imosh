@@ -1,6 +1,6 @@
 get_flag() {
   bash test/flags.sh "$@" 2>/dev/null &
-  if ! wait $!; then print invalid; fi
+  if ! wait $!; then func::print invalid; fi
 }
 
 test::bool_flag() {

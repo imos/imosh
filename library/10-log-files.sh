@@ -12,7 +12,7 @@ imosh::internal::log_file() {
   fi
   path+="${FLAGS_log_dir}/"
   path+="${__IMOSH_LOG_PREFIX}.${severity}.${__IMOSH_LOG_SUFFIX}"
-  print "${path}"
+  func::print "${path}"
 }
 
 imosh::internal::init_log() {
