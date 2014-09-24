@@ -3,14 +3,17 @@
 
 IMOSH_VERSION='2014-09-25 04:31:48 +0900 (13a64fe)'
 
+# Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
+  # Make a script fail when
+  # - a command returns non-zero value (-e).
+  # - an undefined variable is referred (-u).
   set -e -u
+  # Return if imosh is reloaded.
+  if [ "${__IMOSH_IS_LOADED+loaded}" = 'loaded' ]; then
+    return
+  fi
 fi
-
-if [ "${__IMOSH_IS_LOADED+loaded}" = 'loaded' ]; then
-  return
-fi
-__IMOSH_IS_LOADED=loaded
 
 # func::addslashes -- Quotes a string with backslahses.
 #
@@ -1466,6 +1469,12 @@ ASSERT_NE() {
 EXPECT_STRNE() { EXPECT_NE "$@"; }
 ASSERT_STRNE() { ASSERT_NE "$@"; }
 
+# Return if imosh is reloaded.  Operations in 50+ run level may have
+# destructive operations, so they are skipped in reloading.
+if [ "${__IMOSH_IS_LOADED+loaded}" = 'loaded' ]; then
+  return
+fi
+
 # Color definitions.  A shell script should restore terminal's original color
 # using IMOSH_STYLE_DEFAULT when it changes color or style.
 
@@ -1600,6 +1609,8 @@ DEFINE_bool --group=imosh 'help_groff' false \
     'Use groff for help output.'
 
 DEFINE_bool --group=imosh disown_php false 'Disown a PHP process.'
+
+__IMOSH_IS_LOADED=1
 
 LOG INFO 'imosh is ready.'
 
