@@ -37,7 +37,7 @@ imosh::internal::signal_handler() {
   local signal="$1"
   trap - "${signal}"
   local pid=''
-  imosh::getmypid pid
+  func::getmypid pid
   if [ "${pid}" == "${IMOSH_ROOT_PID}" ]; then
     LOG INFO 'killing child processes.'
     imosh::internal::kill "${IMOSH_ROOT_PID}"
