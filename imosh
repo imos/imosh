@@ -12,425 +12,6 @@ if [ "${__IMOSH_IS_LOADED+loaded}" = 'loaded' ]; then
 fi
 __IMOSH_IS_LOADED=loaded
 
-__IMOSH_PROGRAM_NAME="${0##*/}"
-__IMOSH_HOSTNAME="$(hostname -s)"
-__IMOSH_USER="$(whoami)"
-__IMOSH_LOG_PREFIX="${__IMOSH_PROGRAM_NAME}.${__IMOSH_HOSTNAME}.${__IMOSH_USER}"
-__IMOSH_LOG_SUFFIX="$(date +'%Y%m%d.%H%M%S').$$"
-
-imosh::internal::log_file() {
-  local severity="${1}"
-  local path=''
-  if [ "${FLAGS_log_dir}" == '' ]; then
-    return
-  fi
-  path+="${FLAGS_log_dir}/"
-  path+="${__IMOSH_LOG_PREFIX}.${severity}.${__IMOSH_LOG_SUFFIX}"
-  func::print "${path}"
-}
-
-imosh::internal::init_log() {
-  # Close descriptors for logs beforehand for BASH3's bug.
-  exec 101>&- 102>&- 103>&- 104>&-
-  if [ "${FLAGS_log_dir}" != '' -a -w "${FLAGS_log_dir}" ]; then
-    exec 101>"$(imosh::internal::log_file INFO)"
-    exec 102>"$(imosh::internal::log_file WARNING)"
-    exec 103>"$(imosh::internal::log_file ERROR)"
-    exec 104>"$(imosh::internal::log_file FATAL)"
-    return
-  fi
-  exec 101>/dev/null 102>/dev/null 103>/dev/null 104>/dev/null
-  if [ "${FLAGS_log_dir}" == '' ]; then
-    return
-  fi
-  LOG ERROR "failed to open files to write logs: ${__IMOSH_LOG_DIR}"
-}
-
-# Close descriptors for logs beforehand for BASH3's bug.
-exec 101>&- 102>&- 103>&- 104>&-
-# Open descriptors for LOG without calling init_log.
-exec 101>/dev/null 102>/dev/null 103>/dev/null 104>/dev/null
-
-imosh::internal::kill() {
-  local target_pid="$1"
-  LOG INFO "killing ${target_pid}..."
-  local keep_alive=0
-  if [ "${target_pid}" == "${PID}" -o \
-       "${target_pid}" == "${IMOSH_ROOT_PID}" ]; then
-    keep_alive=1
-  fi
-  if (( ! keep_alive )); then
-    kill -STOP "${target_pid}" 2>/dev/null || true
-  fi
-  local child_pids="$(
-      ps -o ppid,pid | grep "^${target_pid}[[:space:]]" | awk '{ print $2 }')"
-  if [ "${child_pids}" != '' ]; then
-    local child
-    for child in ${child_pids}; do
-      imosh::internal::kill "${child}"
-    done
-  fi
-  if (( ! keep_alive )); then
-    kill -KILL "${target_pid}" 2>/dev/null || true
-  fi
-}
-
-imosh::quiet_die() {
-  local status='0'
-  if [ "$#" -ge 1 ]; then
-    status="$1"
-  fi
-
-  LOG INFO 'exiting...'
-  local PID=''
-  func::getmypid PID
-  echo "${status}" >"${__IMOSH_CORE_TMPDIR}/status"
-  imosh::internal::kill "${PID}"
-  imosh::internal::kill "${IMOSH_ROOT_PID}"
-  kill -TERM "${IMOSH_ROOT_PID}" 2>/dev/null || true
-  exit "${status}"
-}
-
-imosh::die() {
-  local status='0'
-  if [ "$#" -ge 1 ]; then
-    status="$1"
-  fi
-
-  imosh::stack_trace "*** imosh::die stack trace: ***"
-  imosh::quiet_die "${status}"
-}
-
-# Parses arguments without getopt.
-imosh::internal::parse_args() {
-  local class_name="$1"; shift
-
-  local upper_class_name="${class_name}"
-  func::strtoupper upper_class_name
-  local arg arg_name arg_value
-  IMOSH_ARGV=()
-  IMOSH_ARGS=()
-  while [ "$#" != '0' ]; do
-    local arg="$1"
-    shift
-    if [ "${arg:0:1}" != '-' ]; then
-      IMOSH_ARGV+=("${arg}")
-      continue
-    fi
-    if [[ "${arg}" =~ ^-[0-9] ]]; then
-      IMOSH_ARGV+=("${arg}")
-      continue
-    fi
-    if [ "${arg}" = '--' ]; then
-      IMOSH_ARGV+=("$@")
-      break
-    fi
-    case "${arg}" in
-      --*) arg="${arg:2}";;
-      -*) arg="${arg:1}";;
-    esac
-    arg_name="${arg%%=*}"
-    if [[ ! "${arg_name}" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
-      LOG FATAL "${class_name} name is bad: ${arg_name}"
-    fi
-    arg_value="${arg:${#arg_name}}"
-    if [ "${arg_value:0:1}" != '=' ]; then
-      if [ "${arg_name:0:2}" = 'no' ]; then
-        if func::isset "${upper_class_name}S_${arg_name:2}"; then
-          if [ "${class_name}" != 'flag' ] || \
-             [ "$(imosh::internal::flag_type "${arg_name:2}")" = 'bool' ]; then
-            IMOSH_ARGS+=("${upper_class_name}S_${arg_name:2}=0")
-            continue
-          fi
-        fi
-      fi
-      if func::isset "${upper_class_name}S_${arg_name}"; then
-        if [ "${class_name}" != 'flag' ] ||
-           [ "$(imosh::internal::flag_type "${arg_name}")" = 'bool' ]; then
-          IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=1")
-          continue
-        fi
-      fi
-      if ! func::isset "${upper_class_name}S_${arg_name}"; then
-        LOG FATAL "no such bool ${class_name} is defined:" \
-                  "(${upper_class_name}S_)${arg_name}"
-      fi
-      if [ "$#" -eq 0 ]; then
-        LOG FATAL "the ${arg_name} flag requires a value"
-      fi
-      arg_value="=${1}"
-      shift
-    fi
-    arg_value="${arg_value:1}"
-    if func::isset "${upper_class_name}S_${arg_name}"; then
-      if [ "${class_name}" = 'flag' ]; then
-        if ! imosh::internal::convert_type \
-               "$(imosh::internal::flag_type "${arg_name}")" \
-               "${arg_value}" >/dev/null; then
-          LOG FATAL "the ${arg_name} flag has an invalid value: ${arg_value}"
-        else
-          arg_value="$(imosh::internal::convert_type \
-                             "$(imosh::internal::flag_type "${arg_name}")" \
-                             "${arg_value}")"
-        fi
-      fi
-      IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value}")
-      continue
-    fi
-    LOG FATAL "no such ${class_name} is defined:" \
-              "(${upper_class_name}S_)${arg_name}"
-  done
-}
-
-readonly IMOSH_PARSE_ARGUMENTS='
-    local IMOSH_ARGV IMOSH_ARGS
-    imosh::internal::parse_args arg "$@"
-    if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
-      readonly "${IMOSH_ARGS[@]}"
-    fi
-    if [ "${#IMOSH_ARGV[@]}" -ne 0 ]; then
-      set -- "${IMOSH_ARGV[@]}"
-    fi'
-
-# __IMOSH_FLAGS_TYPE_<flag name>=<flag type>
-# __IMOSH_FLAGS_DESCRIPTION_<flag name>=<description>
-# __IMOSH_FLAGS_ALIASES=(from:to ...)
-
-imosh::internal::flag_type() {
-  local name="$1"
-
-  if [ "$#" -ne 1 ]; then
-    LOG FATAL 'flag_type requires 1 arugument.'
-  fi
-  eval "func::print \"\${__IMOSH_FLAGS_TYPE_${name}}\""
-}
-
-imosh::internal::define_flag() {
-  local type="$1"; shift
-
-  local ARGS_alias='' ARGS_alias_flag=0 ARGS_group='main'
-  eval "${IMOSH_PARSE_ARGUMENTS}"
-
-  if [ "$#" -lt 3 ]; then
-    LOG FATAL 'DEFINE_${type} requires 3+ arguments.'
-  fi
-  local name="$1"; shift
-  local default_value="$1"; shift
-  local description="$*"
-  local group="${ARGS_group}"
-  func::strtoupper group
-
-  # Change the default value based on its corresponding environment variable.
-  if func::isset "IMOSH_FLAGS_${name}"; then
-    func::strcpy default_value "IMOSH_FLAGS_${name}"
-  fi
-  if ! imosh::internal::convert_type \
-           "${type}" "${default_value}" >/dev/null; then
-    LOG FATAL "${type}'s default value should be ${type}: ${default_value}"
-  fi
-  default_value="$(imosh::internal::convert_type "${type}" "${default_value}")"
-  if func::isset "__IMOSH_FLAGS_TYPE_${name}"; then
-    LOG FATAL "already defined flag: ${name}"
-  fi
-  func::strcpy "FLAGS_${name}" 'default_value'
-  func::strcpy "__IMOSH_FLAGS_TYPE_${name}" 'type'
-  if [ "${ARGS_alias}" != '' ]; then
-    imosh::internal::define_flag "${type}" --alias_flag \
-        "${ARGS_alias}" "${default_value}" "${description}"
-    __IMOSH_FLAGS_ALIASES+=("${name}:${ARGS_alias}")
-  fi
-  if (( ! ARGS_alias_flag )); then
-    local escaped_default_value=''
-    case "${type}" in
-      int) escaped_default_value="${default_value}";;
-      bool)
-        if (( default_value )); then
-          escaped_default_value='true'
-        else
-          escaped_default_value='false'
-        fi
-        ;;
-      *)
-        escaped_default_value="${default_value}"
-        func::escapeshellarg escaped_default_value
-        ;;
-    esac
-    func::let "__IMOSH_FLAGS_DEFAULT_${name}" \
-              "--${name}=${escaped_default_value}"
-    if [ "${ARGS_alias}" != '' ]; then
-      description+=" (Alias: --${ARGS_alias})"
-    fi
-    func::let "__IMOSH_FLAGS_DESCRIPTION_${name}" "${description}"
-    __IMOSH_FLAGS+=("${group}:${name}")
-  fi
-}
-
-DEFINE_string() { imosh::internal::define_flag string "$@"; }
-DEFINE_int() { imosh::internal::define_flag int "$@"; }
-DEFINE_bool() { imosh::internal::define_flag bool "$@"; }
-DEFINE_double() { imosh::internal::define_flag double "$@"; }
-
-imosh::internal::get_main_script() {
-  local depth="${#BASH_SOURCE[@]}"
-  local main_script="${BASH_SOURCE[$((depth-1))]}"
-  echo "${main_script}"
-}
-
-imosh::internal::get_usage() {
-  local file="${1}"
-  grep --max-count=1 -B 1000 -v '^#' "${file}" | grep '^#' | while read line; do
-    case "${line}" in
-      '#!'*) continue;;
-      '# '*) echo "${line:2}";;
-      '#'*) echo "${line:1}";;
-    esac
-  done > "${__IMOSH_CORE_TMPDIR}/usage"
-  if [ -s "${__IMOSH_CORE_TMPDIR}/usage" ]; then
-    cat "${__IMOSH_CORE_TMPDIR}/usage"
-  else
-    echo 'No description.'
-  fi
-}
-
-imosh::internal::flag_groups() {
-  local groups=()
-  local group=''
-  local main_group_exists=0
-  local imosh_group_exists=0
-  for flag_name in "${__IMOSH_FLAGS[@]}"; do
-    local parts=()
-    func::explode parts ':' "${flag_name}"
-    group="${parts[0]}"
-    local lower_group="${group}"
-    func::strtolower lower_group
-    if [ "${lower_group}" == 'main' ]; then
-      main_group_exists=1
-    elif [ "${lower_group}" == 'imosh' ]; then
-      imosh_group_exists=1
-    else
-      groups+=("${group}")
-    fi
-  done
-  if (( main_group_exists )); then
-    echo 'main'
-  fi
-  if [ "${#groups[@]}" -ne 0 ]; then
-    func::array_unique groups
-    for group in "${groups[@]}"; do
-      echo "${group}"
-    done
-  fi
-  if (( imosh_group_exists )); then
-    echo 'imosh'
-  fi
-}
-
-imosh::internal::group_flags() {
-  local group="$1"
-  local lower_group="${group}"
-  func::strtolower lower_group
-
-  local flags=()
-  for flag_name in "${__IMOSH_FLAGS[@]}"; do
-    local parts=()
-    func::explode parts ':' "${flag_name}"
-    local lower_part="${parts[0]}"
-    func::strtolower lower_part
-    if [ "${lower_group}" != "${lower_part}" ]; then
-      continue
-    fi
-    flags+=("${parts[1]}")
-  done
-  func::sort flags
-  for flag in "${flags[@]}"; do
-    echo "${flag}"
-  done
-}
-
-imosh::internal::man() {
-  echo ".TH ${0##*/} 1"; echo
-  echo '.SH SYNOPSIS'
-  echo ".B ${0##*/}"; echo '[\fIOPTIONS\fP] [\fIargs...\fP]'; echo
-
-  echo '.SH DESCRIPTION'
-  imosh::internal::get_usage "$(imosh::internal::get_main_script)"
-
-  echo '.SH OPTIONS'
-  for flag_group in $(imosh::internal::flag_groups); do
-    local upper_flag_group="${flag_group}"
-    func::strtoupper upper_flag_group
-    echo ".SS ${upper_flag_group} OPTIONS"
-    for flag_name in $(imosh::internal::group_flags "${flag_group}"); do
-      echo '.TP'
-      echo -n '\fB'
-      eval "echo -n \"\${__IMOSH_FLAGS_DEFAULT_${flag_name}}\""
-      echo '\fP'
-      eval "echo \"\${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\""
-      echo
-    done
-  done
-}
-
-imosh::internal::help() {
-  echo "USAGE: ${0##*/} [options...] [args...]"
-  echo
-  echo 'DESCRIPTION:'
-  imosh::internal::get_usage "$(imosh::internal::get_main_script)" | \
-      while read line; do
-    echo "  ${line}"
-  done
-  echo
-  echo "OPTIONS:"
-  for flag_group in $(imosh::internal::flag_groups); do
-    local upper_flag_group="${flag_group}"
-    func::strtoupper upper_flag_group
-    echo "  ${upper_flag_group} OPTIONS:"
-    for flag_name in $(imosh::internal::group_flags "${flag_group}"); do
-      eval "echo -n \"    \${__IMOSH_FLAGS_DEFAULT_${flag_name}}:\""
-      eval "echo \" \${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\""
-    done
-  done
-}
-
-imosh::internal::init() {
-  imosh::internal::parse_args flag "$@"
-  if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
-    eval "${IMOSH_ARGS[@]}"
-  fi
-  imosh::internal::init_log
-  if [ "${#__IMOSH_FLAGS_ALIASES[@]}" -ne 0 ]; then
-    for alias in "${__IMOSH_FLAGS_ALIASES[@]}"; do
-      eval "FLAGS_${alias%%:*}=\"\${FLAGS_${alias#*:}}\""
-      unset "FLAGS_${alias#*:}"
-    done
-  fi
-  if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
-    eval "${IMOSH_ARGS[@]}"
-  fi
-  if (( FLAGS_help )); then
-    if [ -t 1 ]; then
-      local man_file="${__IMOSH_CORE_TMPDIR}/man"
-      imosh::internal::man >"${man_file}"
-      man "${man_file}"
-    elif (( FLAGS_help_groff )); then
-      imosh::internal::man
-    else
-      imosh::internal::help >&2
-    fi
-    exit 0
-  fi
-}
-
-readonly IMOSH_INIT='
-    set -e -u
-    imosh::internal::init "$@"
-    if [ "${#IMOSH_ARGV[@]}" -ne 0 ]; then
-      set -- "${IMOSH_ARGV[@]}"
-    fi'
-
-__IMOSH_FLAGS=()
-__IMOSH_FLAGS_ALIASES=()
-
 # Color definitions.  A shell script should restore terminal's original color
 # using IMOSH_STYLE_DEFAULT when it changes color or style.
 
@@ -452,6 +33,10 @@ readonly IMOSH_ROOT_PID="$$"
 __IMOSH_STACK_TRACED=0
 
 readonly UNAME="$(uname)"
+
+__IMOSH_PROGRAM_NAME="${0##*/}"
+__IMOSH_HOSTNAME="$(hostname -s)"
+__IMOSH_USER="$(whoami)"
 
 # func::addslashes -- Quotes a string with backslahses.
 #
@@ -850,6 +435,56 @@ func::isset() {
     return 0
   fi
   return 1
+}
+
+imosh::internal::kill() {
+  local target_pid="$1"
+  LOG INFO "killing ${target_pid}..."
+  local keep_alive=0
+  if [ "${target_pid}" == "${PID}" -o \
+       "${target_pid}" == "${IMOSH_ROOT_PID}" ]; then
+    keep_alive=1
+  fi
+  if (( ! keep_alive )); then
+    kill -STOP "${target_pid}" 2>/dev/null || true
+  fi
+  local child_pids="$(
+      ps -o ppid,pid | grep "^${target_pid}[[:space:]]" | awk '{ print $2 }')"
+  if [ "${child_pids}" != '' ]; then
+    local child
+    for child in ${child_pids}; do
+      imosh::internal::kill "${child}"
+    done
+  fi
+  if (( ! keep_alive )); then
+    kill -KILL "${target_pid}" 2>/dev/null || true
+  fi
+}
+
+imosh::quiet_die() {
+  local status='0'
+  if [ "$#" -ge 1 ]; then
+    status="$1"
+  fi
+
+  LOG INFO 'exiting...'
+  local PID=''
+  func::getmypid PID
+  echo "${status}" >"${__IMOSH_CORE_TMPDIR}/status"
+  imosh::internal::kill "${PID}"
+  imosh::internal::kill "${IMOSH_ROOT_PID}"
+  kill -TERM "${IMOSH_ROOT_PID}" 2>/dev/null || true
+  exit "${status}"
+}
+
+imosh::die() {
+  local status='0'
+  if [ "$#" -ge 1 ]; then
+    status="$1"
+  fi
+
+  imosh::stack_trace "*** imosh::die stack trace: ***"
+  imosh::quiet_die "${status}"
 }
 
 # func::let -- Assigns a value into a variable.
@@ -1311,6 +946,367 @@ LOG() {
   esac
 }
 
+__IMOSH_LOG_PREFIX="${__IMOSH_PROGRAM_NAME}.${__IMOSH_HOSTNAME}.${__IMOSH_USER}"
+__IMOSH_LOG_SUFFIX="$(date +'%Y%m%d.%H%M%S').$$"
+
+imosh::internal::log_file() {
+  local severity="${1}"
+  local path=''
+  if [ "${FLAGS_log_dir}" == '' ]; then
+    return
+  fi
+  path+="${FLAGS_log_dir}/"
+  path+="${__IMOSH_LOG_PREFIX}.${severity}.${__IMOSH_LOG_SUFFIX}"
+  func::print "${path}"
+}
+
+imosh::internal::init_log() {
+  # Close descriptors for logs beforehand for BASH3's bug.
+  exec 101>&- 102>&- 103>&- 104>&-
+  if [ "${FLAGS_log_dir}" != '' -a -w "${FLAGS_log_dir}" ]; then
+    exec 101>"$(imosh::internal::log_file INFO)"
+    exec 102>"$(imosh::internal::log_file WARNING)"
+    exec 103>"$(imosh::internal::log_file ERROR)"
+    exec 104>"$(imosh::internal::log_file FATAL)"
+    return
+  fi
+  exec 101>/dev/null 102>/dev/null 103>/dev/null 104>/dev/null
+  if [ "${FLAGS_log_dir}" == '' ]; then
+    return
+  fi
+  LOG ERROR "failed to open files to write logs: ${__IMOSH_LOG_DIR}"
+}
+
+# Parses arguments without getopt.
+imosh::internal::parse_args() {
+  local class_name="$1"; shift
+
+  local upper_class_name="${class_name}"
+  func::strtoupper upper_class_name
+  local arg arg_name arg_value
+  IMOSH_ARGV=()
+  IMOSH_ARGS=()
+  while [ "$#" != '0' ]; do
+    local arg="$1"
+    shift
+    if [ "${arg:0:1}" != '-' ]; then
+      IMOSH_ARGV+=("${arg}")
+      continue
+    fi
+    if [[ "${arg}" =~ ^-[0-9] ]]; then
+      IMOSH_ARGV+=("${arg}")
+      continue
+    fi
+    if [ "${arg}" = '--' ]; then
+      IMOSH_ARGV+=("$@")
+      break
+    fi
+    case "${arg}" in
+      --*) arg="${arg:2}";;
+      -*) arg="${arg:1}";;
+    esac
+    arg_name="${arg%%=*}"
+    if [[ ! "${arg_name}" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+      LOG FATAL "${class_name} name is bad: ${arg_name}"
+    fi
+    arg_value="${arg:${#arg_name}}"
+    if [ "${arg_value:0:1}" != '=' ]; then
+      if [ "${arg_name:0:2}" = 'no' ]; then
+        if func::isset "${upper_class_name}S_${arg_name:2}"; then
+          if [ "${class_name}" != 'flag' ] || \
+             [ "$(imosh::internal::flag_type "${arg_name:2}")" = 'bool' ]; then
+            IMOSH_ARGS+=("${upper_class_name}S_${arg_name:2}=0")
+            continue
+          fi
+        fi
+      fi
+      if func::isset "${upper_class_name}S_${arg_name}"; then
+        if [ "${class_name}" != 'flag' ] ||
+           [ "$(imosh::internal::flag_type "${arg_name}")" = 'bool' ]; then
+          IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=1")
+          continue
+        fi
+      fi
+      if ! func::isset "${upper_class_name}S_${arg_name}"; then
+        LOG FATAL "no such bool ${class_name} is defined:" \
+                  "(${upper_class_name}S_)${arg_name}"
+      fi
+      if [ "$#" -eq 0 ]; then
+        LOG FATAL "the ${arg_name} flag requires a value"
+      fi
+      arg_value="=${1}"
+      shift
+    fi
+    arg_value="${arg_value:1}"
+    if func::isset "${upper_class_name}S_${arg_name}"; then
+      if [ "${class_name}" = 'flag' ]; then
+        if ! imosh::internal::convert_type \
+               "$(imosh::internal::flag_type "${arg_name}")" \
+               "${arg_value}" >/dev/null; then
+          LOG FATAL "the ${arg_name} flag has an invalid value: ${arg_value}"
+        else
+          arg_value="$(imosh::internal::convert_type \
+                             "$(imosh::internal::flag_type "${arg_name}")" \
+                             "${arg_value}")"
+        fi
+      fi
+      IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value}")
+      continue
+    fi
+    LOG FATAL "no such ${class_name} is defined:" \
+              "(${upper_class_name}S_)${arg_name}"
+  done
+}
+
+readonly IMOSH_PARSE_ARGUMENTS='
+    local IMOSH_ARGV IMOSH_ARGS
+    imosh::internal::parse_args arg "$@"
+    if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
+      readonly "${IMOSH_ARGS[@]}"
+    fi
+    if [ "${#IMOSH_ARGV[@]}" -ne 0 ]; then
+      set -- "${IMOSH_ARGV[@]}"
+    fi'
+
+# __IMOSH_FLAGS_TYPE_<flag name>=<flag type>
+# __IMOSH_FLAGS_DESCRIPTION_<flag name>=<description>
+# __IMOSH_FLAGS_ALIASES=(from:to ...)
+
+imosh::internal::flag_type() {
+  local name="$1"
+
+  if [ "$#" -ne 1 ]; then
+    LOG FATAL 'flag_type requires 1 arugument.'
+  fi
+  eval "func::print \"\${__IMOSH_FLAGS_TYPE_${name}}\""
+}
+
+imosh::internal::define_flag() {
+  local type="$1"; shift
+
+  local ARGS_alias='' ARGS_alias_flag=0 ARGS_group='main'
+  eval "${IMOSH_PARSE_ARGUMENTS}"
+
+  if [ "$#" -lt 3 ]; then
+    LOG FATAL 'DEFINE_${type} requires 3+ arguments.'
+  fi
+  local name="$1"; shift
+  local default_value="$1"; shift
+  local description="$*"
+  local group="${ARGS_group}"
+  func::strtoupper group
+
+  # Change the default value based on its corresponding environment variable.
+  if func::isset "IMOSH_FLAGS_${name}"; then
+    func::strcpy default_value "IMOSH_FLAGS_${name}"
+  fi
+  if ! imosh::internal::convert_type \
+           "${type}" "${default_value}" >/dev/null; then
+    LOG FATAL "${type}'s default value should be ${type}: ${default_value}"
+  fi
+  default_value="$(imosh::internal::convert_type "${type}" "${default_value}")"
+  if func::isset "__IMOSH_FLAGS_TYPE_${name}"; then
+    LOG FATAL "already defined flag: ${name}"
+  fi
+  func::strcpy "FLAGS_${name}" 'default_value'
+  func::strcpy "__IMOSH_FLAGS_TYPE_${name}" 'type'
+  if [ "${ARGS_alias}" != '' ]; then
+    imosh::internal::define_flag "${type}" --alias_flag \
+        "${ARGS_alias}" "${default_value}" "${description}"
+    __IMOSH_FLAGS_ALIASES+=("${name}:${ARGS_alias}")
+  fi
+  if (( ! ARGS_alias_flag )); then
+    local escaped_default_value=''
+    case "${type}" in
+      int) escaped_default_value="${default_value}";;
+      bool)
+        if (( default_value )); then
+          escaped_default_value='true'
+        else
+          escaped_default_value='false'
+        fi
+        ;;
+      *)
+        escaped_default_value="${default_value}"
+        func::escapeshellarg escaped_default_value
+        ;;
+    esac
+    func::let "__IMOSH_FLAGS_DEFAULT_${name}" \
+              "--${name}=${escaped_default_value}"
+    if [ "${ARGS_alias}" != '' ]; then
+      description+=" (Alias: --${ARGS_alias})"
+    fi
+    func::let "__IMOSH_FLAGS_DESCRIPTION_${name}" "${description}"
+    __IMOSH_FLAGS+=("${group}:${name}")
+  fi
+}
+
+DEFINE_string() { imosh::internal::define_flag string "$@"; }
+DEFINE_int() { imosh::internal::define_flag int "$@"; }
+DEFINE_bool() { imosh::internal::define_flag bool "$@"; }
+DEFINE_double() { imosh::internal::define_flag double "$@"; }
+
+imosh::internal::get_main_script() {
+  local depth="${#BASH_SOURCE[@]}"
+  local main_script="${BASH_SOURCE[$((depth-1))]}"
+  echo "${main_script}"
+}
+
+imosh::internal::get_usage() {
+  local file="${1}"
+  grep --max-count=1 -B 1000 -v '^#' "${file}" | grep '^#' | while read line; do
+    case "${line}" in
+      '#!'*) continue;;
+      '# '*) echo "${line:2}";;
+      '#'*) echo "${line:1}";;
+    esac
+  done > "${__IMOSH_CORE_TMPDIR}/usage"
+  if [ -s "${__IMOSH_CORE_TMPDIR}/usage" ]; then
+    cat "${__IMOSH_CORE_TMPDIR}/usage"
+  else
+    echo 'No description.'
+  fi
+}
+
+imosh::internal::flag_groups() {
+  local groups=()
+  local group=''
+  local main_group_exists=0
+  local imosh_group_exists=0
+  for flag_name in "${__IMOSH_FLAGS[@]}"; do
+    local parts=()
+    func::explode parts ':' "${flag_name}"
+    group="${parts[0]}"
+    local lower_group="${group}"
+    func::strtolower lower_group
+    if [ "${lower_group}" == 'main' ]; then
+      main_group_exists=1
+    elif [ "${lower_group}" == 'imosh' ]; then
+      imosh_group_exists=1
+    else
+      groups+=("${group}")
+    fi
+  done
+  if (( main_group_exists )); then
+    echo 'main'
+  fi
+  if [ "${#groups[@]}" -ne 0 ]; then
+    func::array_unique groups
+    for group in "${groups[@]}"; do
+      echo "${group}"
+    done
+  fi
+  if (( imosh_group_exists )); then
+    echo 'imosh'
+  fi
+}
+
+imosh::internal::group_flags() {
+  local group="$1"
+  local lower_group="${group}"
+  func::strtolower lower_group
+
+  local flags=()
+  for flag_name in "${__IMOSH_FLAGS[@]}"; do
+    local parts=()
+    func::explode parts ':' "${flag_name}"
+    local lower_part="${parts[0]}"
+    func::strtolower lower_part
+    if [ "${lower_group}" != "${lower_part}" ]; then
+      continue
+    fi
+    flags+=("${parts[1]}")
+  done
+  func::sort flags
+  for flag in "${flags[@]}"; do
+    echo "${flag}"
+  done
+}
+
+imosh::internal::man() {
+  echo ".TH ${0##*/} 1"; echo
+  echo '.SH SYNOPSIS'
+  echo ".B ${0##*/}"; echo '[\fIOPTIONS\fP] [\fIargs...\fP]'; echo
+
+  echo '.SH DESCRIPTION'
+  imosh::internal::get_usage "$(imosh::internal::get_main_script)"
+
+  echo '.SH OPTIONS'
+  for flag_group in $(imosh::internal::flag_groups); do
+    local upper_flag_group="${flag_group}"
+    func::strtoupper upper_flag_group
+    echo ".SS ${upper_flag_group} OPTIONS"
+    for flag_name in $(imosh::internal::group_flags "${flag_group}"); do
+      echo '.TP'
+      echo -n '\fB'
+      eval "echo -n \"\${__IMOSH_FLAGS_DEFAULT_${flag_name}}\""
+      echo '\fP'
+      eval "echo \"\${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\""
+      echo
+    done
+  done
+}
+
+imosh::internal::help() {
+  echo "USAGE: ${0##*/} [options...] [args...]"
+  echo
+  echo 'DESCRIPTION:'
+  imosh::internal::get_usage "$(imosh::internal::get_main_script)" | \
+      while read line; do
+    echo "  ${line}"
+  done
+  echo
+  echo "OPTIONS:"
+  for flag_group in $(imosh::internal::flag_groups); do
+    local upper_flag_group="${flag_group}"
+    func::strtoupper upper_flag_group
+    echo "  ${upper_flag_group} OPTIONS:"
+    for flag_name in $(imosh::internal::group_flags "${flag_group}"); do
+      eval "echo -n \"    \${__IMOSH_FLAGS_DEFAULT_${flag_name}}:\""
+      eval "echo \" \${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\""
+    done
+  done
+}
+
+imosh::internal::init() {
+  imosh::internal::parse_args flag "$@"
+  if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
+    eval "${IMOSH_ARGS[@]}"
+  fi
+  imosh::internal::init_log
+  if [ "${#__IMOSH_FLAGS_ALIASES[@]}" -ne 0 ]; then
+    for alias in "${__IMOSH_FLAGS_ALIASES[@]}"; do
+      eval "FLAGS_${alias%%:*}=\"\${FLAGS_${alias#*:}}\""
+      unset "FLAGS_${alias#*:}"
+    done
+  fi
+  if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
+    eval "${IMOSH_ARGS[@]}"
+  fi
+  if (( FLAGS_help )); then
+    if [ -t 1 ]; then
+      local man_file="${__IMOSH_CORE_TMPDIR}/man"
+      imosh::internal::man >"${man_file}"
+      man "${man_file}"
+    elif (( FLAGS_help_groff )); then
+      imosh::internal::man
+    else
+      imosh::internal::help >&2
+    fi
+    exit 0
+  fi
+}
+
+readonly IMOSH_INIT='
+    set -e -u
+    imosh::internal::init "$@"
+    if [ "${#IMOSH_ARGV[@]}" -ne 0 ]; then
+      set -- "${IMOSH_ARGV[@]}"
+    fi'
+
+__IMOSH_FLAGS=()
+__IMOSH_FLAGS_ALIASES=()
+
 # Usage:
 #   imosh::stack_trace [--skip_imosh] [message...]
 #
@@ -1451,6 +1447,11 @@ if ! shopt login_shell >/dev/null; then
     trap "imosh::internal::signal_handler ${signal}" "${signal}"
   done
 fi
+
+# Close descriptors for logs beforehand for BASH3's bug.
+exec 101>&- 102>&- 103>&- 104>&-
+# Open descriptors for LOG without calling init_log.
+exec 101>/dev/null 102>/dev/null 103>/dev/null 104>/dev/null
 
 # Prepares a temporary directory and sets its path to TMPDIR.
 __imosh::mktemp
