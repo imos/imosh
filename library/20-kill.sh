@@ -1,5 +1,3 @@
-IMOSH_ROOT_PID="$$"
-
 imosh::internal::kill() {
   local target_pid="$1"
   LOG INFO "killing ${target_pid}..."

@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-09-25 02:52:30 +0900 (0fb00ba)'
+IMOSH_VERSION='2014-09-25 03:36:55 +0900 (79654e3)'
 
 if ! shopt login_shell >/dev/null; then
   set -e -u
@@ -110,8 +110,6 @@ if ! shopt login_shell >/dev/null; then
     trap "imosh::internal::signal_handler ${signal}" "${signal}"
   done
 fi
-
-IMOSH_ROOT_PID="$$"
 
 imosh::internal::kill() {
   local target_pid="$1"
@@ -506,6 +504,9 @@ IMOSH_COLOR_BLUE=$'\033[0;34m'
 IMOSH_COLOR_MAGENTA=$'\033[0;35m'
 IMOSH_COLOR_CYAN=$'\033[0;36m'
 IMOSH_COLOR_WHITE=$'\033[0;37m'
+
+# Process ID that imosh initially runs on.
+readonly IMOSH_ROOT_PID="$$"
 
 readonly UNAME="$(uname)"
 
