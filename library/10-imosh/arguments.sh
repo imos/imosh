@@ -78,13 +78,3 @@ imosh::internal::parse_args() {
               "(${upper_class_name}S_)${arg_name}"
   done
 }
-
-readonly IMOSH_PARSE_ARGUMENTS='
-    local IMOSH_ARGV IMOSH_ARGS
-    imosh::internal::parse_args arg "$@"
-    if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
-      readonly "${IMOSH_ARGS[@]}"
-    fi
-    if [ "${#IMOSH_ARGV[@]}" -ne 0 ]; then
-      set -- "${IMOSH_ARGV[@]}"
-    fi'

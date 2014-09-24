@@ -226,13 +226,3 @@ imosh::internal::init() {
     exit 0
   fi
 }
-
-readonly IMOSH_INIT='
-    set -e -u
-    imosh::internal::init "$@"
-    if [ "${#IMOSH_ARGV[@]}" -ne 0 ]; then
-      set -- "${IMOSH_ARGV[@]}"
-    fi'
-
-__IMOSH_FLAGS=()
-__IMOSH_FLAGS_ALIASES=()
