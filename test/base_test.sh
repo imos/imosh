@@ -33,8 +33,11 @@ test::compare_string() {
 test::soh_in_array() {
   local values=($'\x01')
   local expected='01'
-  if [ "${expected}" != "$(func::bin2hex "$(func::implode '' values)")" ]; then
-    LOG ERROR 'soh cannot be treated in array correctly:' \
-              "$(func::bin2hex "$(func::implode '' values)")"
+  local actual=''
+
+  func::implode actual '' values
+  func::bin2hex actual "${actual}"
+  if [ "${expected}" != "${actual}" ]; then
+    LOG ERROR "soh cannot be treated in array correctly: ${actual}"
   fi
 }
