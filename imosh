@@ -151,6 +151,51 @@ func::escapeshellarg() {
   eval "${__escapeshellarg_variable}=\"'\${${__escapeshellarg_variable}//\${__escapeshellarg_search}/\${__escapeshellarg_replace}}'\""
 }
 
+# func::exit, func::die
+#
+# Usage:
+#   // 1. Message form.
+#   void func::exit(string message)
+#   // 2. Status form.
+#   void func::exit(int status = 0)
+#   // 1. Message form.
+#   void func::die(string message)
+#   // 2. Status form
+#   void func::die(int status = 0)
+#
+# func::exit kills all the subprocesses of the current program.  If an integer
+# argument is given, func::exit exists with the status.  Otherwise, func::exit
+# shows the given message and exits with status 0.
+#
+# func::die shows a stack trace and delegates arguments to func::exit.
+func::exit() {
+  if [ "$#" -eq 0 ]; then
+    set -- 0
+  fi
+  if [ "$#" -le 1 ]; then
+    local status=0
+    if [[ "$1" =~ ^[0-9]+$ ]]; then
+      status="$1"
+    else
+      local message="$1"
+      func::rtrim message
+      func::println "${message}"
+    fi
+    imosh::exit "${status}"
+  else
+    LOG FATAL "Wrong number of arumnets: $#"
+  fi
+}
+
+func::die() {
+  if [ "$#" -le 1 ]; then
+    imosh::stack_trace "*** imosh::die stack trace: ***"
+    func::exit "$@"
+  else
+    LOG ERROR "Wrong number of arguments: $#"
+  fi
+}
+
 # func::explode -- Splits a string by a substring.
 #
 # Usage:
@@ -412,56 +457,6 @@ func::isset() {
     return 0
   fi
   return 1
-}
-
-imosh::internal::kill() {
-  local target_pid="$1"
-  LOG INFO "killing ${target_pid}..."
-  local keep_alive=0
-  if [ "${target_pid}" == "${PID}" -o \
-       "${target_pid}" == "${IMOSH_ROOT_PID}" ]; then
-    keep_alive=1
-  fi
-  if (( ! keep_alive )); then
-    kill -STOP "${target_pid}" 2>/dev/null || true
-  fi
-  local child_pids="$(
-      ps -o ppid,pid | grep "^${target_pid}[[:space:]]" | awk '{ print $2 }')"
-  if [ "${child_pids}" != '' ]; then
-    local child
-    for child in ${child_pids}; do
-      imosh::internal::kill "${child}"
-    done
-  fi
-  if (( ! keep_alive )); then
-    kill -KILL "${target_pid}" 2>/dev/null || true
-  fi
-}
-
-imosh::quiet_die() {
-  local status='0'
-  if [ "$#" -ge 1 ]; then
-    status="$1"
-  fi
-
-  LOG INFO 'exiting...'
-  local PID=''
-  func::getmypid PID
-  echo "${status}" >"${__IMOSH_CORE_TMPDIR}/status"
-  imosh::internal::kill "${PID}"
-  imosh::internal::kill "${IMOSH_ROOT_PID}"
-  kill -TERM "${IMOSH_ROOT_PID}" 2>/dev/null || true
-  exit "${status}"
-}
-
-imosh::die() {
-  local status='0'
-  if [ "$#" -ge 1 ]; then
-    status="$1"
-  fi
-
-  imosh::stack_trace "*** imosh::die stack trace: ***"
-  imosh::quiet_die "${status}"
 }
 
 # func::let -- Assigns a value into a variable.
@@ -1032,6 +1027,77 @@ imosh::internal::parse_args() {
   done
 }
 
+# imosh::exit
+#
+# Usage:
+#   void imosh::exit(int status = 0)
+#
+# imosh::exit kills all the subprocesses of the root process with the status.
+imosh::exit() {
+  if [ "$#" -eq 0 ]; then
+    set -- 0
+  fi
+  if [ "$#" -eq 1 ]; then
+    local status="$1"
+    echo "${status}" >"${__IMOSH_CORE_TMPDIR}/status"
+
+    local PID=''
+    func::getmypid PID
+    # First, kill all the childs of the current process so that no child
+    # processes spawn new processes.
+    __imosh::kill "${PID}"
+    # Then, try to kill other processes under the root process except this
+    # process.
+    __imosh::kill "${IMOSH_ROOT_PID}"
+    # Send a TERM signal to the root process.
+    kill -TERM "${IMOSH_ROOT_PID}" 2>/dev/null || true
+    # Exit immediately.
+    exit "${status}"
+  else
+    LOG FATAL "Wrong number of aruments: $#"
+  fi
+}
+
+# __imosh::kill
+#
+# Usage:
+#   void __imosh::kill(int pid)
+#
+# __imosh::kill must not be called by functions other than imosh::exit because
+# a killer process `PID` must not be stopped by a signal.
+__imosh::kill() {
+  if [ "$#" -eq 1 ]; then
+    local target_pid="$1"
+    LOG INFO "killing ${target_pid}..."
+    local keep_alive=0
+    if [ "${target_pid}" = "${PID}" -o \
+         "${target_pid}" = "${IMOSH_ROOT_PID}" ]; then
+      keep_alive=1
+    fi
+    if (( ! keep_alive )); then
+      kill -STOP "${target_pid}" 2>/dev/null || true
+    fi
+    export IFS=$' \t\n'
+    local child_pids="$(ps -o ppid,pid | \
+                        grep "^[[:space:]]*${target_pid}[[:space:]]" | \
+                        awk '{ print $2 }')"
+    if [ "${child_pids}" != '' ]; then
+      LOG INFO "Target PID (${target_pid})'s child PIDs are: ${child_pids[*]}"
+      local child=''
+      for child in ${child_pids}; do
+        __imosh::kill "${child}"
+      done
+    else
+      LOG INFO "Target PID (${target_pid}) has no child PIDs."
+    fi
+    if (( ! keep_alive )); then
+      kill -KILL "${target_pid}" 2>/dev/null || true
+    fi
+  else
+    LOG FATAL "Wrong number of arguments: $#"
+  fi
+}
+
 # __IMOSH_FLAGS_TYPE_<flag name>=<flag type>
 # __IMOSH_FLAGS_DESCRIPTION_<flag name>=<description>
 # __IMOSH_FLAGS_ALIASES=(from:to ...)
@@ -1567,17 +1633,17 @@ trap imosh::internal::exit_handler EXIT
 imosh::internal::signal_handler() {
   local signal="$1"
   trap - "${signal}"
-  local pid=''
-  func::getmypid pid
-  if [ "${pid}" == "${IMOSH_ROOT_PID}" ]; then
+  local PID=''
+  func::getmypid PID
+  if [ "${PID}" == "${IMOSH_ROOT_PID}" ]; then
     LOG INFO 'killing child processes.'
-    imosh::internal::kill "${IMOSH_ROOT_PID}"
+    __imosh::kill "${IMOSH_ROOT_PID}"
     if [ -f "${__IMOSH_CORE_TMPDIR}/status" ]; then
       exit "$(cat "${__IMOSH_CORE_TMPDIR}/status")"
     fi
   fi
   LOG ERROR "$(imosh::stack_trace "terminated by signal: ${signal}" 2>&1)"
-  kill -s "${signal}" "${pid}"
+  kill -s "${signal}" "${PID}"
 }
 
 if ! shopt login_shell >/dev/null; then
