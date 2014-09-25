@@ -14,4 +14,12 @@ test::func_implode() {
 
   func::implode variable 'xxx' values
   EXPECT_EQ $';xxx xxx\nxxx\\xxx' "${variable}"
+
+  # Command form.
+  values=(a b c)
+  EXPECT_EQ 'a,b,c' "$(func::implode ',' values)"
+
+  # Stream form.
+  IFS=' \t\n' EXPECT_EQ $'a,b,c\nd,e\nf' \
+                        "$(func::implode ',' <<<$'a b c\nd\te\nf')"
 }

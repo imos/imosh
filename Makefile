@@ -4,7 +4,7 @@ concat:
 	@echo '' >>imosh
 	@echo "IMOSH_VERSION='$$(git log --pretty=format:'%ci (%h)' library | head -n 1)'" >>imosh
 	@echo '' >>imosh
-	@for library in library/*.sh library/*/*.sh; do \
+	@for library in library/*/*.sh; do \
 	  cat "$${library}"; \
 	  echo; \
 	done >>imosh
