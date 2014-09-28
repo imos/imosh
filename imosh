@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-09-29 03:32:43 +0900 (0acb86f)'
+IMOSH_VERSION='2014-09-29 03:41:24 +0900 (e888d9b)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -1297,11 +1297,11 @@ imosh::internal::help() {
 __imosh::help_markdown() {
   __imosh::show_usage --format=markdown --notitle \
       "$(imosh::internal::get_main_script)"
-  echo "### Options"
+  echo "# Options"
   for flag_group in $(imosh::internal::flag_groups); do
     local upper_flag_group="${flag_group}"
     func::strtoupper upper_flag_group
-    echo "#### ${flag_group} options"
+    echo "## ${flag_group} options"
     for flag_name in $(imosh::internal::group_flags "${flag_group}"); do
       eval "echo \"* \${__IMOSH_FLAGS_DEFAULT_${flag_name}}\""
       eval "echo \"    * \${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\""
@@ -1459,10 +1459,10 @@ __imosh::get_usage() {
 #     Select one fromat from text/markdown/groff.
 #   --title=true
 #     Treat the first line as title.
-#   --markdown_heading=#
+#   --markdown_heading=''
 #     Prepend a string to every heading.
 __imosh::show_usage() {
-  local ARGS_format=text ARGS_title=1 ARGS_markdown_heading='#'
+  local ARGS_format=text ARGS_title=1 ARGS_markdown_heading=''
   eval "${IMOSH_PARSE_ARGUMENTS}"
 
   if [ "$#" -eq 1 ]; then
@@ -1487,7 +1487,7 @@ __imosh::show_usage() {
       if (( first_line )); then
         case "${ARGS_format}" in
           groff)    echo ".TH ${line} 1";;
-          markdown) echo "${ARGS_markdown_heading}# ${line}";;
+          markdown) echo "${ARGS_markdown_heading} ${line}";;
         esac
         first_line=0
         continue
@@ -1497,7 +1497,7 @@ __imosh::show_usage() {
         func::strtoupper title
         case "${ARGS_format}" in
           groff)    echo ".SH ${title}";;
-          markdown) echo "${ARGS_markdown_heading}## ${line%:}";;
+          markdown) echo "${ARGS_markdown_heading}# ${line%:}";;
         esac
         local code_mode=0
         while IFS= read -r line; do

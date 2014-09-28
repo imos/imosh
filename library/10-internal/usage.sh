@@ -25,10 +25,10 @@ __imosh::get_usage() {
 #     Select one fromat from text/markdown/groff.
 #   --title=true
 #     Treat the first line as title.
-#   --markdown_heading=#
+#   --markdown_heading=''
 #     Prepend a string to every heading.
 __imosh::show_usage() {
-  local ARGS_format=text ARGS_title=1 ARGS_markdown_heading='#'
+  local ARGS_format=text ARGS_title=1 ARGS_markdown_heading=''
   eval "${IMOSH_PARSE_ARGUMENTS}"
 
   if [ "$#" -eq 1 ]; then
@@ -53,7 +53,7 @@ __imosh::show_usage() {
       if (( first_line )); then
         case "${ARGS_format}" in
           groff)    echo ".TH ${line} 1";;
-          markdown) echo "${ARGS_markdown_heading}# ${line}";;
+          markdown) echo "${ARGS_markdown_heading} ${line}";;
         esac
         first_line=0
         continue
@@ -63,7 +63,7 @@ __imosh::show_usage() {
         func::strtoupper title
         case "${ARGS_format}" in
           groff)    echo ".SH ${title}";;
-          markdown) echo "${ARGS_markdown_heading}## ${line%:}";;
+          markdown) echo "${ARGS_markdown_heading}# ${line%:}";;
         esac
         local code_mode=0
         while IFS= read -r line; do

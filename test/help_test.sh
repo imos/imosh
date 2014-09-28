@@ -65,3 +65,21 @@ Output extra argv.
 String flag.'
   ASSERT_EQ "${expected_message}" "$(run --help_format=groff 2>&1)"
 }
+
+test::help_markdown() {
+  local expected_message='A script to test imosh flags.
+
+# Options
+## main options
+* --bool=false
+    * Boolean flag.
+* --flag='\'\''
+    * Flag name to show.
+* --int=100
+    * Integer flag.
+* --show_argv=false
+    * Output extra argv.
+* --string='\''default'\''
+    * String flag.'
+  ASSERT_EQ "${expected_message}" "$(run --help_format=markdown 2>&1)"
+}
