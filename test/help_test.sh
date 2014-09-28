@@ -6,26 +6,35 @@ run() {
 
 test::help() {
   local pids=()
-  local expected_message="USAGE: flags.sh [options...] [args...]
-
-DESCRIPTION:
-  A script to test imosh flags.
+  local expected_message="A script to test imosh flags.
 
 OPTIONS:
   MAIN OPTIONS:
-    --bool=false: Boolean flag.
-    --flag='': Flag name to show.
-    --int=100: Integer flag.
-    --show_argv=false: Output extra argv.
-    --string='default': String flag.
+    --bool=false
+        Boolean flag.
+    --flag=''
+        Flag name to show.
+    --int=100
+        Integer flag.
+    --show_argv=false
+        Output extra argv.
+    --string='default'
+        String flag.
   IMOSH OPTIONS:
-    --alsologtostderr=false: Log messages go to stderr in addition to logfiles.
-    --disown_php=false: Disown a PHP process.
-    --help=false: Print this help message and exit. (Alias: --h)
-    --help_groff=false: Use groff for help output.
-    --log_dir='': Directory to output log files.  Output no files if this flag is empty.
-    --logtostderr=false: Log messages go to stderr instead of logfiles.
-    --stacktrace_threshold='FATAL': Threshold to show stacktrace."
+    --alsologtostderr=false
+        Log messages go to stderr in addition to logfiles.
+    --disown_php=false
+        Disown a PHP process.
+    --help=false
+        Print this help message and exit. (Alias: --h)
+    --help_groff=false
+        Use groff for help output.
+    --log_dir=''
+        Directory to output log files.  Output no files if this flag is empty.
+    --logtostderr=false
+        Log messages go to stderr instead of logfiles.
+    --stacktrace_threshold='FATAL'
+        Threshold to show stacktrace."
   ASSERT_EQ "${expected_message}" "$(run --help 2>&1 >/dev/null)" &
   pids+=("$!")
   ASSERT_EQ "${expected_message}" "$(run -h 2>&1 >/dev/null)" &

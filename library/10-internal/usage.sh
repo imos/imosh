@@ -21,12 +21,12 @@ __imosh::get_usage() {
 #   bool __imosh::show_usage(string file) > output
 #
 # Options:
-# --groff=false
-#   Enable groff mode.
+# --format=text
+#   Select one fromat from text/markdown/groff.
 # --title=true
 #   Treat the first line as title.
 __imosh::show_usage() {
-  local ARGS_groff=0 ARGS_title=1
+  local ARGS_format=text ARGS_title=1
   eval "${IMOSH_PARSE_ARGUMENTS}"
 
   if [ "$#" -eq 1 ]; then
@@ -43,67 +43,75 @@ __imosh::show_usage() {
         break
       fi
       no_read=0
+      if [ "${ARGS_format}" = 'text' ]; then
+        echo "${line}"
+        continue
+      fi
       func::rtrim line
       if (( first_line )); then
-        if (( ARGS_groff )); then
-          echo ".TH ${line} 1"
-        else
-          echo "## ${line}"
-        fi
+        case "${ARGS_format}" in
+          groff)    echo ".TH ${line} 1";;
+          markdown) echo "## ${line}";;
+        esac
         first_line=0
         continue
       fi
       while func::greg_match '*:' "${line}"; do
         if [ "${line%:}" = 'Usage' ]; then
-          if (( ARGS_groff )); then
-            echo '.SH USAGE'
-            echo '.Bd -literal -offset indent'
-          else
-            echo '```cpp'
-          fi
+          case "${ARGS_format}" in
+            groff)    echo '.SH USAGE'
+                      echo '.Bd -literal -offset indent';;
+            markdown) echo '```cpp';;
+          esac
         else
-          if (( ARGS_groff )); then
-            local title="${line%:}"
-            func::strtoupper title
-            echo ".SH ${title}"
-            echo '.Bd -literal -offset indent'
-          else
-            echo 
-            echo "### ${line%:}"
-            echo
-            echo '```sh'
-          fi
+          local title="${line%:}"
+          func::strtoupper title
+          case "${ARGS_format}" in
+            groff)
+                echo ".SH ${title}"
+                echo '.Bd -literal -offset indent';;
+            markdown)
+                echo 
+                echo "### ${line%:}"
+                echo
+                echo '```sh';;
+          esac
         fi
         while IFS= read -r line; do
-          if [ "${line:0:2}" != '  ' ]; then
+          if [ "${line:0:4}" != '    ' ]; then
             break
           fi
-          echo "${line#'  '}"
+          case "${ARGS_format}" in
+            groff)    echo "${line#'    '}";;
+            markdown) echo "${line#'    '}";;
+          esac
         done
-        if (( ARGS_groff )); then
-          echo '.Ed'
-        else
-          echo '```'
-          echo
-        fi
+        case "${ARGS_format}" in
+          groff)    echo '.Ed';;
+          markdown) echo '```'
+                    echo;;
+        esac
       done
-      if [ "${line:0:1}" = '-' ]; then
-        if (( ARGS_groff )); then
-          echo '.TP'
-          echo ".B ${line:1}"
-        else
-          echo "* ${line:1}"
+      if func::greg_match '*( )-*' "${line}"; then
+        func::ltrim line
+        if [ "${line:0:2}" = '- ' ]; then
+          line="${line:2}"
         fi
+        case "${ARGS_format}" in
+          groff)    echo '.TP'
+                    echo ".B ${line}";;
+          markdown) echo "* ${line}";;
+        esac
         while IFS= read -r line; do
-          if [ "${line:0:1}" != ' ' ]; then
+          if func::greg_match '*( )-*' "${line}" || \
+             func::greg_match '*([[:space:]])' "${line}"; then
             break
           fi
           func::ltrim line
-          if (( ARGS_groff )); then
-            echo "${line}"
-          else
-            echo "    ${line}"
-          fi
+          case "${ARGS_format}" in
+            groff)    echo "${line}";;
+            markdown) echo "    ${line}";;
+          esac
         done
         no_read=1
         continue

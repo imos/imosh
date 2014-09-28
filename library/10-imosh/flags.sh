@@ -157,7 +157,7 @@ imosh::internal::group_flags() {
 imosh::internal::man() {
   echo ".TH ${0##*/} 1"; echo
   echo '.SH DESCRIPTION'
-  __imosh::show_usage --groff --notitle \
+  __imosh::show_usage --format=groff --notitle \
       "$(imosh::internal::get_main_script)"
 
   echo '.SH OPTIONS'
@@ -177,22 +177,19 @@ imosh::internal::man() {
 }
 
 imosh::internal::help() {
-  echo "USAGE: ${0##*/} [options...] [args...]"
-  echo
-  echo 'DESCRIPTION:'
-  imosh::internal::get_usage "$(imosh::internal::get_main_script)" | \
-      while read line; do
-    echo "  ${line}"
-  done
-  echo
+  __imosh::show_usage --notitle \
+      "$(imosh::internal::get_main_script)"
   echo "OPTIONS:"
   for flag_group in $(imosh::internal::flag_groups); do
     local upper_flag_group="${flag_group}"
     func::strtoupper upper_flag_group
     echo "  ${upper_flag_group} OPTIONS:"
     for flag_name in $(imosh::internal::group_flags "${flag_group}"); do
-      eval "echo -n \"    \${__IMOSH_FLAGS_DEFAULT_${flag_name}}:\""
-      eval "echo \" \${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\""
+      eval "echo \"    \${__IMOSH_FLAGS_DEFAULT_${flag_name}}\""
+      eval "echo \"\${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\"" | \
+          fold -s -w 70 | while IFS= read -r line; do
+        func::println "        ${line}"
+      done
     done
   done
 }
