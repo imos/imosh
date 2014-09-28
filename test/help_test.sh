@@ -19,25 +19,10 @@ OPTIONS:
     --show_argv=false
         Output extra argv.
     --string='default'
-        String flag.
-  IMOSH OPTIONS:
-    --alsologtostderr=false
-        Log messages go to stderr in addition to logfiles.
-    --disown_php=false
-        Disown a PHP process.
-    --help=false
-        Print this help message and exit. (Alias: --h)
-    --help_groff=false
-        Use groff for help output.
-    --log_dir=''
-        Directory to output log files.  Output no files if this flag is empty.
-    --logtostderr=false
-        Log messages go to stderr instead of logfiles.
-    --stacktrace_threshold='FATAL'
-        Threshold to show stacktrace."
-  ASSERT_EQ "${expected_message}" "$(run --help 2>&1 >/dev/null)" &
+        String flag."
+  ASSERT_EQ "${expected_message}" "$(run --help 2>&1)" &
   pids+=("$!")
-  ASSERT_EQ "${expected_message}" "$(run -h 2>&1 >/dev/null)" &
+  ASSERT_EQ "${expected_message}" "$(run -h 2>&1)" &
   pids+=("$!")
 
   # There should be no output to the standard output.
@@ -77,35 +62,24 @@ Output extra argv.
 
 .TP
 \fB--string='\''default'\''\fP
-String flag.
+String flag.'
+  ASSERT_EQ "${expected_message}" "$(run --help_format=groff 2>&1)"
+}
 
-.SS IMOSH OPTIONS
-.TP
-\fB--alsologtostderr=false\fP
-Log messages go to stderr in addition to logfiles.
+test::help_markdown() {
+  local expected_message='A script to test imosh flags.
 
-.TP
-\fB--disown_php=false\fP
-Disown a PHP process.
-
-.TP
-\fB--help=false\fP
-Print this help message and exit. (Alias: --h)
-
-.TP
-\fB--help_groff=false\fP
-Use groff for help output.
-
-.TP
-\fB--log_dir='\'\''\fP
-Directory to output log files.  Output no files if this flag is empty.
-
-.TP
-\fB--logtostderr=false\fP
-Log messages go to stderr instead of logfiles.
-
-.TP
-\fB--stacktrace_threshold='\''FATAL'\''\fP
-Threshold to show stacktrace.'
-  ASSERT_EQ "${expected_message}" "$(run --help --help_groff)"
+# Options
+## main options
+* --bool=false
+    * Boolean flag.
+* --flag='\'\''
+    * Flag name to show.
+* --int=100
+    * Integer flag.
+* --show_argv=false
+    * Output extra argv.
+* --string='\''default'\''
+    * String flag.'
+  ASSERT_EQ "${expected_message}" "$(run --help_format=markdown 2>&1)"
 }
