@@ -121,13 +121,13 @@ imosh::internal::flag_groups() {
   if (( main_group_exists )); then
     echo 'main'
   fi
-  if [ "${#groups[@]}" -ne 0 ]; then
+  if [ "${#groups[@]}" -ne 0 -a "${FLAGS_helpfull}" -ne 0 ]; then
     func::array_unique groups
     for group in "${groups[@]}"; do
       echo "${group}"
     done
   fi
-  if (( imosh_group_exists )); then
+  if (( imosh_group_exists && FLAGS_helpfull )); then
     echo 'imosh'
   fi
 }
@@ -177,7 +177,7 @@ imosh::internal::man() {
 }
 
 imosh::internal::help() {
-  __imosh::show_usage --notitle \
+  __imosh::show_usage --format=text --notitle \
       "$(imosh::internal::get_main_script)"
   echo "OPTIONS:"
   for flag_group in $(imosh::internal::flag_groups); do
@@ -192,6 +192,35 @@ imosh::internal::help() {
       done
     done
   done
+}
+
+__imosh::help_markdown() {
+  __imosh::show_usage --format=markdown --notitle \
+      "$(imosh::internal::get_main_script)"
+  echo "OPTIONS:"
+  for flag_group in $(imosh::internal::flag_groups); do
+    local upper_flag_group="${flag_group}"
+    func::strtoupper upper_flag_group
+    echo "  ${upper_flag_group} OPTIONS:"
+    for flag_name in $(imosh::internal::group_flags "${flag_group}"); do
+      eval "echo \"    \${__IMOSH_FLAGS_DEFAULT_${flag_name}}\""
+      eval "echo \"\${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\"" | \
+          fold -s -w 70 | while IFS= read -r line; do
+        func::println "        ${line}"
+      done
+    done
+  done
+}
+
+__imosh::help() {
+  case "${FLAGS_help_format}" in
+    groff)
+      imosh::internal::man;;
+    markdown)
+      __imosh::help_markdown;;
+    *)
+      imosh::internal::help;;
+  esac
 }
 
 imosh::internal::init() {
@@ -209,15 +238,21 @@ imosh::internal::init() {
   if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
     eval "${IMOSH_ARGS[@]}"
   fi
-  if (( FLAGS_help )); then
-    if [ -t 1 ]; then
+  if (( FLAGS_help || FLAGS_helpfull )) ||
+     [ "${FLAGS_help_format}" != '' ]; then
+    if [ "${FLAGS_help_format}" = '' ]; then
+      if [ -t 1 ]; then
+        FLAGS_help_format='groff'
+      else
+        FLAGS_help_format='text'
+      fi
+    fi
+    if [ -t 1 -a "${FLAGS_help_format}" = 'groff' ]; then
       local man_file="${__IMOSH_CORE_TMPDIR}/man"
-      imosh::internal::man >"${man_file}"
+      __imosh::help >"${man_file}"
       man "${man_file}"
-    elif (( FLAGS_help_groff )); then
-      imosh::internal::man
     else
-      imosh::internal::help >&2
+      __imosh::help >&2
     fi
     exit 0
   fi

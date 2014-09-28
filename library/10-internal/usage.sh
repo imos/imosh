@@ -18,15 +18,17 @@ __imosh::get_usage() {
 # __imosh::show_usage
 #
 # Usage:
-#   bool __imosh::show_usage(string file) > output
+#     bool __imosh::show_usage(string file) > output
 #
 # Options:
-# --format=text
-#   Select one fromat from text/markdown/groff.
-# --title=true
-#   Treat the first line as title.
+#   --format=text
+#     Select one fromat from text/markdown/groff.
+#   --title=true
+#     Treat the first line as title.
+#   --markdown_heading=#
+#     Prepend a string to every heading.
 __imosh::show_usage() {
-  local ARGS_format=text ARGS_title=1
+  local ARGS_format=text ARGS_title=1 ARGS_markdown_heading='#'
   eval "${IMOSH_PARSE_ARGUMENTS}"
 
   if [ "$#" -eq 1 ]; then
@@ -51,7 +53,7 @@ __imosh::show_usage() {
       if (( first_line )); then
         case "${ARGS_format}" in
           groff)    echo ".TH ${line} 1";;
-          markdown) echo "## ${line}";;
+          markdown) echo "${ARGS_markdown_heading}# ${line}";;
         esac
         first_line=0
         continue
@@ -72,7 +74,7 @@ __imosh::show_usage() {
                 echo '.Bd -literal -offset indent';;
             markdown)
                 echo 
-                echo "### ${line%:}"
+                echo "${ARGS_markdown_heading}## ${line%:}"
                 echo
                 echo '```sh';;
           esac
