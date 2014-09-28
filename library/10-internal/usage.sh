@@ -59,40 +59,36 @@ __imosh::show_usage() {
         continue
       fi
       while func::greg_match '*:' "${line}"; do
-        if [ "${line%:}" = 'Usage' ]; then
-          case "${ARGS_format}" in
-            groff)    echo '.SH USAGE'
-                      echo '.Bd -literal -offset indent';;
-            markdown) echo '```cpp';;
-          esac
-        else
-          local title="${line%:}"
-          func::strtoupper title
-          case "${ARGS_format}" in
-            groff)
-                echo ".SH ${title}"
-                echo '.Bd -literal -offset indent';;
-            markdown)
-                echo 
-                echo "${ARGS_markdown_heading}## ${line%:}"
-                echo
-                echo '```sh';;
-          esac
-        fi
+        local title="${line%:}"
+        func::strtoupper title
+        case "${ARGS_format}" in
+          groff)    echo ".SH ${title}";;
+          markdown) echo "${ARGS_markdown_heading}## ${line%:}";;
+        esac
+        local code_mode=0
         while IFS= read -r line; do
           if [ "${line:0:4}" != '    ' ]; then
             break
+          fi
+          if (( ! code_mode )); then
+            case "${ARGS_format}" in
+              groff)    echo '.Bd -literal -offset indent';;
+              markdown) echo '```sh';;
+            esac
+            code_mode=1
           fi
           case "${ARGS_format}" in
             groff)    echo "${line#'    '}";;
             markdown) echo "${line#'    '}";;
           esac
         done
-        case "${ARGS_format}" in
-          groff)    echo '.Ed';;
-          markdown) echo '```'
-                    echo;;
-        esac
+        if (( code_mode )); then
+          case "${ARGS_format}" in
+            groff)    echo '.Ed';;
+            markdown) echo '```'
+                      echo;;
+          esac
+        fi
       done
       if func::greg_match '*( )-*' "${line}"; then
         func::ltrim line
