@@ -150,6 +150,14 @@ void func::array_unique(string[]* variable)
 
 
 
+## func::atexit -- Registers a function on shutdown.
+
+```cpp
+void func::atexit(string command)
+```
+
+
+
 ## func::bin2hex -- Converts a binary string into hexadecimal representation.
 
 ```cpp
@@ -161,6 +169,24 @@ void func::bin2hex() < binary_input > hexadecimal_output
 
 Converts binary data into hexadecimal representation.
 
+## func::boolval -- Casts a variable as a boolean value.
+
+```cpp
+bool func::boolval(string* variable)
+```
+
+
+Casts variable as a boolean value.  If it fails, returns 1.
+
+## func::cast -- Casts a variable.
+
+```cpp
+bool func::cast(variant* variable, string type)
+```
+
+
+Casts variable into a specified type.
+
 ## func::escapeshellarg - Escapes a variable as a shell argument.
 
 ```cpp
@@ -169,6 +195,26 @@ void func::escapeshellarg(string* variable)
 
 
 Escapes variable's content.
+
+## func::exit, func::die
+
+```cpp
+// 1. Message form.
+void func::exit(string message)
+// 2. Status form.
+void func::exit(int status = 0)
+// 1. Message form.
+void func::die(string message)
+// 2. Status form
+void func::die(int status = 0)
+```
+
+
+func::exit kills all the subprocesses of the current program.  If an integer
+argument is given, func::exit exists with the status.  Otherwise, func::exit
+shows the given message and exits with status 0.
+
+func::die shows a stack trace and delegates arguments to func::exit.
 
 ## func::explode -- Splits a string by a substring.
 
@@ -246,7 +292,8 @@ void func::implode(string glue) < input > output
 
 
 func::implode joins `pieces` with `glue`.
-*Stream form* uses IFS as an input separator and processes line by line.
+*Stream form* uses the IFS environment variable as an input separator and
+processes line by line.
 
 ### Alias
 func::join is an alias of func::implode.
@@ -411,6 +458,18 @@ func::throttle(int limit)
 ```
 
 
+
+## func::tmpfile -- Creates a temporary file.
+
+```cpp
+// 1. Function form.
+void func::tmpfile(string* path)
+// 2. Command form.
+void func::tmpfile() > path
+```
+
+
+Creates a temporary file with a unique name under TMPDIR.
 
 ## func::trim -- Strips whitespaces from both sides.
 
