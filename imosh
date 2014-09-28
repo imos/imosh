@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-09-29 03:21:39 +0900 (57714cd)'
+IMOSH_VERSION='2014-09-29 03:32:43 +0900 (0acb86f)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -1297,17 +1297,14 @@ imosh::internal::help() {
 __imosh::help_markdown() {
   __imosh::show_usage --format=markdown --notitle \
       "$(imosh::internal::get_main_script)"
-  echo "OPTIONS:"
+  echo "### Options"
   for flag_group in $(imosh::internal::flag_groups); do
     local upper_flag_group="${flag_group}"
     func::strtoupper upper_flag_group
-    echo "  ${upper_flag_group} OPTIONS:"
+    echo "#### ${flag_group} options"
     for flag_name in $(imosh::internal::group_flags "${flag_group}"); do
-      eval "echo \"    \${__IMOSH_FLAGS_DEFAULT_${flag_name}}\""
-      eval "echo \"\${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\"" | \
-          fold -s -w 70 | while IFS= read -r line; do
-        func::println "        ${line}"
-      done
+      eval "echo \"* \${__IMOSH_FLAGS_DEFAULT_${flag_name}}\""
+      eval "echo \"    * \${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\""
     done
   done
 }
@@ -1537,6 +1534,7 @@ __imosh::show_usage() {
                     echo ".B ${line}";;
           markdown) echo "* ${line}";;
         esac
+        local item_first_line=1
         while IFS= read -r line; do
           if func::greg_match '*( )-*' "${line}" || \
              func::greg_match '*([[:space:]])' "${line}"; then
@@ -1545,7 +1543,14 @@ __imosh::show_usage() {
           func::ltrim line
           case "${ARGS_format}" in
             groff)    echo "${line}";;
-            markdown) echo "    ${line}";;
+            markdown)
+              if (( item_first_line )); then
+                echo "    * ${line}"
+                item_first_line=0
+              else
+                echo "      ${line}"
+              fi
+              ;;
           esac
         done
         no_read=1

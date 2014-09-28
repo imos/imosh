@@ -100,6 +100,7 @@ __imosh::show_usage() {
                     echo ".B ${line}";;
           markdown) echo "* ${line}";;
         esac
+        local item_first_line=1
         while IFS= read -r line; do
           if func::greg_match '*( )-*' "${line}" || \
              func::greg_match '*([[:space:]])' "${line}"; then
@@ -108,7 +109,14 @@ __imosh::show_usage() {
           func::ltrim line
           case "${ARGS_format}" in
             groff)    echo "${line}";;
-            markdown) echo "    ${line}";;
+            markdown)
+              if (( item_first_line )); then
+                echo "    * ${line}"
+                item_first_line=0
+              else
+                echo "      ${line}"
+              fi
+              ;;
           esac
         done
         no_read=1

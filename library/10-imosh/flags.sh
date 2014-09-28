@@ -197,17 +197,14 @@ imosh::internal::help() {
 __imosh::help_markdown() {
   __imosh::show_usage --format=markdown --notitle \
       "$(imosh::internal::get_main_script)"
-  echo "OPTIONS:"
+  echo "### Options"
   for flag_group in $(imosh::internal::flag_groups); do
     local upper_flag_group="${flag_group}"
     func::strtoupper upper_flag_group
-    echo "  ${upper_flag_group} OPTIONS:"
+    echo "#### ${flag_group} options"
     for flag_name in $(imosh::internal::group_flags "${flag_group}"); do
-      eval "echo \"    \${__IMOSH_FLAGS_DEFAULT_${flag_name}}\""
-      eval "echo \"\${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\"" | \
-          fold -s -w 70 | while IFS= read -r line; do
-        func::println "        ${line}"
-      done
+      eval "echo \"* \${__IMOSH_FLAGS_DEFAULT_${flag_name}}\""
+      eval "echo \"    * \${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\""
     done
   done
 }
