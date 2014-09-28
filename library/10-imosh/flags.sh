@@ -84,13 +84,14 @@ imosh::internal::get_main_script() {
 
 imosh::internal::get_usage() {
   local file="${1}"
-  grep --max-count=1 -B 1000 -v '^#' "${file}" | grep '^#' | while read line; do
+  while IFS='' read -r line; do
     case "${line}" in
       '#!'*) continue;;
       '# '*) echo "${line:2}";;
-      '#'*) echo "${line:1}";;
+      '#'*)  echo "${line:1}";;
+      *)     break;;
     esac
-  done > "${__IMOSH_CORE_TMPDIR}/usage"
+  done < "${file}" > "${__IMOSH_CORE_TMPDIR}/usage"
   if [ -s "${__IMOSH_CORE_TMPDIR}/usage" ]; then
     cat "${__IMOSH_CORE_TMPDIR}/usage"
   else
@@ -155,11 +156,9 @@ imosh::internal::group_flags() {
 
 imosh::internal::man() {
   echo ".TH ${0##*/} 1"; echo
-  echo '.SH SYNOPSIS'
-  echo ".B ${0##*/}"; echo '[\fIOPTIONS\fP] [\fIargs...\fP]'; echo
-
   echo '.SH DESCRIPTION'
-  imosh::internal::get_usage "$(imosh::internal::get_main_script)"
+  __imosh::show_usage --groff --notitle \
+      "$(imosh::internal::get_main_script)"
 
   echo '.SH OPTIONS'
   for flag_group in $(imosh::internal::flag_groups); do

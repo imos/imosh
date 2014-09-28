@@ -45,12 +45,9 @@ OPTIONS:
 test::help_groff() {
   local expected_message='.TH flags.sh 1
 
-.SH SYNOPSIS
-.B flags.sh
-[\fIOPTIONS\fP] [\fIargs...\fP]
-
 .SH DESCRIPTION
 A script to test imosh flags.
+
 .SH OPTIONS
 .SS MAIN OPTIONS
 .TP
