@@ -1,2 +1,2 @@
 # Strings
-These functions all manipulate strings in various ways.
+These functions manipulate strings in various ways.

@@ -103,8 +103,10 @@ show_readme() {
       if [ ! -f "${toc_file}" ]; then
         if [ -f "${subdirectory}/README.md" ]; then
           cp "${subdirectory}/README.md" "${toc_file}"
-          func::print '*'
-          head -n 1 "${subdirectory}/README.md" | sed -e 's/#//'
+          local title="$(
+              head -n 1 "${subdirectory}/README.md" | sed -e 's/#//')"
+          func::trim title
+          func::println "* [${title}](doc/${subdirectory}.md)"
           echo '# Functions' >> "${toc_file}"
         else
           echo '# Functions' > "${toc_file}"
