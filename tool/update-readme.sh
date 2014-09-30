@@ -48,12 +48,21 @@ process_usage() {
       func::explode words '--' "${first_line}"
       local title="${words[0]}"
       unset words[0]
-      local description="${words[*]}"
+      if [ "${#words[*]}" -gt 0 ]; then
+        local description="${words[*]}"
+      else
+        local description=''
+      fi
       func::trim title
       func::trim description
-      func::println "* [${title}](${readme_link}) -- ${description}" \
-          >> "${readme_toc_output}"
-      lines[0]="# ${title}"$'\n'"${title} -- ${description}"
+      if [ "${description}" = '' ]; then
+        func::println "* [${title}](${readme_link})" >> "${readme_toc_output}"
+        lines[0]="# ${title}"
+      else
+        func::println "* [${title}](${readme_link}) -- ${description}" \
+            >> "${readme_toc_output}"
+        lines[0]="# ${title}"$'\n'"${title} -- ${description}"
+      fi
       func::implode usage $'\n\n' lines
     fi
     if [ "${readme_output}" != '' ]; then

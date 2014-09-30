@@ -131,4 +131,11 @@ imosh outputs log files to `${TMPDIR}/<program name>.<host name>.<user>.<severit
 <!-- MARKER:AUTO_GENERATED -->
 
 # Functions
+* [Arrays](doc/array.md)
+* [Filesystem](doc/filesystem.md)
+* [Regular Expressions (Glob-Compatible)](doc/greg.md)
+* [imosh Options and Information](doc/info.md)
+* [Mathematical Functions](doc/math.md)
+* [Miscellaneous Functions](doc/misc.md)
 * [Strings](doc/strings.md)
+* [Variable handling](doc/var.md)
