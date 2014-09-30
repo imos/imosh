@@ -2,7 +2,10 @@
 func::trim -- Strips whitespaces from both sides.
 
 ## Usage
-  void func::trim(string* variable)
+```sh
+void func::trim(string* variable)
+```
+
 
 Strips whitespace (or other characters) from the beginning and end of a
 string.
