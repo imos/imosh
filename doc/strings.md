@@ -1,3 +1,5 @@
+# Strings
+These functions all manipulate strings in various ways.
 # Functions
 * [func::addslashes](strings/addslashes.sh.md) -- Quotes a string with backslahses.
 * [func::ltrim](strings/ltrim.sh.md) -- Strips whitespace(s) from the beginning of a string.

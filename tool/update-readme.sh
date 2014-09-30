@@ -112,7 +112,7 @@ show_readme() {
       fi
       pushd "${subdirectory}" > '/dev/null'
       mkdir -p "${FLAGS_root_directory}/doc/${subdirectory}"
-      for file in *; do
+      for file in *.sh; do
         process_file "${file}" \
             "${FLAGS_root_directory}/doc/${subdirectory}/${file}.md" \
             "${subdirectory}/${file}.md" "${toc_file}"

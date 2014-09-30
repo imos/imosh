@@ -131,3 +131,4 @@ imosh outputs log files to `${TMPDIR}/<program name>.<host name>.<user>.<severit
 <!-- MARKER:AUTO_GENERATED -->
 
 # Functions
+* Strings
