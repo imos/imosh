@@ -4,10 +4,14 @@ concat:
 	@echo '' >>imosh
 	@echo "IMOSH_VERSION='$$(git log --pretty=format:'%ci (%h)' library | head -n 1)'" >>imosh
 	@echo '' >>imosh
-	@for library in library/*/*.sh; do \
-	  cat "$${library}"; \
-	  echo; \
-	done >>imosh
+	@for directory in library/*; do \
+	  for file in "$${directory}"/*.sh "$${directory}"/*/*.sh; do \
+	    if [ -f "$${file}" ]; then \
+	      cat "$${file}"; \
+	      echo; \
+	    fi; \
+	  done; \
+	done >> imosh
 	@chmod +x imosh
 .PHONY: concat
 
