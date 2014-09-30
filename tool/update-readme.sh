@@ -107,7 +107,7 @@ show_readme() {
               head -n 1 "${subdirectory}/README.md" | sed -e 's/#//')"
           func::trim title
           func::println "* [${title}](doc/${subdirectory}.md)"
-          echo '# Functions' >> "${toc_file}"
+          echo '## Functions' >> "${toc_file}"
         else
           echo '# Functions' > "${toc_file}"
         fi

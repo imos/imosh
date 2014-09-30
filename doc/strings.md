@@ -1,6 +1,6 @@
 # Strings
 These functions manipulate strings in various ways.
-# Functions
+## Functions
 * [func::addslashes](strings/addslashes.sh.md) -- Quotes a string with backslahses.
 * [func::ltrim](strings/ltrim.sh.md) -- Strips whitespace(s) from the beginning of a string.
 * [func::md5](strings/md5.sh.md) -- Calculates a MD5 hash.
