@@ -1,4 +1,5 @@
-# func::trim -- Strips whitespaces from both sides.
+# func::trim
+func::trim -- Strips whitespaces from both sides.
 
 ## Usage
   void func::trim(string* variable)

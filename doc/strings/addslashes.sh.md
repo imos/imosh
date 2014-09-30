@@ -1,4 +1,5 @@
-# func::addslashes -- Quotes a string with backslahses.
+# func::addslashes
+func::addslashes -- Quotes a string with backslahses.
 
 ## Usage
   void func::addslashes(string* subject)

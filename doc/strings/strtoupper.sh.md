@@ -1,4 +1,5 @@
-# func::strtoupper -- Makes a string uppercase.
+# func::strtoupper
+func::strtoupper -- Makes a string uppercase.
 
 ## Usage
   void func::strtoupper(string* variable)

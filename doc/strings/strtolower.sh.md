@@ -1,4 +1,5 @@
-# func::strtolower -- Makes a string lowercase.
+# func::strtolower
+func::strtolower -- Makes a string lowercase.
 
 ## Usage
   void func::strtolower(string* variable)

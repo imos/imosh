@@ -1,4 +1,5 @@
-# func::md5 -- Calculates a MD5 hash.
+# func::md5
+func::md5 -- Calculates a MD5 hash.
 
 ## Usage
   void func::md5() < input > hash

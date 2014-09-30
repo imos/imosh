@@ -39,19 +39,25 @@ process_usage() {
     local readme_toc_output="$4"
 
     func::rtrim usage
-    if [ "${readme_output}" != '' ]; then
-      func::println "${usage}" >> "${readme_output}"
-    fi
     if [ "${readme_toc_output}" != '' ]; then
       local lines=()
       func::explode lines $'\n\n' "${usage}"
       CHECK [ "${#lines[*]}" -gt 1 ]
-      local first_line="${lines[0]}"
+      local first_line="${lines[0]#'#'}"
       local words=()
-      func::explode words ' ' "${first_line}"
-      func::print "* [${words[0]}](${readme_link}) " >> "${readme_toc_output}"
+      func::explode words '--' "${first_line}"
+      local title="${words[0]}"
       unset words[0]
-      func::println "${words[*]}" >> "${readme_toc_output}"
+      local description="${words[*]}"
+      func::trim title
+      func::trim description
+      func::println "* [${title}](${readme_link}) -- ${description}" \
+          >> "${readme_toc_output}"
+      lines[0]="# ${title}"$'\n'"${title} -- ${description}"
+      func::implode usage $'\n\n' lines
+    fi
+    if [ "${readme_output}" != '' ]; then
+      func::println "${usage}" >> "${readme_output}"
     fi
   elif [ "$#" -eq 3 ]; then
     process_usage "$@" ''
