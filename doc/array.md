@@ -1,4 +1,4 @@
 # Arrays
 ## Functions
-* [func::array_unique](array/array_unique.sh.md) -- Removes duplicated elements from an array variable.
+* [func::array_unique, stream::array_unique](array/array_unique.sh.md) -- Removes duplicated elements from an array variable.
 * [func::sort](array/sort.sh.md) -- Sorts a string-array variable.
