@@ -12,7 +12,7 @@
 #     // 2. Stream form.
 #     void stream::array_unique() < input > output
 #
-# Example:
+# Examples:
 #     a=(c b a b)
 #     func::array_unique a
 #     echo "${a[@]}"  # => a b c
@@ -44,6 +44,10 @@ stream::array_unique() {
   while IFS= read -r line; do
     local values=(${line})
     func::array_unique values
-    func::println "${values[*]}"
+    if [ "${#values[*]}" -eq 0 ]; then
+      func::println
+    else
+      func::println "${values[*]}"
+    fi
   done
 }
