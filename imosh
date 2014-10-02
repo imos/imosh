@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-10-01 04:13:29 +0900 (3819d3f)'
+IMOSH_VERSION='2014-10-03 03:01:18 +0900 (fa4afb5)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -15,9 +15,13 @@ if ! shopt login_shell >/dev/null; then
   fi
 fi
 
-# func::array_unique -- Removes duplicated elements from an array variable.
+# func::array_unique, stream::array_unique --
+# Removes duplicated elements from an array variable.
 #
 # func::array_unique sorts elements first and removes duplicated elements.
+# stream::array_unique reads a line and applies it with func::array_unique.
+# stream::array_unique splits a line with IFS and joins elements with IFS's
+# first character.
 #
 # Usage:
 #     // 1. Function form.
