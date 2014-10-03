@@ -1,5 +1,4 @@
-# func::file_get_contents, stream::file_get_contents -- Reads an entire file
-# into a string.
+# file_get_contents -- Reads an entire file into a string.
 #
 # The function form reads an entire file and sets its contents to the
 # variable.  The subroutine form reads an entire file and outputs its contents

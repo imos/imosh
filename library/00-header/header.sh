@@ -4,7 +4,7 @@ if ! shopt login_shell >/dev/null; then
   # - a command returns non-zero value (-e).
   # - an undefined variable is referred (-u).
   set -e -u
-  # Return if imosh is reloaded.
+  # Return if imosh is already loaded.
   if [ "${__IMOSH_IS_LOADED+loaded}" = 'loaded' ]; then
     return
   fi

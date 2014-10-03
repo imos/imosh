@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-10-04 02:43:47 +0900 (8a264ac)'
+IMOSH_VERSION='2014-10-04 04:07:21 +0900 (3bd974f)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -9,7 +9,7 @@ if ! shopt login_shell >/dev/null; then
   # - a command returns non-zero value (-e).
   # - an undefined variable is referred (-u).
   set -e -u
-  # Return if imosh is reloaded.
+  # Return if imosh is already loaded.
   if [ "${__IMOSH_IS_LOADED+loaded}" = 'loaded' ]; then
     return
   fi
@@ -112,8 +112,7 @@ __func::quick_sort() {
   fi
 }
 
-# func::file_get_contents, stream::file_get_contents -- Reads an entire file
-# into a string.
+# file_get_contents -- Reads an entire file into a string.
 #
 # The function form reads an entire file and sets its contents to the
 # variable.  The subroutine form reads an entire file and outputs its contents
