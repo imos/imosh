@@ -12,7 +12,9 @@ test::func_file_get_contents() {
   func::print '' > "${TMPDIR}/test"
   func::file_get_contents variable "${TMPDIR}/test"
   EXPECT_EQ '' "${variable}"
+}
 
+test::stream_file_get_contents() {
   func::print 'abc' > "${TMPDIR}/test"
   EXPECT_EQ 'abc' "$(stream::file_get_contents "${TMPDIR}/test")"
 
