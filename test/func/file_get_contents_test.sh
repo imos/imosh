@@ -14,10 +14,12 @@ test::func_file_get_contents() {
   EXPECT_EQ '' "${variable}"
 }
 
-test::stream_file_get_contents() {
+test::sub_file_get_contents() {
   func::print 'abc' > "${TMPDIR}/test"
-  EXPECT_EQ 'abc' "$(stream::file_get_contents "${TMPDIR}/test")"
+  EXPECT_EQ 'abc' "$(sub::file_get_contents "${TMPDIR}/test")"
+}
 
+test::stream_file_get_contents() {
   func::print 'abc' > "${TMPDIR}/test1"
   func::print 'def' > "${TMPDIR}/test2"
   EXPECT_EQ 'abcdef' "$(
