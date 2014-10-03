@@ -15,7 +15,7 @@ void stream::array_unique() < input > output
 ```
 
 
-## Example
+## Examples
 ```sh
 a=(c b a b)
 func::array_unique a
