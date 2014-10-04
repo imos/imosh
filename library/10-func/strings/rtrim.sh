@@ -28,7 +28,11 @@ sub::rtrim() {
 
 stream::rtrim() {
   if [ "$#" -eq 0 ]; then
-    :
+    local LINE='' NEWLINE=''
+    while func::readline; do
+      func::rtrim LINE
+      func::print "${LINE}${NEWLINE}"
+    done
   else
     LOG ERROR "Wrong number of arguments: $#"
     return 1
