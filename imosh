@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-10-04 04:07:21 +0900 (3bd974f)'
+IMOSH_VERSION='2014-10-04 04:14:32 +0900 (79501df)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -110,6 +110,42 @@ __func::quick_sort() {
   if [ "${#values3[*]}" -ne 0 ]; then
     __sort_values+=("${values3[@]}")
   fi
+}
+
+# func::fgets -- Gets a line from STDIN.
+#
+# fgets reads a line and regards it as a result.  fgets does not strip a
+# trailing new line.  Function form sets the result to the variable.  Subroutine
+# form outputs the result to STDOUT.
+#
+# Usage:
+#     // 1. Function form.
+#     bool func::fgets(string* variable)
+#     // 2. Subroutine form.
+#     bool sub::fgets() > line
+func::fgets() {
+  local __fgets_variable="$1"
+  local __fgets_buffer=''
+  local __fgets_line=''
+
+  func::let "${__fgets_variable}" ''
+  if ! IFS= read -r -n 1 -d '' __fgets_buffer; then
+    return 1
+  fi
+  __fgets_line+="${__fgets_buffer}"
+  if IFS= read -r -d $'\n' __fgets_buffer; then
+    __fgets_buffer+=$'\n'
+  fi
+  __fgets_line+="${__fgets_buffer}"
+  func::strcpy "${__fgets_variable}" __fgets_line
+}
+
+sub::fgets() {
+  local variable=''
+  if ! func::fgets variable; then
+    return 1
+  fi
+  func::print "${variable}"
 }
 
 # file_get_contents -- Reads an entire file into a string.
@@ -645,14 +681,39 @@ func::println() {
 
 # func::rtrim -- Strips whitespace(s) from the end of a string.
 #
-# Usage:
-#     void func::rtrim(string* variable)
-#
 # Strips whitespace (or other characters) from the end of a string.
+#
+# Usage:
+#     // 1. Function form.
+#     void func::rtrim(string* variable)
+#     // 2. Command form.
+#     void sub::rtrim(string value) > output
+#     // 3. Stream form.
+#     void stream::rtrim() < input > output
 func::rtrim() {
   local __rtrim_variable="$1"
 
   eval "${__rtrim_variable}=\"\${${__rtrim_variable}%\"\${${__rtrim_variable}##*[![:space:]]}\"}\""
+}
+
+sub::rtrim() {
+  if [ "$#" -eq 1 ]; then
+    local __rtrim_value="$1"
+    func::rtrim __rtrim_value
+    func::println "${__rtrim_value}"
+  else
+    LOG ERROR "Wrong number of arguments: $#"
+    return 1
+  fi
+}
+
+stream::rtrim() {
+  if [ "$#" -eq 0 ]; then
+    :
+  else
+    LOG ERROR "Wrong number of arguments: $#"
+    return 1
+  fi
 }
 
 # func::str_replace -- Replaces a substring with another substring.
@@ -917,8 +978,17 @@ func::strval() {
 }
 
 CHECK() {
-  if ! "$@"; then
-    IFS=' ' eval 'imosh::stack_trace "*** Check failure: $* ***"'
+  local __CHECK_invert="$1"
+
+  if [ "${__CHECK_invert}" = '!' ]; then
+    shift
+    if "$@"; then
+      IFS=' ' eval 'imosh::stack_trace "*** Check failure: ! $* ***"'
+    fi
+  else
+    if ! "$@"; then
+      IFS=' ' eval 'imosh::stack_trace "*** Check failure: $* ***"'
+    fi
   fi
 }
 
