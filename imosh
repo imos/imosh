@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-10-04 16:01:24 +0900 (ad74690)'
+IMOSH_VERSION='2014-10-04 16:32:12 +0900 (a54d76e)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -216,7 +216,8 @@ stream::file_get_contents() {
 
 # readline -- Gets a line.
 #
-# readline reads a line and regards it as a result.
+# readline reads a line and sets its content to LINE and its trailing new line
+# to NEWLINE.
 func::readline() {
   local line=''
   NEWLINE=''

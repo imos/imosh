@@ -13,6 +13,8 @@ concat:
 	  done; \
 	done >> imosh
 	@chmod +x imosh
+	@chmod +x tool/update-readme.sh
+	@./tool/update-readme.sh
 .PHONY: concat
 
 test: concat
