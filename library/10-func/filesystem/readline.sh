@@ -1,6 +1,7 @@
 # readline -- Gets a line.
 #
-# readline reads a line and regards it as a result.
+# readline reads a line and sets its content to LINE and its trailing new line
+# to NEWLINE.
 func::readline() {
   local line=''
   NEWLINE=''
