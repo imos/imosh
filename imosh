@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-10-04 04:14:32 +0900 (79501df)'
+IMOSH_VERSION='2014-10-04 14:59:11 +0900 (1d2c807)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -133,6 +133,10 @@ func::fgets() {
     return 1
   fi
   __fgets_line+="${__fgets_buffer}"
+  if [ "${__fgets_buffer}" = $'\n' ]; then
+    func::strcpy "${__fgets_variable}" __fgets_buffer
+    return
+  fi
   if IFS= read -r -d $'\n' __fgets_buffer; then
     __fgets_buffer+=$'\n'
   fi
@@ -207,6 +211,25 @@ stream::file_get_contents() {
   else
     LOG ERROR "Wrong number of arguments: $#"
     return 1
+  fi
+}
+
+func::readline() {
+  local line=''
+  NEWLINE=''
+  LINE=''
+  if ! func::fgets line; then
+    return 1
+  fi
+  if [ "${line:$((${#line} - 2))}" = $'\r\n' ]; then
+    NEWLINE=$'\r\n'
+    LINE="${line%$'\r\n'}"
+  elif [ "${line:$((${#line} - 1))}" = $'\n' ]; then
+    NEWLINE=$'\n'
+    LINE="${line%$'\n'}"
+  else
+    NEWLINE=''
+    LINE="${line}"
   fi
 }
 

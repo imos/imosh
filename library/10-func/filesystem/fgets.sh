@@ -19,6 +19,10 @@ func::fgets() {
     return 1
   fi
   __fgets_line+="${__fgets_buffer}"
+  if [ "${__fgets_buffer}" = $'\n' ]; then
+    func::strcpy "${__fgets_variable}" __fgets_buffer
+    return
+  fi
   if IFS= read -r -d $'\n' __fgets_buffer; then
     __fgets_buffer+=$'\n'
   fi
