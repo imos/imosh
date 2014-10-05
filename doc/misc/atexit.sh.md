@@ -1,5 +1,9 @@
 # func::atexit
 func::atexit -- Registers a function on shutdown.
 
+atexit registers a function to be excuted on shutdown.
+
 ## Usage
-  void func::atexit(string command)
+```sh
+void func::atexit(string command)
+```
