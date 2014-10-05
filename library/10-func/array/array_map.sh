@@ -42,6 +42,7 @@ stream::array_map() {
         ;;
       *)
         LOG ERROR "Unknown array_map type: ${__array_map_type}"
+        ;;
     esac
   else
     LOG ERROR "Wrong number of arguments: $#"
