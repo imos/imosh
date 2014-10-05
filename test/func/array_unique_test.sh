@@ -47,3 +47,7 @@ test::func_array_unique() {
                 $'\x17' $'\x18' $'\x20' $'\x10' $'\x06' $'\x0b' $'\x12' $'\x14')
   func::array_unique values
 }
+
+test::stream_array_unique() {
+  EXPECT_EQ $'a b c\n\nx' "$(echo $'c b a b c\n\nx x x' | stream::array_unique)"
+}
