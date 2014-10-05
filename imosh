@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-10-06 03:01:10 +0900 (da84211)'
+IMOSH_VERSION='2014-10-06 04:11:28 +0900 (0c2c7b9)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -1430,8 +1430,9 @@ imosh::internal::parse_args() {
     if func::isset "${upper_class_name}S_${arg_name}"; then
       if [ "${class_name}" = 'flag' ]; then
         local original_value="${arg_value}"
-        func::cast_or_die \
-            arg_value "$(imosh::internal::flag_type "${arg_name}")"
+        CHECK \
+            --message="${upper_class_name}S_${arg_name} is invalid: ${arg_value}" \
+            func::cast arg_value "$(imosh::internal::flag_type "${arg_name}")"
       fi
       IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value}")
       continue
@@ -1795,35 +1796,6 @@ imosh::stack_trace() {
     echo "  at ${function} (${file}:${lineno})" >&2
     (( i += 1 )) || true
   done
-}
-
-imosh::internal::convert_type() {
-  local type="$1"; shift
-  local value="$1"; shift
-
-  case "${type}" in
-    int)
-      if [[ "${value}" =~ ^-?[0-9]+$ ]]; then
-        func::print "${value}"
-      else
-        return 1
-      fi
-      ;;
-    string)
-      func::print "${value}"
-      ;;
-    bool)
-      case "${value}" in
-        1|T|t|[Tt]rue) func::print 1;;
-        0|F|f|[Ff]alse) func::print 0;;
-        *) return 1;;
-      esac
-      ;;
-    variant)
-      func::print "${value}"
-      ;;
-    *) LOG FATAL "no such type: ${type}";;
-  esac
 }
 
 __imosh::mktemp() {

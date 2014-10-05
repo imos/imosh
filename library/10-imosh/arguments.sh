@@ -62,8 +62,9 @@ imosh::internal::parse_args() {
     if func::isset "${upper_class_name}S_${arg_name}"; then
       if [ "${class_name}" = 'flag' ]; then
         local original_value="${arg_value}"
-        func::cast_or_die \
-            arg_value "$(imosh::internal::flag_type "${arg_name}")"
+        CHECK \
+            --message="${upper_class_name}S_${arg_name} is invalid: ${arg_value}" \
+            func::cast arg_value "$(imosh::internal::flag_type "${arg_name}")"
       fi
       IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value}")
       continue
