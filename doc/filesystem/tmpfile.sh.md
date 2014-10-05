@@ -1,7 +1,7 @@
-# func::tmpfile
-func::tmpfile -- Creates a temporary file.
+# tmpfile
+tmpfile -- Creates a temporary file.
 
-Creates a temporary file with a unique name under ${TMPDIR}.
+tmpfile creates a temporary file with a unique name under ${TMPDIR}.
 
 ## Usage
 ```sh

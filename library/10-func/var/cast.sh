@@ -17,3 +17,9 @@ func::cast() {
     *)       LOG FATAL "Unknown type: ${__cast_type}";;
   esac
 }
+
+func::cast_or_die() {
+  if ! func::cast "$@"; then
+    IFS=' ' eval 'LOG FATAL "Type mismatch: $*"'
+  fi
+}
