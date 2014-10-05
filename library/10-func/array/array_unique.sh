@@ -1,10 +1,8 @@
-# func::array_unique, stream::array_unique --
-# Removes duplicated elements from an array variable.
+# array_unique -- Removes duplicated elements from an array variable.
 #
-# func::array_unique sorts elements first and removes duplicated elements.
-# stream::array_unique reads a line and applies it with func::array_unique.
-# stream::array_unique splits a line with IFS and joins elements with IFS's
-# first character.
+# array_unique sorts elements first and removes duplicated elements.  Function
+# form applies array_unique to the given variable.  Stream form applies
+# array_unique to every line.  Every line is treated as elements.
 #
 # Usage:
 #     // 1. Function form.
@@ -40,14 +38,12 @@ func::array_unique() {
 }
 
 stream::array_unique() {
-  local line=''
-  while IFS= read -r line; do
-    local values=(${line})
-    func::array_unique values
-    if [ "${#values[*]}" -eq 0 ]; then
-      func::println
-    else
-      func::println "${values[*]}"
+  local LINE='' NEWLINE=''
+  while func::readarray; do
+    if [ "${#LINE[*]}" -ne 0 ]; then
+      func::array_unique LINE
+      func::print "${LINE[*]}"
     fi
+    func::print "${NEWLINE}"
   done
 }

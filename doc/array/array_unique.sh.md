@@ -1,10 +1,9 @@
-# func::array_unique, stream::array_unique
-func::array_unique, stream::array_unique -- Removes duplicated elements from an array variable.
+# array_unique
+array_unique -- Removes duplicated elements from an array variable.
 
-func::array_unique sorts elements first and removes duplicated elements.
-stream::array_unique reads a line and applies it with func::array_unique.
-stream::array_unique splits a line with IFS and joins elements with IFS's
-first character.
+array_unique sorts elements first and removes duplicated elements.  Function
+form applies array_unique to the given variable.  Stream form applies
+array_unique to every line.  Every line is treated as elements.
 
 ## Usage
 ```sh

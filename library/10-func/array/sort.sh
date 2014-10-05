@@ -1,7 +1,14 @@
-# func::sort -- Sorts a string-array variable.
+# sort -- Sorts elements.
+#
+# sort sorts elements.  The function form sorts elements in a variable in place.
+# The stream form applies sort to every line.  Every line is treated as
+# elements.
 #
 # Usage:
-#   void func::sort(string[]* variable)
+#     // 1. Function form.
+#     void func::sort(string[]* variable)
+#     // 2. Stream form.
+#     void stream::sort() < input > output
 func::sort() {
   local __sort_name="${1}"
   eval "local __sort_size=\"\${#${__sort_name}[*]}\""
@@ -11,6 +18,22 @@ func::sort() {
   eval "local __sort_values=(\"\${${__sort_name}[@]}\")"
   __func::quick_sort
   eval "${__sort_name}=(\"\${__sort_values[@]}\")"
+}
+
+stream::sort() {
+  if [ "$#" -eq 0 ]; then
+    local LINE=() NEWLINE=''
+    while func::readarray; do
+      if [ "${#LINE[*]}" -ne 0 ]; then
+        func::sort LINE
+        func::print "${LINE[*]}"
+      fi
+      func::print "${NEWLINE}"
+    done
+  else
+    LOG ERROR "Wrong number of arguments: $#"
+    return 1
+  fi
 }
 
 __func::quick_sort() {

@@ -15,13 +15,11 @@ if ! shopt login_shell >/dev/null; then
   fi
 fi
 
-# func::array_unique, stream::array_unique --
-# Removes duplicated elements from an array variable.
+# array_unique -- Removes duplicated elements from an array variable.
 #
-# func::array_unique sorts elements first and removes duplicated elements.
-# stream::array_unique reads a line and applies it with func::array_unique.
-# stream::array_unique splits a line with IFS and joins elements with IFS's
-# first character.
+# array_unique sorts elements first and removes duplicated elements.  Function
+# form applies array_unique to the given variable.  Stream form applies
+# array_unique to every line.  Every line is treated as elements.
 #
 # Usage:
 #     // 1. Function form.
@@ -57,22 +55,27 @@ func::array_unique() {
 }
 
 stream::array_unique() {
-  local line=''
-  while IFS= read -r line; do
-    local values=(${line})
-    func::array_unique values
-    if [ "${#values[*]}" -eq 0 ]; then
-      func::println
-    else
-      func::println "${values[*]}"
+  local LINE='' NEWLINE=''
+  while func::readarray; do
+    if [ "${#LINE[*]}" -ne 0 ]; then
+      func::array_unique LINE
+      func::print "${LINE[*]}"
     fi
+    func::print "${NEWLINE}"
   done
 }
 
-# func::sort -- Sorts a string-array variable.
+# sort -- Sorts elements.
+#
+# sort sorts elements.  The function form sorts elements in a variable in place.
+# The stream form applies sort to every line.  Every line is treated as
+# elements.
 #
 # Usage:
-#   void func::sort(string[]* variable)
+#     // 1. Function form.
+#     void func::sort(string[]* variable)
+#     // 2. Stream form.
+#     void stream::sort() < input > output
 func::sort() {
   local __sort_name="${1}"
   eval "local __sort_size=\"\${#${__sort_name}[*]}\""
@@ -82,6 +85,22 @@ func::sort() {
   eval "local __sort_values=(\"\${${__sort_name}[@]}\")"
   __func::quick_sort
   eval "${__sort_name}=(\"\${__sort_values[@]}\")"
+}
+
+stream::sort() {
+  if [ "$#" -eq 0 ]; then
+    local LINE=() NEWLINE=''
+    while func::readarray; do
+      if [ "${#LINE[*]}" -ne 0 ]; then
+        func::sort LINE
+        func::print "${LINE[*]}"
+      fi
+      func::print "${NEWLINE}"
+    done
+  else
+    LOG ERROR "Wrong number of arguments: $#"
+    return 1
+  fi
 }
 
 __func::quick_sort() {
@@ -214,6 +233,27 @@ stream::file_get_contents() {
   fi
 }
 
+# readarray -- Reads a line as an array.
+#
+# readline reads a line and sets its content to LINE and its trailing new line
+# to NEWLINE.
+#
+# Usage:
+#     void func::readarray() < input
+func::readarray() {
+  local line=''
+  NEWLINE=''
+  LINE=''
+  if ! func::readline; then
+    LINE=()
+    return 1
+  fi
+  local ifs="${IFS}"
+  ifs="${ifs//'['/\[}"
+  ifs="${ifs//']'/\]}"
+  func::greg_split LINE "[${ifs}]" "${LINE}"
+}
+
 # readline -- Gets a line.
 #
 # readline reads a line and sets its content to LINE and its trailing new line
@@ -315,6 +355,24 @@ func::greg_replace() {
   local __greg_replace_replace="${3}"
 
   eval "${__greg_replace_subject_variable}=\"\${${__greg_replace_subject_variable}//\${__greg_replace_search}/\${__greg_replace_replace}}\""
+}
+
+# func::greg_split -- Split a string with a GREG pattern.
+#
+# Usage:
+#   void func::greg_split(string* variable, string pattern, string value)
+func::greg_split() {
+  if [ "$#" -eq 3 ]; then
+    local __greg_split_variable="$1"
+    local __greg_split_pattern="$2"
+    local __greg_split_value="$3"
+
+    func::greg_replace __greg_split_value "${__greg_split_pattern}" $'\x02'
+    func::explode "${__greg_split_variable}" $'\x02' "${__greg_split_value}"
+  else
+    LOG ERROR "Wrong number of arguments: $#"
+    return 1
+  fi
 }
 
 # func::getchildpids -- Gets child process IDs.
@@ -533,7 +591,9 @@ func::explode() {
   local __explode_value="${3}"
   local __explode_result=()
 
-  func::str_replace __explode_value "${__explode_delimiter}" $'\x02'
+  if [ "${__explode_delimiter}" != $'\x02' ]; then
+    func::str_replace __explode_value "${__explode_delimiter}" $'\x02'
+  fi
   while IFS='' read -r -d $'\x02' __explode_term; do
     __explode_result+=("${__explode_term}")
   done <<<"${__explode_value}"$'\x02'

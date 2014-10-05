@@ -10,7 +10,9 @@ func::explode() {
   local __explode_value="${3}"
   local __explode_result=()
 
-  func::str_replace __explode_value "${__explode_delimiter}" $'\x02'
+  if [ "${__explode_delimiter}" != $'\x02' ]; then
+    func::str_replace __explode_value "${__explode_delimiter}" $'\x02'
+  fi
   while IFS='' read -r -d $'\x02' __explode_term; do
     __explode_result+=("${__explode_term}")
   done <<<"${__explode_value}"$'\x02'

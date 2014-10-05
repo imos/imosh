@@ -39,3 +39,9 @@ test::func_sort() {
   EXPECT_EQ "$(func::bin2hex "${expected}")" \
             "$(func::bin2hex "$(func::implode ' ' values)")"
 }
+
+test::stream_sort() {
+  EXPECT_EQ \
+      $'a b c\nd e e f' \
+      "$(func::print $'c b a\nf\te\te\td\n' | stream::sort)"
+}
