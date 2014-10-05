@@ -38,12 +38,10 @@ func::array_unique() {
 }
 
 stream::array_unique() {
-  local LINE='' NEWLINE=''
-  while func::readarray; do
-    if [ "${#LINE[*]}" -ne 0 ]; then
-      func::array_unique LINE
-      func::print "${LINE[*]}"
-    fi
-    func::print "${NEWLINE}"
-  done
+  if [ "$#" -eq 0 ]; then
+    stream::array_map --array func::array_unique
+  else
+    LOG ERROR "Wrong number of arguments: $#"
+    return 1
+  fi
 }

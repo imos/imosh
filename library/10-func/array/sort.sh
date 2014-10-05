@@ -22,14 +22,7 @@ func::sort() {
 
 stream::sort() {
   if [ "$#" -eq 0 ]; then
-    local LINE=() NEWLINE=''
-    while func::readarray; do
-      if [ "${#LINE[*]}" -ne 0 ]; then
-        func::sort LINE
-        func::print "${LINE[*]}"
-      fi
-      func::print "${NEWLINE}"
-    done
+    stream::array_map --array func::sort
   else
     LOG ERROR "Wrong number of arguments: $#"
     return 1
