@@ -5,7 +5,7 @@
 # safe.
 #
 # Usage:
-#   void func::println(string message...) > output
+#     void func::println(string message...) > output
 func::println() {
   printf "%s\n" "$*"
 }

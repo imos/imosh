@@ -3,4 +3,6 @@
 Escapes variable's content.
 
 ## Usage
-  void func::escapeshellarg(string* variable)
+```sh
+void func::escapeshellarg(string* variable)
+```

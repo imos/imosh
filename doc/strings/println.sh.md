@@ -6,4 +6,6 @@ flags, func::println does not consume any flags, so this is theoretically
 safe.
 
 ## Usage
-  void func::println(string message...) > output
+```sh
+void func::println(string message...) > output
+```

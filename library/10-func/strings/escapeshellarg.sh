@@ -3,7 +3,7 @@
 # Escapes variable's content.
 #
 # Usage:
-#   void func::escapeshellarg(string* variable)
+#     void func::escapeshellarg(string* variable)
 func::escapeshellarg() {
   local __escapeshellarg_variable="$1"
   local __escapeshellarg_search="'"

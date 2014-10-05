@@ -3,7 +3,7 @@
 # Splits a string by string.
 #
 # Usage:
-#   void func::explode(string* variable, string delimiter, string value)
+#     void func::explode(string* variable, string delimiter, string value)
 func::explode() {
   local __explode_variable="${1}"
   local __explode_delimiter="${2}"

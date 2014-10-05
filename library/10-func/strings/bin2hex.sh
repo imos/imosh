@@ -3,9 +3,9 @@
 # Converts binary data into hexadecimal representation.
 #
 # Usage:
-#   void func::bin2hex(string* hexadecimal_output, string binary_input)
-#   void func::bin2hex(string binary_input) > hexadecimal_output
-#   void func::bin2hex() < binary_input > hexadecimal_output
+#     void func::bin2hex(string* hexadecimal_output, string binary_input)
+#     void func::bin2hex(string binary_input) > hexadecimal_output
+#     void func::bin2hex() < binary_input > hexadecimal_output
 func::bin2hex() {
   if [ "$#" -eq 0 ]; then
     od -An -tx1 | tr -d ' \n'
