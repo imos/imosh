@@ -1,9 +1,9 @@
 # func::boolval -- Casts a variable as a boolean value.
 #
-# Usage:
-#   bool func::boolval(string* variable)
-#
 # Casts variable as a boolean value.  If it fails, returns 1.
+#
+# Usage:
+#     bool func::boolval(string* variable)
 func::boolval() {
   local __boolval_variable="$1"
   eval "local __boolval_value=\"\${${__boolval_variable}}\""

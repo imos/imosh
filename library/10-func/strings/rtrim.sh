@@ -4,15 +4,26 @@
 #
 # Usage:
 #     // 1. Function form.
+#     void func::rtrim(string* output, string input)
+#     // 2. Inplace form.
 #     void func::rtrim(string* variable)
-#     // 2. Command form.
+#     // 3. Command form.
 #     void sub::rtrim(string value) > output
-#     // 3. Stream form.
+#     // 4. Stream form.
 #     void stream::rtrim() < input > output
 func::rtrim() {
-  local __rtrim_variable="$1"
-
-  eval "${__rtrim_variable}=\"\${${__rtrim_variable}%\"\${${__rtrim_variable}##*[![:space:]]}\"}\""
+  if [ "$#" -eq 1 ]; then
+    local __rtrim_variable="$1"
+    eval "${__rtrim_variable}=\"\${${__rtrim_variable}%\"\${${__rtrim_variable}##*[![:space:]]}\"}\""
+  elif [ "$#" -eq 2 ]; then
+    local __rtrim_output="$1"
+    local __rtrim_input="$2"
+    func::let "${__rtrim_output}" "${__rtrim_input}"
+    func::rtrim "${__rtrim_output}"
+  else
+    LOG ERROR "Wrong number of arguments: $#"
+    return 1
+  fi
 }
 
 sub::rtrim() {

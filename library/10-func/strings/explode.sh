@@ -1,9 +1,9 @@
 # func::explode -- Splits a string by a substring.
 #
+# Splits a string by string.
+#
 # Usage:
 #   void func::explode(string* variable, string delimiter, string value)
-#
-# Splits a string by string.
 func::explode() {
   local __explode_variable="${1}"
   local __explode_delimiter="${2}"

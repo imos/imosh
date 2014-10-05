@@ -1,10 +1,10 @@
 # func::strtolower -- Makes a string lowercase.
 #
+# Makes variable lowercase.
+#
 # Usage:
 #     void func::strtolower(string* variable)
 #     void func::strtolower() < input > output
-#
-# Makes variable lowercase.
 func::strtolower() {
   if [ "$#" -eq 0 ]; then
     tr '[A-Z]' '[a-z]'

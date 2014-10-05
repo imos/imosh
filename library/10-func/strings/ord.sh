@@ -1,9 +1,9 @@
 # func::ord -- Gets a character's ASCII code.
 #
+# Sets ASCII value of character to variable.
+#
 # Usage:
 #     func::ord(string* variable, string character)
-#
-# Sets ASCII value of character to variable.
 func::ord() {
   local __ord_variable="$1"
   local __ord_character="$2"

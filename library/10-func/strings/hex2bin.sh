@@ -1,11 +1,11 @@
 # func::hex2bin -- Decodes a hexadecimally encoded binary string.
 #
-# Usage:
-#   void func::hex2bin(string* output, string input)
-#   void func::hex2bin(string* variable)
-#   void func::hex2bin() < input > output
-#
 # Decodes a hexadecimally encoded binary string.
+#
+# Usage:
+#     void func::hex2bin(string* output, string input)
+#     void func::hex2bin(string* variable)
+#     void func::hex2bin() < input > output
 func::hex2bin() {
   if [ "$#" -eq 0 ]; then
     local __hex2bin_variable=''

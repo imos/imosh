@@ -1,10 +1,10 @@
 # func::strtoupper -- Makes a string uppercase.
 #
+# Makes variable uppercase.
+#
 # Usage:
 #     void func::strtoupper(string* variable)
 #     void func::strtoupper() < input > output
-#
-# Makes variable uppercase.
 func::strtoupper() {
   if [ "$#" -eq 0 ]; then
     tr '[a-z]' '[A-Z]'

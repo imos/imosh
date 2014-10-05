@@ -1,9 +1,9 @@
 # func::cast -- Casts a variable.
 #
-# Usage:
-#   bool func::cast(variant* variable, string type)
-#
 # Casts variable into a specified type.
+#
+# Usage:
+#     bool func::cast(variant* variable, string type)
 func::cast() {
   local __cast_variable="$1"
   local __cast_type="$2"
