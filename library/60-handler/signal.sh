@@ -1,4 +1,4 @@
-imosh::internal::signal_handler() {
+__imosh::signal_handler() {
   local signal="$1"
   trap - "${signal}"
   local PID=''
@@ -17,6 +17,6 @@ imosh::internal::signal_handler() {
 if ! shopt login_shell >/dev/null; then
   for signal in SIGHUP SIGINT SIGPIPE SIGTERM \
                 SIGXCPU SIGXFSZ SIGUSR1 SIGUSR2; do
-    trap "imosh::internal::signal_handler ${signal}" "${signal}"
+    trap "__imosh::signal_handler ${signal}" "${signal}"
   done
 fi

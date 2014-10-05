@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-10-06 04:11:28 +0900 (0c2c7b9)'
+IMOSH_VERSION='2014-10-06 04:16:30 +0900 (2ac37af)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -2137,14 +2137,14 @@ __IMOSH_USER="$(whoami)"
 __IMOSH_LOG_PREFIX="${__IMOSH_PROGRAM_NAME}.${__IMOSH_HOSTNAME}.${__IMOSH_USER}"
 __IMOSH_LOG_SUFFIX="$(date +'%Y%m%d.%H%M%S').$$"
 
-imosh::internal::error_handler() {
+__imosh::error_handler() {
   __IMOSH_STACK_TRACED=1
   imosh::stack_trace "error status: $?"
 }
 
-trap imosh::internal::error_handler ERR
+trap '__imosh::error_handler' ERR
 
-imosh::internal::exit_handler() {
+__imosh::exit_handler() {
   local exit_code="$?"
   if (( exit_code && ! __IMOSH_STACK_TRACED )); then
     imosh::stack_trace "error status: ${exit_code}"
@@ -2176,9 +2176,9 @@ imosh::internal::exit_handler() {
   done
 }
 
-trap imosh::internal::exit_handler EXIT
+trap '__imosh::exit_handler' EXIT
 
-imosh::internal::signal_handler() {
+__imosh::signal_handler() {
   local signal="$1"
   trap - "${signal}"
   local PID=''
@@ -2197,7 +2197,7 @@ imosh::internal::signal_handler() {
 if ! shopt login_shell >/dev/null; then
   for signal in SIGHUP SIGINT SIGPIPE SIGTERM \
                 SIGXCPU SIGXFSZ SIGUSR1 SIGUSR2; do
-    trap "imosh::internal::signal_handler ${signal}" "${signal}"
+    trap "__imosh::signal_handler ${signal}" "${signal}"
   done
 fi
 
@@ -2223,8 +2223,6 @@ DEFINE_string --group=imosh 'stacktrace_threshold' 'FATAL' \
     'Threshold to show stacktrace.'
 DEFINE_string --group=imosh 'help_format' '' \
     'Help format to output.'
-
-DEFINE_bool --group=imosh disown_php false 'Disown a PHP process.'
 
 __IMOSH_IS_LOADED=1
 
