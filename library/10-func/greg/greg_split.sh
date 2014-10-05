@@ -1,7 +1,9 @@
-# func::greg_split -- Split a string with a GREG pattern.
+# func::greg_split -- Splits a string with a GREG pattern.
+#
+# greg_split splits a string with a GREG pattern.
 #
 # Usage:
-#   void func::greg_split(string* variable, string pattern, string value)
+#     void func::greg_split(string* variable, string pattern, string value)
 func::greg_split() {
   if [ "$#" -eq 3 ]; then
     local __greg_split_variable="$1"

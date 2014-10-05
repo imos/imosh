@@ -10,13 +10,16 @@ test::func_tmpfile() {
   func::array_unique files
   EXPECT_EQ 100 "${#files[@]}"
 
-  # 1. Function form.
   func::tmpfile tmpfile
   echo foo > "${tmpfile}"
   EXPECT_EQ 'foo' "$(cat "${tmpfile}")"
+}
 
-  # 2. Command form.
-  tmpfile="$(func::tmpfile)"
+test::sub_tmpfile() {
+  local files=()
+  local tmpfile=''
+
+  tmpfile="$(sub::tmpfile)"
   echo bar > "${tmpfile}"
   EXPECT_EQ 'bar' "$(cat "${tmpfile}")"
 }

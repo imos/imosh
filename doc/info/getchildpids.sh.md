@@ -2,4 +2,6 @@
 func::getchildpids -- Gets child process IDs.
 
 ## Usage
-  func::getchildpids(int[]* variable)
+```sh
+void func::getchildpids(int[]* variable)
+```

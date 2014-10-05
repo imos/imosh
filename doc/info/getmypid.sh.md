@@ -2,4 +2,6 @@
 func::getmypid -- Gets the current process ID.
 
 ## Usage
-  func::pid(int* variable)
+```sh
+void func::pid(int* variable)
+```

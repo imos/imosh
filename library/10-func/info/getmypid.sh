@@ -1,14 +1,20 @@
 # func::getmypid -- Gets the current process ID.
 #
 # Usage:
-#   func::pid(int* variable)
+#     void func::pid(int* variable)
 func::getmypid() {
-  local __getmypid_variable="$1"
-  if func::isset BASHPID; then
-    func::let "${__getmypid_variable}" "${BASHPID}"
+  if [ "$#" -eq 1 ]; then
+    local __getmypid_variable="$1"
+    if func::isset BASHPID; then
+      func::let "${__getmypid_variable}" "${BASHPID}"
+    else
+      local __getmypid_pid_file=''
+      func::tmpfile __getmypid_pid_file
+      "${SHELL}" -c 'echo "${PPID}"' > "${__getmypid_pid_file}"
+      read -r -d $'\n' "${__getmypid_variable}" < "${__getmypid_pid_file}"
+    fi
   else
-    local __getmypid_pid_file="$(mktemp "${__IMOSH_CORE_TMPDIR}/pid.XXXXXX")"
-    "${SHELL}" -c 'echo "${PPID}"' >"${__getmypid_pid_file}"
-    read "${__getmypid_variable}" <"${__getmypid_pid_file}"
+    LOG ERROR "Wrong number of arguments: $#"
+    return 1
   fi
 }

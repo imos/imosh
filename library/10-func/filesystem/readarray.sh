@@ -1,6 +1,6 @@
 # readarray -- Reads a line as an array.
 #
-# readline reads a line and sets its content to LINE and its trailing new line
+# readarray reads a line and sets its content to LINE and its trailing new line
 # to NEWLINE.
 #
 # Usage:

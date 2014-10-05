@@ -1,27 +1,30 @@
 # func::tmpfile -- Creates a temporary file.
 #
-# Usage:
-#   // 1. Function form.
-#   void func::tmpfile(string* path)
-#   // 2. Command form.
-#   void func::tmpfile() > path
+# Creates a temporary file with a unique name under ${TMPDIR}.
 #
-# Creates a temporary file with a unique name under TMPDIR.
+# Usage:
+#     // 1. Function form.
+#     void func::tmpfile(string* path)
+#     // 2. Command form.
+#     void sub::tmpfile() > path
 func::tmpfile() {
-  # 1. Function form.
   if [ "$#" -eq 1 ]; then
     local __tmpfile_variable="$1"
     func::let "${__tmpfile_variable}" \
         "${TMPDIR}/tmpfile.${RANDOM}.${RANDOM}.${RANDOM}.${RANDOM}.${RANDOM}"
-  # 2. Command form.
-  elif [ "$#" -eq 0 ]; then
+  else
+    LOG ERROR "Wrong number of arguments: $#"
+    return 1
+  fi
+}
+
+sub::tmpfile() {
+  if [ "$#" -eq 0 ]; then
     local tmpfile=''
-    # 1. Function form.
     func::tmpfile tmpfile
     func::println "${tmpfile}"
-  # Argument mismatch.
   else
-    LOG ERROR "The number of arguments does not match func::tmpfile: $#"
+    LOG ERROR "Wrong number of arguments: $#"
     return 1
   fi
 }
