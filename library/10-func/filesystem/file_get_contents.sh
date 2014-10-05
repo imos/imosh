@@ -50,10 +50,7 @@ sub::file_get_contents() {
 
 stream::file_get_contents() {
   if [ "$#" -eq 0 ]; then
-    local __file_get_contents_filename=''
-    while IFS= read -r __file_get_contents_filename; do
-      cat < "${__file_get_contents_filename}"
-    done
+    stream::array_map --command cat
   else
     LOG ERROR "Wrong number of arguments: $#"
     return 1
