@@ -7,8 +7,11 @@ run_testcase() {
   func::strtolower variable
   EXPECT_EQ "${expected}" "${variable}"
 
-  # 2. Stream form.
-  EXPECT_EQ "${expected}" "$(func::print "${input}" | func::strtolower)"
+  # 2. Subroutine form.
+  EXPECT_EQ "${expected}" "$(sub::strtolower "${input}")"
+
+  # 3. Stream form.
+  EXPECT_EQ "${expected}" "$(func::print "${input}" | stream::strtolower)"
 }
 
 test::func_strtolower() {

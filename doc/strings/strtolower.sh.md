@@ -1,10 +1,14 @@
-# func::strtolower
-func::strtolower -- Makes a string lowercase.
+# strtolower
+strtolower -- Makes a string lowercase.
 
-Makes variable lowercase.
+strtolower makes a string lowercase.
 
 ## Usage
 ```sh
+// 1. Function form.
 void func::strtolower(string* variable)
-void func::strtolower() < input > output
+// 2. Subroutine form.
+void sub::strtolower(string input) > output
+// 3. Stream form.
+void stream::strtolower() < input > output
 ```
