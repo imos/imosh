@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-10-06 22:17:17 +0900 (7f32610)'
+IMOSH_VERSION='2014-10-06 23:57:22 +0900 (bc23ecf)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -1357,7 +1357,7 @@ LOG() {
   case "${level}" in
     INFO)
       if (( logtostderr || alsologtostderr )); then
-        echo "${message}" >&2
+        echo "${message}" >&105
       fi
       if (( ! logtostderr )); then
         echo "${message}" >&101
@@ -1365,7 +1365,7 @@ LOG() {
       ;;
     WARNING)
       if (( logtostderr || alsologtostderr )); then
-        echo "${message}" >&2
+        echo "${message}" >&105
       fi
       if (( ! logtostderr )); then
         echo "${message}" >&101
@@ -1373,7 +1373,7 @@ LOG() {
       fi
       ;;
     ERROR)
-      echo "${message}" >&2
+      echo "${message}" >&105
       if (( ! logtostderr )); then
         echo "${message}" >&101
         echo "${message}" >&102
@@ -1381,7 +1381,7 @@ LOG() {
       fi
       ;;
     FATAL)
-      echo "${message}" >&2
+      echo "${message}" >&105
       if (( ! logtostderr )); then
         echo "${message}" >&101
         echo "${message}" >&102
@@ -2260,6 +2260,8 @@ fi
 exec 101>&- 102>&- 103>&- 104>&-
 # Open descriptors for LOG without calling init_log.
 exec 101>/dev/null 102>/dev/null 103>/dev/null 104>/dev/null
+# Redirect log output to the current STDERR.
+exec 105>&2
 
 # Prepares a temporary directory and sets its path to TMPDIR.
 __imosh::mktemp
