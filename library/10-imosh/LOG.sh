@@ -35,7 +35,11 @@ LOG() {
       "${pid}"
       "${file}:${BASH_LINENO[0]}]"
       "$@")
-  message="$(echo "${message[@]}")"
+  IFS=' ' eval 'message="${message[*]}"'
+  if ! func::isset FLAGS_stacktrace_threshold || \
+     [ "${FLAGS_stacktrace_threshold}" = '' ]; then
+    FLAGS_stacktrace_threshold='ERROR'
+  fi
   if [ "$(imosh::internal::loglevel "${level}")" -ge \
        "$(imosh::internal::loglevel "${FLAGS_stacktrace_threshold}")" ]; then
     message+=$'\n'
@@ -83,7 +87,7 @@ LOG() {
         echo "${message}" >&103
         echo "${message}" >&104
       fi
-      imosh::quiet_die 1
+      func::exit 1
       ;;
   esac
 }

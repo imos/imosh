@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-10-06 01:58:58 +0900 (5b58186)'
+IMOSH_VERSION='2014-10-06 22:17:17 +0900 (7f32610)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -192,11 +192,11 @@ __func::quick_sort() {
   fi
 }
 
-# func::fgets -- Gets a line from STDIN.
+# fgets -- Gets a line from STDIN.
 #
 # fgets reads a line and regards it as a result.  fgets does not strip a
-# trailing new line.  Function form sets the result to the variable.  Subroutine
-# form outputs the result to STDOUT.
+# trailing new line.  The function form sets the result to a variable.  The
+# subroutine form outputs the result to the standard output.
 #
 # Usage:
 #     // 1. Function form.
@@ -204,32 +204,42 @@ __func::quick_sort() {
 #     // 2. Subroutine form.
 #     bool sub::fgets() > line
 func::fgets() {
-  local __fgets_variable="$1"
-  local __fgets_buffer=''
-  local __fgets_line=''
+  if [ "$#" -eq 1 ]; then
+    local __fgets_variable="$1"
+    local __fgets_buffer=''
+    local __fgets_line=''
 
-  func::let "${__fgets_variable}" ''
-  if ! IFS= read -r -n 1 -d '' __fgets_buffer; then
+    func::let "${__fgets_variable}" ''
+    if ! IFS= read -r -n 1 -d '' __fgets_buffer; then
+      return 1
+    fi
+    __fgets_line+="${__fgets_buffer}"
+    if [ "${__fgets_buffer}" = $'\n' ]; then
+      func::strcpy "${__fgets_variable}" __fgets_buffer
+      return
+    fi
+    if IFS= read -r -d $'\n' __fgets_buffer; then
+      __fgets_buffer+=$'\n'
+    fi
+    __fgets_line+="${__fgets_buffer}"
+    func::strcpy "${__fgets_variable}" __fgets_line
+  else
+    LOG ERROR "Wrong number of arguments: $#"
     return 1
   fi
-  __fgets_line+="${__fgets_buffer}"
-  if [ "${__fgets_buffer}" = $'\n' ]; then
-    func::strcpy "${__fgets_variable}" __fgets_buffer
-    return
-  fi
-  if IFS= read -r -d $'\n' __fgets_buffer; then
-    __fgets_buffer+=$'\n'
-  fi
-  __fgets_line+="${__fgets_buffer}"
-  func::strcpy "${__fgets_variable}" __fgets_line
 }
 
 sub::fgets() {
-  local variable=''
-  if ! func::fgets variable; then
+  if [ "$#" -eq 0 ]; then
+    local variable=''
+    if ! func::fgets variable; then
+      return 1
+    fi
+    func::print "${variable}"
+  else
+    LOG ERROR "Wrong number of arguments: $#"
     return 1
   fi
-  func::print "${variable}"
 }
 
 # file_get_contents -- Reads an entire file into a string.
@@ -284,10 +294,7 @@ sub::file_get_contents() {
 
 stream::file_get_contents() {
   if [ "$#" -eq 0 ]; then
-    local __file_get_contents_filename=''
-    while IFS= read -r __file_get_contents_filename; do
-      cat < "${__file_get_contents_filename}"
-    done
+    stream::array_map --command cat
   else
     LOG ERROR "Wrong number of arguments: $#"
     return 1
@@ -302,17 +309,22 @@ stream::file_get_contents() {
 # Usage:
 #     void func::readarray() < input
 func::readarray() {
-  local line=''
-  NEWLINE=''
-  LINE=''
-  if ! func::readline; then
-    LINE=()
+  if [ "$#" -eq 0 ]; then
+    local line=''
+    NEWLINE=''
+    LINE=''
+    if ! func::readline; then
+      LINE=()
+      return 1
+    fi
+    local ifs="${IFS}"
+    ifs="${ifs//'['/\[}"
+    ifs="${ifs//']'/\]}"
+    func::greg_split LINE "[${ifs}]" "${LINE}"
+  else
+    LOG ERROR "Wrong number of arguments: $#"
     return 1
   fi
-  local ifs="${IFS}"
-  ifs="${ifs//'['/\[}"
-  ifs="${ifs//']'/\]}"
-  func::greg_split LINE "[${ifs}]" "${LINE}"
 }
 
 # readline -- Gets a line.
@@ -323,27 +335,32 @@ func::readarray() {
 # Usage:
 #     void func::readline() < input
 func::readline() {
-  local line=''
-  NEWLINE=''
-  LINE=''
-  if ! func::fgets line; then
-    return 1
-  fi
-  if [ "${line:$((${#line} - 2))}" = $'\r\n' ]; then
-    NEWLINE=$'\r\n'
-    LINE="${line%$'\r\n'}"
-  elif [ "${line:$((${#line} - 1))}" = $'\n' ]; then
-    NEWLINE=$'\n'
-    LINE="${line%$'\n'}"
-  else
+  if [ "$#" -eq 0 ]; then
+    local line=''
     NEWLINE=''
-    LINE="${line}"
+    LINE=''
+    if ! func::fgets line; then
+      return 1
+    fi
+    if [ "${line:$((${#line} - 2))}" = $'\r\n' ]; then
+      NEWLINE=$'\r\n'
+      LINE="${line%$'\r\n'}"
+    elif [ "${line:$((${#line} - 1))}" = $'\n' ]; then
+      NEWLINE=$'\n'
+      LINE="${line%$'\n'}"
+    else
+      NEWLINE=''
+      LINE="${line}"
+    fi
+  else
+    LOG ERROR "Wrong number of arguments: $#"
+    return 1
   fi
 }
 
-# func::tmpfile -- Creates a temporary file.
+# tmpfile -- Creates a temporary file.
 #
-# Creates a temporary file with a unique name under ${TMPDIR}.
+# tmpfile creates a temporary file with a unique name under ${TMPDIR}.
 #
 # Usage:
 #     // 1. Function form.
@@ -660,9 +677,9 @@ func::bin2hex() {
   eval "${__bin2hex_destination}=\"\$(func::print \"${__bin2hex_data}\" | func::bin2hex)\""
 }
 
-# func::escapeshellarg - Escapes a variable as a shell argument.
+# escapeshellarg -- Escapes a variable as a shell argument.
 #
-# Escapes variable's content.
+# escapeshellarg escapes variable's content so as to use it as a shell argument.
 #
 # Usage:
 #     void func::escapeshellarg(string* variable)
@@ -952,94 +969,145 @@ func::strcpy() {
   eval "${__strcpy_destination}=\"\${${__strcpy_source}}\""
 }
 
-# func::strtolower -- Makes a string lowercase.
+# strtolower -- Makes a string lowercase.
 #
-# Makes variable lowercase.
+# strtolower makes a string lowercase.
 #
 # Usage:
+#     // 1. Function form.
 #     void func::strtolower(string* variable)
-#     void func::strtolower() < input > output
+#     // 2. Subroutine form.
+#     void sub::strtolower(string input) > output
+#     // 3. Stream form.
+#     void stream::strtolower() < input > output
 func::strtolower() {
-  if [ "$#" -eq 0 ]; then
-    tr '[A-Z]' '[a-z]'
-    return
+  if [ "$#" -eq 1 ]; then
+    local __strtolower_variable="$1"
+    local __strtolower_value=''
+    func::strcpy __strtolower_value "${__strtolower_variable}"
+    # This is faster than tr for short strings.
+    # TODO(imos): Use ${variable,,} instead once Mac OSX supports BASH 4.
+    __strtolower_value="${__strtolower_value//A/a}"
+    __strtolower_value="${__strtolower_value//B/b}"
+    __strtolower_value="${__strtolower_value//C/c}"
+    __strtolower_value="${__strtolower_value//D/d}"
+    __strtolower_value="${__strtolower_value//E/e}"
+    __strtolower_value="${__strtolower_value//F/f}"
+    __strtolower_value="${__strtolower_value//G/g}"
+    __strtolower_value="${__strtolower_value//H/h}"
+    __strtolower_value="${__strtolower_value//I/i}"
+    __strtolower_value="${__strtolower_value//J/j}"
+    __strtolower_value="${__strtolower_value//K/k}"
+    __strtolower_value="${__strtolower_value//L/l}"
+    __strtolower_value="${__strtolower_value//M/m}"
+    __strtolower_value="${__strtolower_value//N/n}"
+    __strtolower_value="${__strtolower_value//O/o}"
+    __strtolower_value="${__strtolower_value//P/p}"
+    __strtolower_value="${__strtolower_value//Q/q}"
+    __strtolower_value="${__strtolower_value//R/r}"
+    __strtolower_value="${__strtolower_value//S/s}"
+    __strtolower_value="${__strtolower_value//T/t}"
+    __strtolower_value="${__strtolower_value//U/u}"
+    __strtolower_value="${__strtolower_value//V/v}"
+    __strtolower_value="${__strtolower_value//W/w}"
+    __strtolower_value="${__strtolower_value//X/x}"
+    __strtolower_value="${__strtolower_value//Y/y}"
+    __strtolower_value="${__strtolower_value//Z/z}"
+    func::let "${__strtolower_variable}" "${__strtolower_value}"
+  else
+    LOG ERROR "Wrong number of arguments: $#"
+    return 1
   fi
-  local __strtolower_variable="$1"
-  eval "local __strtolower_value=\"\${${__strtolower_variable}}\""
-  # This is faster than tr for short strings.
-  # TODO(imos): Use ${variable,,} instead once Mac OSX supports BASH 4.
-  __strtolower_value="${__strtolower_value//A/a}"
-  __strtolower_value="${__strtolower_value//B/b}"
-  __strtolower_value="${__strtolower_value//C/c}"
-  __strtolower_value="${__strtolower_value//D/d}"
-  __strtolower_value="${__strtolower_value//E/e}"
-  __strtolower_value="${__strtolower_value//F/f}"
-  __strtolower_value="${__strtolower_value//G/g}"
-  __strtolower_value="${__strtolower_value//H/h}"
-  __strtolower_value="${__strtolower_value//I/i}"
-  __strtolower_value="${__strtolower_value//J/j}"
-  __strtolower_value="${__strtolower_value//K/k}"
-  __strtolower_value="${__strtolower_value//L/l}"
-  __strtolower_value="${__strtolower_value//M/m}"
-  __strtolower_value="${__strtolower_value//N/n}"
-  __strtolower_value="${__strtolower_value//O/o}"
-  __strtolower_value="${__strtolower_value//P/p}"
-  __strtolower_value="${__strtolower_value//Q/q}"
-  __strtolower_value="${__strtolower_value//R/r}"
-  __strtolower_value="${__strtolower_value//S/s}"
-  __strtolower_value="${__strtolower_value//T/t}"
-  __strtolower_value="${__strtolower_value//U/u}"
-  __strtolower_value="${__strtolower_value//V/v}"
-  __strtolower_value="${__strtolower_value//W/w}"
-  __strtolower_value="${__strtolower_value//X/x}"
-  __strtolower_value="${__strtolower_value//Y/y}"
-  __strtolower_value="${__strtolower_value//Z/z}"
-  eval "${__strtolower_variable}=\"\${__strtolower_value}\""
 }
 
-# func::strtoupper -- Makes a string uppercase.
+sub::strtolower() {
+  if [ "$#" -eq 1 ]; then
+    local value="$1"
+    func::strtolower value
+    func::println "${value}"
+  else
+    LOG ERROR "Wrong number of arguments: $#"
+    return 1
+  fi
+}
+
+stream::strtolower() {
+  if [ "$#" -eq 0 ]; then
+    tr '[A-Z]' '[a-z]'
+  else
+    LOG ERROR "Wrong number of arguments: $#"
+    return 1
+  fi
+}
+
+# strtoupper -- Makes a string uppercase.
 #
-# Makes variable uppercase.
+# strtoupper makes a string uppercase.
 #
 # Usage:
+#     // 1. Function form.
 #     void func::strtoupper(string* variable)
-#     void func::strtoupper() < input > output
+#     // 2. Subroutine form.
+#     void sub::strtoupper(string input) > output
+#     // 3. Stream form.
+#     void stream::strtoupper() < input > output
 func::strtoupper() {
+  if [ "$#" -eq 1 ]; then
+    local __strtoupper_variable="$1"
+    func::strcpy __strtoupper_value "${__strtoupper_variable}"
+    # This is faster than tr for short strings.
+    # TODO(imos): Use ${variable^^} instead once Mac OSX supports BASH 4.
+    __strtoupper_value="${__strtoupper_value//a/A}"
+    __strtoupper_value="${__strtoupper_value//b/B}"
+    __strtoupper_value="${__strtoupper_value//c/C}"
+    __strtoupper_value="${__strtoupper_value//d/D}"
+    __strtoupper_value="${__strtoupper_value//e/E}"
+    __strtoupper_value="${__strtoupper_value//f/F}"
+    __strtoupper_value="${__strtoupper_value//g/G}"
+    __strtoupper_value="${__strtoupper_value//h/H}"
+    __strtoupper_value="${__strtoupper_value//i/I}"
+    __strtoupper_value="${__strtoupper_value//j/J}"
+    __strtoupper_value="${__strtoupper_value//k/K}"
+    __strtoupper_value="${__strtoupper_value//l/L}"
+    __strtoupper_value="${__strtoupper_value//m/M}"
+    __strtoupper_value="${__strtoupper_value//n/N}"
+    __strtoupper_value="${__strtoupper_value//o/O}"
+    __strtoupper_value="${__strtoupper_value//p/P}"
+    __strtoupper_value="${__strtoupper_value//q/Q}"
+    __strtoupper_value="${__strtoupper_value//r/R}"
+    __strtoupper_value="${__strtoupper_value//s/S}"
+    __strtoupper_value="${__strtoupper_value//t/T}"
+    __strtoupper_value="${__strtoupper_value//u/U}"
+    __strtoupper_value="${__strtoupper_value//v/V}"
+    __strtoupper_value="${__strtoupper_value//w/W}"
+    __strtoupper_value="${__strtoupper_value//x/X}"
+    __strtoupper_value="${__strtoupper_value//y/Y}"
+    __strtoupper_value="${__strtoupper_value//z/Z}"
+    func::let "${__strtoupper_variable}" "${__strtoupper_value}"
+  else
+    LOG ERROR "Wrong number of arguments: $#"
+    return 1
+  fi
+}
+
+sub::strtoupper() {
+  if [ "$#" -eq 1 ]; then
+    local value="$1"
+    func::strtoupper value
+    func::println "${value}"
+  else
+    LOG ERROR "Wrong number of arguments: $#"
+    return 1
+  fi
+}
+
+stream::strtoupper() {
   if [ "$#" -eq 0 ]; then
     tr '[a-z]' '[A-Z]'
-    return
+  else
+    LOG ERROR "Wrong number of arguments: $#"
+    return 1
   fi
-  local __strtoupper_variable="$1"
-  eval "local __strtoupper_value=\"\${${__strtoupper_variable}}\""
-  # This is faster than tr for short strings.
-  # TODO(imos): Use ${variable^^} instead once Mac OSX supports BASH 4.
-  __strtoupper_value="${__strtoupper_value//a/A}"
-  __strtoupper_value="${__strtoupper_value//b/B}"
-  __strtoupper_value="${__strtoupper_value//c/C}"
-  __strtoupper_value="${__strtoupper_value//d/D}"
-  __strtoupper_value="${__strtoupper_value//e/E}"
-  __strtoupper_value="${__strtoupper_value//f/F}"
-  __strtoupper_value="${__strtoupper_value//g/G}"
-  __strtoupper_value="${__strtoupper_value//h/H}"
-  __strtoupper_value="${__strtoupper_value//i/I}"
-  __strtoupper_value="${__strtoupper_value//j/J}"
-  __strtoupper_value="${__strtoupper_value//k/K}"
-  __strtoupper_value="${__strtoupper_value//l/L}"
-  __strtoupper_value="${__strtoupper_value//m/M}"
-  __strtoupper_value="${__strtoupper_value//n/N}"
-  __strtoupper_value="${__strtoupper_value//o/O}"
-  __strtoupper_value="${__strtoupper_value//p/P}"
-  __strtoupper_value="${__strtoupper_value//q/Q}"
-  __strtoupper_value="${__strtoupper_value//r/R}"
-  __strtoupper_value="${__strtoupper_value//s/S}"
-  __strtoupper_value="${__strtoupper_value//t/T}"
-  __strtoupper_value="${__strtoupper_value//u/U}"
-  __strtoupper_value="${__strtoupper_value//v/V}"
-  __strtoupper_value="${__strtoupper_value//w/W}"
-  __strtoupper_value="${__strtoupper_value//x/X}"
-  __strtoupper_value="${__strtoupper_value//y/Y}"
-  __strtoupper_value="${__strtoupper_value//z/Z}"
-  eval "${__strtoupper_variable}=\"\${__strtoupper_value}\""
 }
 
 # func::trim -- Strips whitespaces from both sides.
@@ -1114,6 +1182,12 @@ func::cast() {
     variant) return 0;;
     *)       LOG FATAL "Unknown type: ${__cast_type}";;
   esac
+}
+
+func::cast_or_die() {
+  if ! func::cast "$@"; then
+    IFS=' ' eval 'LOG FATAL "Type mismatch: $*"'
+  fi
 }
 
 # func::floatval -- Casts a variable as a float value.
@@ -1198,17 +1272,30 @@ func::strval() {
 }
 
 CHECK() {
-  local __CHECK_invert="$1"
-
-  if [ "${__CHECK_invert}" = '!' ]; then
+  IFS=' ' eval 'local __CHECK_message="Check failure: $*"'
+  if [ "$#" -ge 1 ] && [ "${1:0:10}" = '--message=' ]; then
+    __CHECK_message="${1:10}"
     shift
-    if "$@"; then
-      IFS=' ' eval 'imosh::stack_trace "*** Check failure: ! $* ***"'
+  fi
+
+  if [ "$#" -ge 1 ]; then
+    local __CHECK_invert="$1"
+
+    if [ "${__CHECK_invert}" = '!' ]; then
+      shift
+      if "$@"; then
+        IFS=' ' eval 'LOG ERROR "Check failure: ! $*"'
+        LOG FATAL "${__CHECK_message}"
+      fi
+    else
+      if ! "$@"; then
+        IFS=' ' eval 'LOG ERROR "Check failure: $*"'
+        LOG FATAL "${__CHECK_message}"
+      fi
     fi
   else
-    if ! "$@"; then
-      IFS=' ' eval 'imosh::stack_trace "*** Check failure: $* ***"'
-    fi
+    LOG ERROR "Wrong number of arguments: $#"
+    return 1
   fi
 }
 
@@ -1249,7 +1336,11 @@ LOG() {
       "${pid}"
       "${file}:${BASH_LINENO[0]}]"
       "$@")
-  message="$(echo "${message[@]}")"
+  IFS=' ' eval 'message="${message[*]}"'
+  if ! func::isset FLAGS_stacktrace_threshold || \
+     [ "${FLAGS_stacktrace_threshold}" = '' ]; then
+    FLAGS_stacktrace_threshold='ERROR'
+  fi
   if [ "$(imosh::internal::loglevel "${level}")" -ge \
        "$(imosh::internal::loglevel "${FLAGS_stacktrace_threshold}")" ]; then
     message+=$'\n'
@@ -1297,7 +1388,7 @@ LOG() {
         echo "${message}" >&103
         echo "${message}" >&104
       fi
-      imosh::quiet_die 1
+      func::exit 1
       ;;
   esac
 }
@@ -1393,15 +1484,10 @@ imosh::internal::parse_args() {
     arg_value="${arg_value:1}"
     if func::isset "${upper_class_name}S_${arg_name}"; then
       if [ "${class_name}" = 'flag' ]; then
-        if ! imosh::internal::convert_type \
-               "$(imosh::internal::flag_type "${arg_name}")" \
-               "${arg_value}" >/dev/null; then
-          LOG FATAL "the ${arg_name} flag has an invalid value: ${arg_value}"
-        else
-          arg_value="$(imosh::internal::convert_type \
-                             "$(imosh::internal::flag_type "${arg_name}")" \
-                             "${arg_value}")"
-        fi
+        local original_value="${arg_value}"
+        CHECK \
+            --message="${upper_class_name}S_${arg_name} is invalid: ${arg_value}" \
+            func::cast arg_value "$(imosh::internal::flag_type "${arg_name}")"
       fi
       IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value}")
       continue
@@ -1514,11 +1600,9 @@ imosh::internal::define_flag() {
   if func::isset "IMOSH_FLAGS_${name}"; then
     func::strcpy default_value "IMOSH_FLAGS_${name}"
   fi
-  if ! imosh::internal::convert_type \
-           "${type}" "${default_value}" >/dev/null; then
-    LOG FATAL "${type}'s default value should be ${type}: ${default_value}"
-  fi
-  default_value="$(imosh::internal::convert_type "${type}" "${default_value}")"
+  CHECK \
+      --message="${name}'s default value is invalid: ${default_value}." \
+      func::cast default_value "${type}"
   if func::isset "__IMOSH_FLAGS_TYPE_${name}"; then
     LOG FATAL "already defined flag: ${name}"
   fi
@@ -1767,35 +1851,6 @@ imosh::stack_trace() {
     echo "  at ${function} (${file}:${lineno})" >&2
     (( i += 1 )) || true
   done
-}
-
-imosh::internal::convert_type() {
-  local type="$1"; shift
-  local value="$1"; shift
-
-  case "${type}" in
-    int)
-      if [[ "${value}" =~ ^-?[0-9]+$ ]]; then
-        func::print "${value}"
-      else
-        return 1
-      fi
-      ;;
-    string)
-      func::print "${value}"
-      ;;
-    bool)
-      case "${value}" in
-        1|T|t|[Tt]rue) func::print 1;;
-        0|F|f|[Ff]alse) func::print 0;;
-        *) return 1;;
-      esac
-      ;;
-    variant)
-      func::print "${value}"
-      ;;
-    *) LOG FATAL "no such type: ${type}";;
-  esac
 }
 
 __imosh::mktemp() {
@@ -2137,14 +2192,14 @@ __IMOSH_USER="$(whoami)"
 __IMOSH_LOG_PREFIX="${__IMOSH_PROGRAM_NAME}.${__IMOSH_HOSTNAME}.${__IMOSH_USER}"
 __IMOSH_LOG_SUFFIX="$(date +'%Y%m%d.%H%M%S').$$"
 
-imosh::internal::error_handler() {
+__imosh::error_handler() {
   __IMOSH_STACK_TRACED=1
   imosh::stack_trace "error status: $?"
 }
 
-trap imosh::internal::error_handler ERR
+trap '__imosh::error_handler' ERR
 
-imosh::internal::exit_handler() {
+__imosh::exit_handler() {
   local exit_code="$?"
   if (( exit_code && ! __IMOSH_STACK_TRACED )); then
     imosh::stack_trace "error status: ${exit_code}"
@@ -2176,9 +2231,9 @@ imosh::internal::exit_handler() {
   done
 }
 
-trap imosh::internal::exit_handler EXIT
+trap '__imosh::exit_handler' EXIT
 
-imosh::internal::signal_handler() {
+__imosh::signal_handler() {
   local signal="$1"
   trap - "${signal}"
   local PID=''
@@ -2197,7 +2252,7 @@ imosh::internal::signal_handler() {
 if ! shopt login_shell >/dev/null; then
   for signal in SIGHUP SIGINT SIGPIPE SIGTERM \
                 SIGXCPU SIGXFSZ SIGUSR1 SIGUSR2; do
-    trap "imosh::internal::signal_handler ${signal}" "${signal}"
+    trap "__imosh::signal_handler ${signal}" "${signal}"
   done
 fi
 
@@ -2223,8 +2278,6 @@ DEFINE_string --group=imosh 'stacktrace_threshold' 'FATAL' \
     'Threshold to show stacktrace.'
 DEFINE_string --group=imosh 'help_format' '' \
     'Help format to output.'
-
-DEFINE_bool --group=imosh disown_php false 'Disown a PHP process.'
 
 __IMOSH_IS_LOADED=1
 

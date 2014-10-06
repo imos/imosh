@@ -1,9 +1,9 @@
-# func::fgets
-func::fgets -- Gets a line from STDIN.
+# fgets
+fgets -- Gets a line from STDIN.
 
 fgets reads a line and regards it as a result.  fgets does not strip a
-trailing new line.  Function form sets the result to the variable.  Subroutine
-form outputs the result to STDOUT.
+trailing new line.  The function form sets the result to a variable.  The
+subroutine form outputs the result to the standard output.
 
 ## Usage
 ```sh

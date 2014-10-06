@@ -1,6 +1,6 @@
-# func::escapeshellarg - Escapes a variable as a shell argument.
+# escapeshellarg -- Escapes a variable as a shell argument.
 #
-# Escapes variable's content.
+# escapeshellarg escapes variable's content so as to use it as a shell argument.
 #
 # Usage:
 #     void func::escapeshellarg(string* variable)

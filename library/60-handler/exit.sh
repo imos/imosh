@@ -1,4 +1,4 @@
-imosh::internal::exit_handler() {
+__imosh::exit_handler() {
   local exit_code="$?"
   if (( exit_code && ! __IMOSH_STACK_TRACED )); then
     imosh::stack_trace "error status: ${exit_code}"
@@ -30,4 +30,4 @@ imosh::internal::exit_handler() {
   done
 }
 
-trap imosh::internal::exit_handler EXIT
+trap '__imosh::exit_handler' EXIT

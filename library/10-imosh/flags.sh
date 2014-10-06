@@ -30,11 +30,9 @@ imosh::internal::define_flag() {
   if func::isset "IMOSH_FLAGS_${name}"; then
     func::strcpy default_value "IMOSH_FLAGS_${name}"
   fi
-  if ! imosh::internal::convert_type \
-           "${type}" "${default_value}" >/dev/null; then
-    LOG FATAL "${type}'s default value should be ${type}: ${default_value}"
-  fi
-  default_value="$(imosh::internal::convert_type "${type}" "${default_value}")"
+  CHECK \
+      --message="${name}'s default value is invalid: ${default_value}." \
+      func::cast default_value "${type}"
   if func::isset "__IMOSH_FLAGS_TYPE_${name}"; then
     LOG FATAL "already defined flag: ${name}"
   fi
