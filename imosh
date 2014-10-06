@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-10-06 04:16:30 +0900 (2ac37af)'
+IMOSH_VERSION='2014-10-06 04:20:04 +0900 (1eb1cbb)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -1286,6 +1286,10 @@ LOG() {
       "${file}:${BASH_LINENO[0]}]"
       "$@")
   message="$(echo "${message[@]}")"
+  if ! func::isset FLAGS_stacktrace_threshold || \
+     [ "${FLAGS_stacktrace_threshold}" = '' ]; then
+    FLAGS_stacktrace_threshold='ERROR'
+  fi
   if [ "$(imosh::internal::loglevel "${level}")" -ge \
        "$(imosh::internal::loglevel "${FLAGS_stacktrace_threshold}")" ]; then
     message+=$'\n'
@@ -1333,7 +1337,7 @@ LOG() {
         echo "${message}" >&103
         echo "${message}" >&104
       fi
-      imosh::quiet_die 1
+      func::exit 1
       ;;
   esac
 }
