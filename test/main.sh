@@ -58,14 +58,19 @@ while read line; do
   echo "${IMOSH_COLOR_GREEN}[ RUN      ]${IMOSH_STYLE_DEFAULT} ${function}" >&2
   { time -p {
     export TMPDIR="${IMOSH_TMPDIR}"
-    testing::run "${function}" 2>&3 &
+    testing::run "${function}" 2>&3 105>&2 &
     wait $!
-  } } 2>"${IMOSH_TMPDIR}/time" &
+  } } 2>"${IMOSH_TMPDIR}/time" \
+      1>"${IMOSH_TMPDIR}/stdout" \
+      3>"${IMOSH_TMPDIR}/stderr" &
   if wait $!; then
+    cat "${IMOSH_TMPDIR}/stderr" >&2
     time="($(echo $(cat "${IMOSH_TMPDIR}/time")))"
     echo "${IMOSH_COLOR_GREEN}[       OK ]${IMOSH_STYLE_DEFAULT}" \
          "${function} ${time}" >&2
   else
+    cat "${IMOSH_TMPDIR}/stdout"
+    cat "${IMOSH_TMPDIR}/stderr" >&2
     time="($(echo $(cat "${IMOSH_TMPDIR}/time")))"
     echo "${IMOSH_COLOR_RED}[  FAILED  ]${IMOSH_STYLE_DEFAULT}" \
          "${function} ${time}" >&2
