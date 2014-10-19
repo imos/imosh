@@ -1,9 +1,14 @@
 run_test_case() {
+  local type="$1"
   local variable=()
   
   variable=("${INPUT[@]}")
   func::array_map variable "$@"
-  EXPECT_EQ "${EXPECTED}" "$(func::implode $'\n' variable)"
+  if [ "${type}" = 'COMMAND' ]; then
+    EXPECT_EQ "${EXPECTED}" "$(func::implode $'' variable)"
+  else
+    EXPECT_EQ "${EXPECTED}" "$(func::implode $'\n' variable)"
+  fi
 
   variable=("${INPUT[@]}")
   local actual="$(
@@ -16,50 +21,22 @@ test::func_array_map() {
   local variable=()
 
   # Test for array functions (e.g. func::sort).
-  variable=('def,abc,ghi' '1,3,2,5,4')
-  IFS=',' func::array_map variable ARRAY func::sort
-  EXPECT_EQ $'abc,def,ghi\n1,2,3,4,5' "$(func::implode $'\n' variable)"
+  INPUT=('def,abc,ghi' '1,3,2,5,4')
+  EXPECTED=$'abc,def,ghi\n1,2,3,4,5'
+  IFS=',' run_test_case ARRAY func::sort
 
   # Test for regular functions (e.g. func::bin2hex).
-  variable=('a,b,c' '1 2 3')
-  func::array_map variable FUNCTION func::bin2hex
-  EXPECT_EQ $'612c622c63\n3120322033' "$(func::implode $'\n' variable)"
+  INPUT=('a,b,c' '1 2 3')
+  EXPECTED=$'612c622c63\n3120322033'
+  run_test_case FUNCTION func::bin2hex
 
   # Test for inplace functions (e.g. func::str_replace).
-  variable=('abcbd' 'bcdbcb')
-  func::array_map variable INPLACE func::str_replace 'bc' 'BC'
-  EXPECT_EQ $'aBCbd\nBCdBCb' "$(func::implode $'\n' variable)"
+  INPUT=('abcbd' 'bcdbcb')
+  EXPECTED=$'aBCbd\nBCdBCb'
+  run_test_case INPLACE func::str_replace 'bc' 'BC'
 
   # Test for command functions (e.g. sub::strtoupper).
-  variable=('abcbd' 'bcdbcb')
-  func::array_map variable COMMAND sub::strtoupper
-  EXPECT_EQ $'ABCBD\nBCDBCB' "$(func::implode $'' variable)"
-}
-
-test::stream_array_map() {
-  local actual=''
-
-  # Test for array functions (e.g. func::sort).
-  actual="$(
-      func::print $'def,abc,ghi\n1,3,2,5,4' |
-      IFS=',' stream::array_map ARRAY func::sort)"
-  EXPECT_EQ $'abc,def,ghi\n1,2,3,4,5' "${actual}"
-
-  # Test for regular functions (e.g. func::bin2hex).
-  actual="$(
-      func::print $'a,b,c\n1 2 3' |
-      stream::array_map FUNCTION func::bin2hex)"
-  EXPECT_EQ $'612c622c63\n3120322033' "${actual}"
-
-  # Test for inplace functions (e.g. func::str_replace).
-  actual="$(
-      func::print $'abcbd\nbcdbcb' |
-      stream::array_map INPLACE func::str_replace 'bc' 'BC')"
-  EXPECT_EQ $'aBCbd\nBCdBCb' "${actual}"
-
-  # Test for command functions (e.g. sub::strtoupper).
-  actual="$(
-      func::print $'abcbd\nbcdbcb' |
-      stream::array_map COMMAND sub::strtoupper)"
-  EXPECT_EQ $'ABCBD\nBCDBCB' "${actual}"
+  INPUT=('abcbd' 'bcdbcb')
+  EXPECTED=$'ABCBD\nBCDBCB'
+  run_test_case COMMAND sub::strtoupper
 }
