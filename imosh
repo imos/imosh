@@ -15,6 +15,45 @@ if ! shopt login_shell >/dev/null; then
   fi
 fi
 
+# array -- Creates an array.
+#
+# array creates an array from a string with IFS separators.
+#
+# Usage:
+#     // 1. Function form
+#     void func::array(string[]* result, string input)
+func::array() {
+  if [ "$#" -eq 2 ]; then
+    local __array_ifs="${IFS}"
+    __array_ifs="${__array_ifs//'['/\[}"
+    __array_ifs="${__array_ifs//']'/\]}"
+    func::greg_split "${1}" "[${__array_ifs}]" "${2}"
+  else
+    LOG ERROR "Wrong number of arguments: $#"
+    return 1
+  fi
+}
+
+# array_keys -- Gets an array's keys.
+#
+# array_keys gets an array's keys.
+#
+# Usage:
+#     // 1. Function form
+#     void func::array_keys(string[]* output, string[]* input)
+func::array_keys() {
+  if [ "$#" -eq 2 ]; then
+    if eval "[ \"\${#${2}[*]}\" -eq 0 ]"; then
+      eval "${1}=()"
+    else
+      eval "${1}=(\"\${!${2}[@]}\")"
+    fi
+  else
+    LOG ERROR "Wrong number of arguments: $#"
+    return 1
+  fi
+}
+
 # array_map -- Applies a callback to elements.
 #
 # array_map applies a callback to every element.  stream::array_map applies a
@@ -23,6 +62,10 @@ fi
 # and command.
 #
 # Usage:
+#     // 1. Function form.
+#     void func::array_map(string[]* variable, string type,
+#                          string callback [, string arguments...])
+#     // 2. Stream form.
 #     void stream::array_map(
 #         string type, string callback [, string arguments...])
 #         < input > output
@@ -39,46 +82,100 @@ fi
 # - --command
 #     Reads every line as a string and applies a callback.  A callback should be
 #     a command format like: function(string input) > output.
-stream::array_map() {
-  if [ "$#" -ge 2 ]; then
+#
+# Examples:
+#     func::print $'def,abc,ghi\n1,3,2,5,4' | \
+#         IFS=',' stream::array_map --array func::sort
+#         # => abc,def,ghi\n1,2,3,4,5
+#
+#     func::print $'abcbd\nbcdbcb' | \
+#         stream::array_map --inplace func::str_replace 'bc' 'BC'
+#         # => aBCbd\nBCdBCb
+func::array_map() {
+  if [ "$#" -ge 3 ]; then
+    # Return if there are no elements in the variable.
+    if eval "[ \"\${#${1}[*]}\" -eq 0 ]"; then
+      return
+    fi
+
+    local __array_map_variable="$1"; shift
     local __array_map_type="$1"; shift
     local __array_map_callback="$1"; shift
 
+    local __array_map_keys=()
+    local __array_map_key=''
+    func::array_keys __array_map_keys "${__array_map_variable}"
     case "${__array_map_type}" in
-      '--array')
-        local LINE=() NEWLINE=''
-        while func::readarray; do
-          "${__array_map_callback}" LINE "$@"
-          if [ "${#LINE[*]}" -ne 0 ]; then
-            func::print "${LINE[*]}"
-          fi
-          func::print "${NEWLINE}"
+      'ARRAY')
+        local __array_map_value=''
+        local __array_map_array_value=()
+        for __array_map_key in "${__array_map_keys[@]}"; do
+          func::strcpy __array_map_value \
+                       "${__array_map_variable}[${__array_map_key}]"
+          func::array __array_map_array_value "${__array_map_value}"
+          "${__array_map_callback}" __array_map_array_value "$@"
+          func::let "${__array_map_variable}[${__array_map_key}]" \
+                    "${__array_map_array_value[*]}"
         done
         ;;
-      '--function')
-        local LINE='' NEWLINE=''
-        while func::readline; do
-          "${__array_map_callback}" LINE "${LINE}" "$@"
-          func::print "${LINE}${NEWLINE}"
+      'FUNCTION')
+        local __array_map_value=''
+        for __array_map_key in "${__array_map_keys[@]}"; do
+          func::strcpy __array_map_value \
+                       "${__array_map_variable}[${__array_map_key}]"
+          "${__array_map_callback}" \
+              "${__array_map_variable}[${__array_map_key}]" \
+              "${__array_map_value}" \
+              "$@"
         done
         ;;
-      '--inplace')
-        local LINE='' NEWLINE=''
-        while func::readline; do
-          "${__array_map_callback}" LINE "$@"
-          func::print "${LINE}${NEWLINE}"
+      'INPLACE')
+        local __array_map_value=''
+        for __array_map_key in "${__array_map_keys[@]}"; do
+          "${__array_map_callback}" \
+              "${__array_map_variable}[${__array_map_key}]" \
+              "$@"
         done
         ;;
-      '--command')
-        local LINE='' NEWLINE=''
-        while func::readline; do
-          "${__array_map_callback}" "${LINE}" "$@"
+      'COMMAND')
+        local __array_map_value=''
+        local __array_map_tmpfile=''
+        func::tmpfile __array_map_tmpfile
+        for __array_map_key in "${__array_map_keys[@]}"; do
+          func::strcpy __array_map_value \
+                       "${__array_map_variable}[${__array_map_key}]"
+          "${__array_map_callback}" \
+              "${__array_map_value}" \
+              "$@" > "${__array_map_tmpfile}"
+          func::file_get_contents \
+              "${__array_map_variable}[${__array_map_key}]" \
+              "${__array_map_tmpfile}"
         done
         ;;
       *)
         LOG ERROR "Unknown array_map type: ${__array_map_type}"
+        return 2
         ;;
     esac
+  else
+    LOG ERROR "Wrong number of arguments: $#"
+    return 1
+  fi
+}
+
+stream::array_map() {
+  if [ "$#" -ge 2 ]; then
+    local __array_map_type="$1"
+    local LINE='' NEWLINE=''
+    while func::readline; do
+      local __array_map_line=("${LINE}")
+      func::array_map __array_map_line "$@"
+      if [ "${__array_map_type}" = 'COMMAND' ]; then
+        func::print "${__array_map_line[0]}"
+      else
+        func::print "${__array_map_line[0]}${NEWLINE}"
+      fi
+    done
   else
     LOG ERROR "Wrong number of arguments: $#"
     return 1
@@ -126,7 +223,54 @@ func::array_unique() {
 
 stream::array_unique() {
   if [ "$#" -eq 0 ]; then
-    stream::array_map --array func::array_unique
+    stream::array_map ARRAY func::array_unique
+  else
+    LOG ERROR "Wrong number of arguments: $#"
+    return 1
+  fi
+}
+
+# array_values -- Copies elements from an array to an array.
+#
+# array_values copies elements in an array variable into an array variable.
+#
+# Usage:
+#     // 1. Function form
+#     void func::array_values(string[]* output, string[]* input)
+func::array_values() {
+  if [ "$#" -eq 2 ]; then
+    if eval "[ \"\${#${2}[*]}\" -eq 0 ]"; then
+      eval "${1}=()"
+    else
+      eval "${1}=(\"\${${2}[@]}\")"
+    fi
+  else
+    LOG ERROR "Wrong number of arguments: $#"
+    return 1
+  fi
+}
+
+# count -- Counts the number of elements.
+#
+# count counts the number of elements of an array.
+#
+# Usage:
+#     // 1. Function form
+#     void func::count(int* result, string[]* values)
+#     // 2. Command form
+#     void sub::count(string[]* values) > result
+func::count() {
+  if [ "$#" -eq 2 ]; then
+    func::strcpy "${1}" "#${2}[*]"
+  else
+    LOG ERROR "Wrong number of arguments: $#"
+    return 1
+  fi
+}
+
+sub::count() {
+  if [ "$#" -eq 1 ]; then
+    eval "func::println \"\${#${1}[*]}\""
   else
     LOG ERROR "Wrong number of arguments: $#"
     return 1
@@ -157,7 +301,7 @@ func::sort() {
 
 stream::sort() {
   if [ "$#" -eq 0 ]; then
-    stream::array_map --array func::sort
+    stream::array_map ARRAY func::sort
   else
     LOG ERROR "Wrong number of arguments: $#"
     return 1
@@ -294,7 +438,7 @@ sub::file_get_contents() {
 
 stream::file_get_contents() {
   if [ "$#" -eq 0 ]; then
-    stream::array_map --command cat
+    stream::array_map COMMAND cat
   else
     LOG ERROR "Wrong number of arguments: $#"
     return 1

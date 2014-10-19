@@ -22,7 +22,7 @@ func::sort() {
 
 stream::sort() {
   if [ "$#" -eq 0 ]; then
-    stream::array_map --array func::sort
+    stream::array_map ARRAY func::sort
   else
     LOG ERROR "Wrong number of arguments: $#"
     return 1
