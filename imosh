@@ -1,7 +1,7 @@
 #!/bin/bash
 # imos is a utility library for BASH.
 
-IMOSH_VERSION='2014-10-19 23:56:34 +0900 (fc4cb56)'
+IMOSH_VERSION='2014-10-20 00:23:36 +0900 (4a98178)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -2332,7 +2332,11 @@ readonly IMOSH_ROOT_PID="$$"
 # Variable not to output stack trace multiple times when exiting.
 __IMOSH_STACK_TRACED=0
 
-readonly UNAME="$(uname)"
+if func::isset UNAME; then
+  readonly UNAME="${UNAME}"
+else
+  readonly UNAME="$(uname)"
+fi
 
 __IMOSH_PROGRAM_NAME="${0##*/}"
 __IMOSH_HOSTNAME="$(hostname -s)"
