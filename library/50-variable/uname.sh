@@ -1,5 +1,3 @@
-if func::isset UNAME; then
-  readonly UNAME="${UNAME}"
-else
-  readonly UNAME="$(uname)"
+if ! func::isset UNAME; then
+  UNAME="$(uname)"
 fi
