@@ -50,7 +50,7 @@ sub::file_get_contents() {
 
 stream::file_get_contents() {
   if [ "$#" -eq 0 ]; then
-    stream::array_map --command cat
+    stream::array_map COMMAND cat
   else
     LOG ERROR "Wrong number of arguments: $#"
     return 1

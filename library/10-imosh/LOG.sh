@@ -56,7 +56,7 @@ LOG() {
   case "${level}" in
     INFO)
       if (( logtostderr || alsologtostderr )); then
-        echo "${message}" >&2
+        echo "${message}" >&105
       fi
       if (( ! logtostderr )); then
         echo "${message}" >&101
@@ -64,7 +64,7 @@ LOG() {
       ;;
     WARNING)
       if (( logtostderr || alsologtostderr )); then
-        echo "${message}" >&2
+        echo "${message}" >&105
       fi
       if (( ! logtostderr )); then
         echo "${message}" >&101
@@ -72,7 +72,7 @@ LOG() {
       fi
       ;;
     ERROR)
-      echo "${message}" >&2
+      echo "${message}" >&105
       if (( ! logtostderr )); then
         echo "${message}" >&101
         echo "${message}" >&102
@@ -80,7 +80,7 @@ LOG() {
       fi
       ;;
     FATAL)
-      echo "${message}" >&2
+      echo "${message}" >&105
       if (( ! logtostderr )); then
         echo "${message}" >&101
         echo "${message}" >&102

@@ -39,7 +39,7 @@ func::array_unique() {
 
 stream::array_unique() {
   if [ "$#" -eq 0 ]; then
-    stream::array_map --array func::array_unique
+    stream::array_map ARRAY func::array_unique
   else
     LOG ERROR "Wrong number of arguments: $#"
     return 1

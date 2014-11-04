@@ -1,1 +1,3 @@
-readonly UNAME="$(uname)"
+if ! func::isset UNAME; then
+  UNAME="$(uname)"
+fi
