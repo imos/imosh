@@ -56,17 +56,17 @@ process_usage() {
       func::trim title
       func::trim description
       if [ "${description}" = '' ]; then
-        func::println "* [${title}](${readme_link})" >> "${readme_toc_output}"
+        sub::println "* [${title}](${readme_link})" >> "${readme_toc_output}"
         lines[0]="# ${title}"
       else
-        func::println "* [${title}](${readme_link}) -- ${description}" \
+        sub::println "* [${title}](${readme_link}) -- ${description}" \
             >> "${readme_toc_output}"
         lines[0]="# ${title}"$'\n'"${title} -- ${description}"
       fi
       func::implode usage $'\n\n' lines
     fi
     if [ "${readme_output}" != '' ]; then
-      func::println "${usage}" >> "${readme_output}"
+      sub::println "${usage}" >> "${readme_output}"
     fi
   elif [ "$#" -eq 3 ]; then
     process_usage "$@" ''
@@ -115,7 +115,7 @@ show_readme() {
           local title="$(
               head -n 1 "${subdirectory}/README.md" | sed -e 's/#//')"
           func::trim title
-          func::println "* [${title}](doc/${subdirectory}.md)"
+          sub::println "* [${title}](doc/${subdirectory}.md)"
           echo '## Functions' >> "${toc_file}"
         else
           echo '# Functions' > "${toc_file}"
