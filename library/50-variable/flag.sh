@@ -13,6 +13,8 @@ readonly IMOSH_INIT='
     imosh::internal::init "$@"
     if [ "${#IMOSH_ARGV[@]}" -ne 0 ]; then
       set -- "${IMOSH_ARGV[@]}"
+    else
+      set --
     fi'
 
 __IMOSH_FLAGS=()
