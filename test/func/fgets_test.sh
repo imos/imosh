@@ -1,7 +1,7 @@
 test::func_fgets() {
   local variable=''
 
-  func::print $'abc\ndef\n' > "${TMPDIR}/test"
+  sub::print $'abc\ndef\n' > "${TMPDIR}/test"
   exec < "${TMPDIR}/test"
   EXPECT_TRUE func::fgets variable
   EXPECT_EQ $'abc\n' "${variable}"
@@ -10,7 +10,7 @@ test::func_fgets() {
   EXPECT_FALSE func::fgets variable
   EXPECT_EQ '' "${variable}"
 
-  func::print $'abc\ndef' > "${TMPDIR}/test"
+  sub::print $'abc\ndef' > "${TMPDIR}/test"
   exec < "${TMPDIR}/test"
   EXPECT_TRUE func::fgets variable
   EXPECT_EQ $'abc\n' "${variable}"
@@ -19,7 +19,7 @@ test::func_fgets() {
   EXPECT_FALSE func::fgets variable
   EXPECT_EQ '' "${variable}"
 
-  func::print $'abc\r\ndef\r\n' > "${TMPDIR}/test"
+  sub::print $'abc\r\ndef\r\n' > "${TMPDIR}/test"
   exec < "${TMPDIR}/test"
   EXPECT_TRUE func::fgets variable
   EXPECT_EQ $'abc\r\n' "${variable}"

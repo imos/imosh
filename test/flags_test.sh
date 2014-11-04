@@ -1,6 +1,6 @@
 get_flag() {
   if ! bash test/flags.sh "$@" 2>/dev/null; then
-    func::print invalid
+    sub::print invalid
   fi
 }
 

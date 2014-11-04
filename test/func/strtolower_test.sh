@@ -11,7 +11,7 @@ run_testcase() {
   EXPECT_EQ "${expected}" "$(sub::strtolower "${input}")"
 
   # 3. Stream form.
-  EXPECT_EQ "${expected}" "$(func::print "${input}" | stream::strtolower)"
+  EXPECT_EQ "${expected}" "$(sub::print "${input}" | stream::strtolower)"
 }
 
 test::func_strtolower() {

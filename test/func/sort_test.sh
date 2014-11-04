@@ -43,5 +43,5 @@ test::func_sort() {
 test::stream_sort() {
   EXPECT_EQ \
       $'a b c\nd e e f' \
-      "$(func::print $'c b a\nf\te\te\td\n' | stream::sort)"
+      "$(sub::print $'c b a\nf\te\te\td\n' | stream::sort)"
 }

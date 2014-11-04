@@ -2,7 +2,7 @@ test::func_readarray() {
   local variable=''
   local LINE=() NEWLINE=''
 
-  func::print $'abc\tdef\tghi\n' > "${TMPDIR}/test"
+  sub::print $'abc\tdef\tghi\n' > "${TMPDIR}/test"
   exec < "${TMPDIR}/test"
   IFS=$' \t\n' EXPECT_TRUE func::readarray
   func::implode variable ',' LINE
