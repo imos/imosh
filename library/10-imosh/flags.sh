@@ -8,7 +8,7 @@ imosh::internal::flag_type() {
   if [ "$#" -ne 1 ]; then
     LOG FATAL 'flag_type requires 1 arugument.'
   fi
-  eval "func::print \"\${__IMOSH_FLAGS_TYPE_${name}}\""
+  eval "sub::print \"\${__IMOSH_FLAGS_TYPE_${name}}\""
 }
 
 imosh::internal::define_flag() {
@@ -186,7 +186,7 @@ imosh::internal::help() {
       eval "echo \"    \${__IMOSH_FLAGS_DEFAULT_${flag_name}}\""
       eval "echo \"\${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\"" | \
           fold -s -w 70 | while IFS= read -r line; do
-        func::println "        ${line}"
+        sub::println "        ${line}"
       done
     done
   done

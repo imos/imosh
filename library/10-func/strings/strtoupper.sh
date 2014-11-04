@@ -52,7 +52,7 @@ sub::strtoupper() {
   if [ "$#" -eq 1 ]; then
     local value="$1"
     func::strtoupper value
-    func::println "${value}"
+    sub::println "${value}"
   else
     LOG ERROR "Wrong number of arguments: $#"
     return 1

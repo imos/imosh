@@ -38,7 +38,7 @@ func::implode() {
     local __implode_output=''
     # 1. Function form.
     func::implode __implode_output "$1" "$2"
-    func::println "${__implode_output}"
+    sub::println "${__implode_output}"
     return
   # 3. Stream form.
   elif [ "$#" -eq 1 ]; then

@@ -22,7 +22,7 @@ func::exit() {
     else
       local message="$1"
       func::rtrim message
-      func::println "${message}"
+      sub::println "${message}"
     fi
     imosh::exit "${status}"
   elif [ "$#" -eq 0 ]; then

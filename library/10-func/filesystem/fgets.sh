@@ -41,7 +41,7 @@ sub::fgets() {
     if ! func::fgets variable; then
       return 1
     fi
-    func::print "${variable}"
+    sub::print "${variable}"
   else
     LOG ERROR "Wrong number of arguments: $#"
     return 1

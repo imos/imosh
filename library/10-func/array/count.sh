@@ -18,7 +18,7 @@ func::count() {
 
 sub::count() {
   if [ "$#" -eq 1 ]; then
-    eval "func::println \"\${#${1}[*]}\""
+    eval "sub::println \"\${#${1}[*]}\""
   else
     LOG ERROR "Wrong number of arguments: $#"
     return 1

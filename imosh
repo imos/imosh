@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-05 02:07:27 +0900 (3f889dc)'
+IMOSH_VERSION='2014-11-05 02:18:33 +0900 (3152d29)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -90,11 +90,11 @@ func::array_keys() {
 #     func::array_map input INPLACE func::strtoupper
 #     echo "${input[@]}" # => ABC DEF 012
 #
-#     func::print $'def,abc,ghi\n1,3,2,5,4' | \
+#     sub::print $'def,abc,ghi\n1,3,2,5,4' | \
 #         IFS=',' stream::array_map ARRAY func::sort
 #         # => abc,def,ghi\n1,2,3,4,5
 #
-#     func::print $'abcbd\nbcdbcb' | \
+#     sub::print $'abcbd\nbcdbcb' | \
 #         stream::array_map INPLACE func::str_replace 'bc' 'BC'
 #         # => aBCbd\nBCdBCb
 func::array_map() {
@@ -177,9 +177,9 @@ stream::array_map() {
       local __array_map_line=("${LINE}")
       func::array_map __array_map_line "$@"
       if [ "${__array_map_type}" = 'COMMAND' ]; then
-        func::print "${__array_map_line[0]}"
+        sub::print "${__array_map_line[0]}"
       else
-        func::print "${__array_map_line[0]}${NEWLINE}"
+        sub::print "${__array_map_line[0]}${NEWLINE}"
       fi
     done
   else
@@ -276,7 +276,7 @@ func::count() {
 
 sub::count() {
   if [ "$#" -eq 1 ]; then
-    eval "func::println \"\${#${1}[*]}\""
+    eval "sub::println \"\${#${1}[*]}\""
   else
     LOG ERROR "Wrong number of arguments: $#"
     return 1
@@ -385,7 +385,7 @@ sub::fgets() {
     if ! func::fgets variable; then
       return 1
     fi
-    func::print "${variable}"
+    sub::print "${variable}"
   else
     LOG ERROR "Wrong number of arguments: $#"
     return 1
@@ -408,15 +408,15 @@ sub::fgets() {
 #     stream::file_get_contents() < input > output
 #
 # Examples:
-#     func::print hello > "${TMPDIR}/foo"
+#     sub::print hello > "${TMPDIR}/foo"
 #     func::file_get_contents variable "${TMPDIR}/foo"
 #     echo "${variable}"  # => hello
 #
-#     func::print hello > "${TMPDIR}/foo"
+#     sub::print hello > "${TMPDIR}/foo"
 #     sub::file_get_contents "${TMPDIR}/foo"  # => hello
 #
-#     func::print hello > "${TMPDIR}/foo"
-#     func::print world > "${TMPDIR}/bar"
+#     sub::print hello > "${TMPDIR}/foo"
+#     sub::print world > "${TMPDIR}/bar"
 #     { echo "${TMPDIR}/foo"; echo "${TMPDIR}/bar"; } | \
 #         stream::file_get_contents  # => helloworld
 func::file_get_contents() {
@@ -532,7 +532,7 @@ sub::tmpfile() {
   if [ "$#" -eq 0 ]; then
     local tmpfile=''
     func::tmpfile tmpfile
-    func::println "${tmpfile}"
+    sub::println "${tmpfile}"
   else
     LOG ERROR "Wrong number of arguments: $#"
     return 1
@@ -742,7 +742,7 @@ func::exit() {
     else
       local message="$1"
       func::rtrim message
-      func::println "${message}"
+      sub::println "${message}"
     fi
     imosh::exit "${status}"
   elif [ "$#" -eq 0 ]; then
@@ -824,7 +824,7 @@ func::bin2hex() {
   local __bin2hex_destination="$1"
   local __bin2hex_data="$2"
 
-  eval "${__bin2hex_destination}=\"\$(func::print \"${__bin2hex_data}\" | func::bin2hex)\""
+  eval "${__bin2hex_destination}=\"\$(sub::print \"${__bin2hex_data}\" | func::bin2hex)\""
 }
 
 # escapeshellarg -- Escapes a variable as a shell argument.
@@ -942,7 +942,7 @@ func::implode() {
     local __implode_output=''
     # 1. Function form.
     func::implode __implode_output "$1" "$2"
-    func::println "${__implode_output}"
+    sub::println "${__implode_output}"
     return
   # 3. Stream form.
   elif [ "$#" -eq 1 ]; then
@@ -993,7 +993,7 @@ func::md5() {
   if [ "$#" -eq 0 ]; then
     openssl md5 -binary | func::bin2hex
   elif [ "$#" -eq 1 ]; then
-    func::print "${1}" | func::md5
+    sub::print "${1}" | func::md5
   elif [ "$#" -eq 2 ]; then
     local __md5_variable="$1"
     local __md5_data="$2"
@@ -1081,7 +1081,7 @@ sub::rtrim() {
   if [ "$#" -eq 1 ]; then
     local __rtrim_value="$1"
     func::rtrim __rtrim_value
-    func::println "${__rtrim_value}"
+    sub::println "${__rtrim_value}"
   else
     LOG ERROR "Wrong number of arguments: $#"
     return 1
@@ -1093,7 +1093,7 @@ stream::rtrim() {
     local LINE='' NEWLINE=''
     while func::readline; do
       func::rtrim LINE
-      func::print "${LINE}${NEWLINE}"
+      sub::print "${LINE}${NEWLINE}"
     done
   else
     LOG ERROR "Wrong number of arguments: $#"
@@ -1186,7 +1186,7 @@ sub::strtolower() {
   if [ "$#" -eq 1 ]; then
     local value="$1"
     func::strtolower value
-    func::println "${value}"
+    sub::println "${value}"
   else
     LOG ERROR "Wrong number of arguments: $#"
     return 1
@@ -1256,7 +1256,7 @@ sub::strtoupper() {
   if [ "$#" -eq 1 ]; then
     local value="$1"
     func::strtoupper value
-    func::println "${value}"
+    sub::println "${value}"
   else
     LOG ERROR "Wrong number of arguments: $#"
     return 1
@@ -1563,7 +1563,7 @@ imosh::internal::log_file() {
   fi
   path+="${FLAGS_log_dir}/"
   path+="${__IMOSH_LOG_PREFIX}.${severity}.${__IMOSH_LOG_SUFFIX}"
-  func::print "${path}"
+  sub::print "${path}"
 }
 
 imosh::internal::init_log() {
@@ -1740,7 +1740,7 @@ imosh::internal::flag_type() {
   if [ "$#" -ne 1 ]; then
     LOG FATAL 'flag_type requires 1 arugument.'
   fi
-  eval "func::print \"\${__IMOSH_FLAGS_TYPE_${name}}\""
+  eval "sub::print \"\${__IMOSH_FLAGS_TYPE_${name}}\""
 }
 
 imosh::internal::define_flag() {
@@ -1918,7 +1918,7 @@ imosh::internal::help() {
       eval "echo \"    \${__IMOSH_FLAGS_DEFAULT_${flag_name}}\""
       eval "echo \"\${__IMOSH_FLAGS_DESCRIPTION_${flag_name}}\"" | \
           fold -s -w 70 | while IFS= read -r line; do
-        func::println "        ${line}"
+        sub::println "        ${line}"
       done
     done
   done
