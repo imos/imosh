@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-10-27 00:25:50 +0900 (8e9f85f)'
+IMOSH_VERSION='2014-11-05 02:07:27 +0900 (3f889dc)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -1014,27 +1014,39 @@ func::ord() {
   eval "${__ord_variable}=\"\${__ord_result}\""
 }
 
-# func::print -- Prints a message.
+# print -- Prints a message.
 #
 # Print message to the standard output.  While "echo" consumes flags,
-# func::print does not consume any flags, so this is theoretically safe.
+# print does not consume any flags, so this is theoretically safe.
 #
 # Usage:
+#     // DEPRECATED
 #     void func::print(string message...) > output
+#     // 1. Command form.
+#     void sub::print(string message...) > output
 func::print() {
   printf "%s" "$*"
 }
 
-# func::println -- Prints a message with a new line.
+sub::print() {
+  IFS=' ' eval 'printf "%s" "$*"'
+}
+# println -- Prints a message with a new line.
 #
 # Print message to the standard output with a new line.  While "echo" consumes
-# flags, func::println does not consume any flags, so this is theoretically
-# safe.
+# flags, println does not consume any flags, so this is theoretically safe.
 #
 # Usage:
+#     // DEPRECATED.
 #     void func::println(string message...) > output
+#     // 1. Command form.
+#     void sub::println(string message...) > output
 func::println() {
   printf "%s\n" "$*"
+}
+
+sub::println() {
+  IFS=' ' eval 'printf "%s\n" "$*"'
 }
 
 # func::rtrim -- Strips whitespace(s) from the end of a string.
