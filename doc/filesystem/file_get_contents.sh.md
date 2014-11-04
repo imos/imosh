@@ -19,21 +19,21 @@ stream::file_get_contents() < input > output
 
 ## Examples
 ```sh
-func::print hello > "${TMPDIR}/foo"
+sub::print hello > "${TMPDIR}/foo"
 func::file_get_contents variable "${TMPDIR}/foo"
 echo "${variable}"  # => hello
 ```
 
 
 ```sh
-func::print hello > "${TMPDIR}/foo"
+sub::print hello > "${TMPDIR}/foo"
 sub::file_get_contents "${TMPDIR}/foo"  # => hello
 ```
 
 
 ```sh
-func::print hello > "${TMPDIR}/foo"
-func::print world > "${TMPDIR}/bar"
+sub::print hello > "${TMPDIR}/foo"
+sub::print world > "${TMPDIR}/bar"
 { echo "${TMPDIR}/foo"; echo "${TMPDIR}/bar"; } | \
     stream::file_get_contents  # => helloworld
 ```

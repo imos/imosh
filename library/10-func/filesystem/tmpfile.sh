@@ -22,7 +22,7 @@ sub::tmpfile() {
   if [ "$#" -eq 0 ]; then
     local tmpfile=''
     func::tmpfile tmpfile
-    func::println "${tmpfile}"
+    sub::println "${tmpfile}"
   else
     LOG ERROR "Wrong number of arguments: $#"
     return 1

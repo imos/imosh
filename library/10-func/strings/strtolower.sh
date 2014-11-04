@@ -53,7 +53,7 @@ sub::strtolower() {
   if [ "$#" -eq 1 ]; then
     local value="$1"
     func::strtolower value
-    func::println "${value}"
+    sub::println "${value}"
   else
     LOG ERROR "Wrong number of arguments: $#"
     return 1

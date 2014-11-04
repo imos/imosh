@@ -32,11 +32,11 @@
 #     func::array_map input INPLACE func::strtoupper
 #     echo "${input[@]}" # => ABC DEF 012
 #
-#     func::print $'def,abc,ghi\n1,3,2,5,4' | \
+#     sub::print $'def,abc,ghi\n1,3,2,5,4' | \
 #         IFS=',' stream::array_map ARRAY func::sort
 #         # => abc,def,ghi\n1,2,3,4,5
 #
-#     func::print $'abcbd\nbcdbcb' | \
+#     sub::print $'abcbd\nbcdbcb' | \
 #         stream::array_map INPLACE func::str_replace 'bc' 'BC'
 #         # => aBCbd\nBCdBCb
 func::array_map() {
@@ -119,9 +119,9 @@ stream::array_map() {
       local __array_map_line=("${LINE}")
       func::array_map __array_map_line "$@"
       if [ "${__array_map_type}" = 'COMMAND' ]; then
-        func::print "${__array_map_line[0]}"
+        sub::print "${__array_map_line[0]}"
       else
-        func::print "${__array_map_line[0]}${NEWLINE}"
+        sub::print "${__array_map_line[0]}${NEWLINE}"
       fi
     done
   else

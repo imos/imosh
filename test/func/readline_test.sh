@@ -2,7 +2,7 @@ test::func_readline() {
   local variable=''
   local LINE='' NEWLINE=''
 
-  func::print $'abc\ndef\n' > "${TMPDIR}/test"
+  sub::print $'abc\ndef\n' > "${TMPDIR}/test"
   exec < "${TMPDIR}/test"
   EXPECT_TRUE func::readline
   EXPECT_EQ 'abc' "${LINE}"
@@ -14,7 +14,7 @@ test::func_readline() {
   EXPECT_EQ '' "${LINE}"
   EXPECT_EQ '' "${NEWLINE}"
 
-  func::print $'abc\n\ndef' > "${TMPDIR}/test"
+  sub::print $'abc\n\ndef' > "${TMPDIR}/test"
   exec < "${TMPDIR}/test"
   EXPECT_TRUE func::readline
   EXPECT_EQ 'abc' "${LINE}"
@@ -29,7 +29,7 @@ test::func_readline() {
   EXPECT_EQ '' "${LINE}"
   EXPECT_EQ '' "${NEWLINE}"
 
-  func::print $'abc\r\n\r\ndef\r\n' > "${TMPDIR}/test"
+  sub::print $'abc\r\n\r\ndef\r\n' > "${TMPDIR}/test"
   exec < "${TMPDIR}/test"
   EXPECT_TRUE func::readline
   EXPECT_EQ 'abc' "${LINE}"

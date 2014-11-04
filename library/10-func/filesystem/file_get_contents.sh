@@ -14,15 +14,15 @@
 #     stream::file_get_contents() < input > output
 #
 # Examples:
-#     func::print hello > "${TMPDIR}/foo"
+#     sub::print hello > "${TMPDIR}/foo"
 #     func::file_get_contents variable "${TMPDIR}/foo"
 #     echo "${variable}"  # => hello
 #
-#     func::print hello > "${TMPDIR}/foo"
+#     sub::print hello > "${TMPDIR}/foo"
 #     sub::file_get_contents "${TMPDIR}/foo"  # => hello
 #
-#     func::print hello > "${TMPDIR}/foo"
-#     func::print world > "${TMPDIR}/bar"
+#     sub::print hello > "${TMPDIR}/foo"
+#     sub::print world > "${TMPDIR}/bar"
 #     { echo "${TMPDIR}/foo"; echo "${TMPDIR}/bar"; } | \
 #         stream::file_get_contents  # => helloworld
 func::file_get_contents() {

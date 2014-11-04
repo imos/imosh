@@ -20,5 +20,5 @@ func::bin2hex() {
   local __bin2hex_destination="$1"
   local __bin2hex_data="$2"
 
-  eval "${__bin2hex_destination}=\"\$(func::print \"${__bin2hex_data}\" | func::bin2hex)\""
+  eval "${__bin2hex_destination}=\"\$(sub::print \"${__bin2hex_data}\" | func::bin2hex)\""
 }

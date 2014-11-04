@@ -11,7 +11,7 @@ run_testcase() {
   EXPECT_EQ "${expected}" "$(sub::strtoupper "${input}")"
 
   # 3. Stream form.
-  EXPECT_EQ "${expected}" "$(func::print "${input}" | stream::strtoupper)"
+  EXPECT_EQ "${expected}" "$(sub::print "${input}" | stream::strtoupper)"
 }
 
 test::func_strtouppper() {

@@ -40,14 +40,14 @@ echo "${input[@]}" # => ABC DEF 012
 
 
 ```sh
-func::print $'def,abc,ghi\n1,3,2,5,4' | \
+sub::print $'def,abc,ghi\n1,3,2,5,4' | \
     IFS=',' stream::array_map ARRAY func::sort
     # => abc,def,ghi\n1,2,3,4,5
 ```
 
 
 ```sh
-func::print $'abcbd\nbcdbcb' | \
+sub::print $'abcbd\nbcdbcb' | \
     stream::array_map INPLACE func::str_replace 'bc' 'BC'
     # => aBCbd\nBCdBCb
 ```
