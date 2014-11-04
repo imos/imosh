@@ -1,7 +1,9 @@
 #!/bin/bash
-# imos is a utility library for BASH.
+# imosh is a utility library for BASH.
+#
+# For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-10-20 00:23:36 +0900 (4a98178)'
+IMOSH_VERSION='2014-10-27 00:25:50 +0900 (8e9f85f)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -2321,6 +2323,8 @@ readonly IMOSH_INIT='
     imosh::internal::init "$@"
     if [ "${#IMOSH_ARGV[@]}" -ne 0 ]; then
       set -- "${IMOSH_ARGV[@]}"
+    else
+      set --
     fi'
 
 __IMOSH_FLAGS=()
@@ -2332,10 +2336,8 @@ readonly IMOSH_ROOT_PID="$$"
 # Variable not to output stack trace multiple times when exiting.
 __IMOSH_STACK_TRACED=0
 
-if func::isset UNAME; then
-  readonly UNAME="${UNAME}"
-else
-  readonly UNAME="$(uname)"
+if ! func::isset UNAME; then
+  UNAME="$(uname)"
 fi
 
 __IMOSH_PROGRAM_NAME="${0##*/}"

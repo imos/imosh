@@ -1,6 +1,8 @@
 concat:
 	@echo '#!/bin/bash' >imosh
-	@echo '# imos is a utility library for BASH.' >>imosh
+	@echo '# imosh is a utility library for BASH.' >>imosh
+	@echo '#' >>imosh
+	@echo '# For more details, see https://github.com/imos/imosh' >>imosh
 	@echo '' >>imosh
 	@echo "IMOSH_VERSION='$$(git log --pretty=format:'%ci (%h)' library | head -n 1)'" >>imosh
 	@echo '' >>imosh
