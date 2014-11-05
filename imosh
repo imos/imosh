@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-05 02:18:33 +0900 (3152d29)'
+IMOSH_VERSION='2014-11-05 02:35:22 +0900 (cd6733b)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -2359,8 +2359,9 @@ __IMOSH_LOG_PREFIX="${__IMOSH_PROGRAM_NAME}.${__IMOSH_HOSTNAME}.${__IMOSH_USER}"
 __IMOSH_LOG_SUFFIX="$(date +'%Y%m%d.%H%M%S').$$"
 
 __imosh::error_handler() {
+  local exit_code="$?"
   __IMOSH_STACK_TRACED=1
-  imosh::stack_trace "error status: $?"
+  imosh::stack_trace "error status: ${exit_code}"
 }
 
 trap '__imosh::error_handler' ERR
