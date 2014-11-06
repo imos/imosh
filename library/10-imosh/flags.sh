@@ -81,6 +81,11 @@ DEFINE_string() { imosh::internal::define_flag string "$@"; }
 DEFINE_int() { imosh::internal::define_flag int "$@"; }
 DEFINE_bool() { imosh::internal::define_flag bool "$@"; }
 DEFINE_double() { imosh::internal::define_flag double "$@"; }
+DEFINE_multistring() { imosh::internal::define_flag multistring "$@"; }
+DEFINE_multiint() { imosh::internal::define_flag multiint "$@"; }
+DEFINE_multibool() { imosh::internal::define_flag multibool "$@"; }
+DEFINE_multidouble() { imosh::internal::define_flag multidouble "$@"; }
+DEFINE_list() { DEFINE_multistring "${@}"; }
 
 imosh::internal::get_main_script() {
   local depth="${#BASH_SOURCE[@]}"

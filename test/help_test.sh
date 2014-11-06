@@ -16,6 +16,10 @@ OPTIONS:
         Flag name to show.
     --int=100
         Integer flag.
+    --list='a,b,c'
+        Multiple strings flag.
+    --multiint='1,10,100'
+        Multiple integers flag.
     --show_argv=false
         Output extra argv.
     --string='default'
@@ -57,6 +61,14 @@ Flag name to show.
 Integer flag.
 
 .TP
+\fB--list='\''a,b,c'\''\fP
+Multiple strings flag.
+
+.TP
+\fB--multiint='\''1,10,100'\''\fP
+Multiple integers flag.
+
+.TP
 \fB--show_argv=false\fP
 Output extra argv.
 
@@ -77,6 +89,10 @@ test::help_markdown() {
     * Flag name to show.
 * --int=100
     * Integer flag.
+* --list='\''a,b,c'\''
+    * Multiple strings flag.
+* --multiint='\''1,10,100'\''
+    * Multiple integers flag.
 * --show_argv=false
     * Output extra argv.
 * --string='\''default'\''

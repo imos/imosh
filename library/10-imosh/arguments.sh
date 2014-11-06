@@ -65,7 +65,7 @@ imosh::internal::parse_args() {
         local type="$(imosh::internal::flag_type "${arg_name}")"
         if [ "${type:0:5}" = 'multi' ]; then
           # TODO(imos): Support delimiter.
-          func::explode arg_value ':' "${arg_value}"
+          func::explode arg_value ',' "${arg_value}"
         fi
         CHECK \
             --message="${upper_class_name}S_${arg_name} is invalid: ${arg_value}" \
