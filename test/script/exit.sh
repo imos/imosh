@@ -21,10 +21,10 @@ f() {
     func::exit "${FLAGS_status}"
     exit
   fi
-  sleep 3
+  sleep 5
   echo failure
 }
 
 f "${FLAGS_depth}" 1 &
-sleep 3
+sleep 5
 exit 1

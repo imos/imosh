@@ -22,6 +22,7 @@ imosh::internal::define_flag() {
   fi
   local name="$1"; shift
   local default_value="$1"; shift
+  local original_default_value="${default_value}"
   local description="$*"
   local group="${ARGS_group}"
   func::strtoupper group
@@ -30,17 +31,24 @@ imosh::internal::define_flag() {
   if func::isset "IMOSH_FLAGS_${name}"; then
     func::strcpy default_value "IMOSH_FLAGS_${name}"
   fi
+  if [ "${type:0:5}" = 'multi' ]; then
+    func::explode default_value ',' "${default_value}"
+  fi
   CHECK \
-      --message="${name}'s default value is invalid: ${default_value}." \
+      --message="${name}'s default value is invalid: ${original_default_value}." \
       func::cast default_value "${type}"
   if func::isset "__IMOSH_FLAGS_TYPE_${name}"; then
     LOG FATAL "already defined flag: ${name}"
   fi
-  func::strcpy "FLAGS_${name}" 'default_value'
+  if [ "${type:0:5}" = 'multi' ]; then
+    func::array_values "FLAGS_${name}" 'default_value'
+  else
+    func::strcpy "FLAGS_${name}" 'default_value'
+  fi
   func::strcpy "__IMOSH_FLAGS_TYPE_${name}" 'type'
   if [ "${ARGS_alias}" != '' ]; then
     imosh::internal::define_flag "${type}" --alias_flag \
-        "${ARGS_alias}" "${default_value}" "${description}"
+        "${ARGS_alias}" "${original_default_value}" "${description}"
     __IMOSH_FLAGS_ALIASES+=("${name}:${ARGS_alias}")
   fi
   if (( ! ARGS_alias_flag )); then
@@ -55,7 +63,7 @@ imosh::internal::define_flag() {
         fi
         ;;
       *)
-        escaped_default_value="${default_value}"
+        escaped_default_value="${original_default_value}"
         func::escapeshellarg escaped_default_value
         ;;
     esac

@@ -518,24 +518,22 @@ func::readline() {
 #     // 2. Command form.
 #     void sub::tmpfile() > path
 func::tmpfile() {
-  if [ "$#" -eq 1 ]; then
-    local __tmpfile_variable="$1"
+  if [ "${#}" -eq 1 ]; then
+    local __tmpfile_variable="${1}"
     func::let "${__tmpfile_variable}" \
         "${TMPDIR}/tmpfile.${RANDOM}.${RANDOM}.${RANDOM}.${RANDOM}.${RANDOM}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
 sub::tmpfile() {
-  if [ "$#" -eq 0 ]; then
+  if [ "${#}" -eq 0 ]; then
     local tmpfile=''
     func::tmpfile tmpfile
     sub::println "${tmpfile}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -1333,10 +1331,26 @@ func::boolval() {
 # Usage:
 #     bool func::cast(variant* variable, string type)
 func::cast() {
-  local __cast_variable="$1"
-  local __cast_type="$2"
+  local __cast_variable="${1}"
+  local __cast_type="${2}"
 
   case "${__cast_type}" in
+    multi*)
+      local __cast_values=()
+      local __cast_element_type="${__cast_type:5}"
+      func::array_values __cast_values "${__cast_variable}"
+      if [ "${#__cast_values[*]}" -ne 0 ]; then
+        local __cast_index=0
+        for __cast_index in "${!__cast_values[@]}"; do
+          local __cast_value="${__cast_values[${__cast_index}]}"
+          if ! func::cast __cast_value "${__cast_element_type}"; then
+            return 1
+          fi
+          __cast_values["${__cast_index}"]="${__cast_value}"
+        done
+      fi
+      func::array_values "${__cast_variable}" __cast_values
+      ;;
     int)     if ! func::intval "${__cast_variable}"; then return 1; fi;;
     float)   if ! func::floatval "${__cast_variable}"; then return 1; fi;;
     string)  if ! func::strval "${__cast_variable}"; then return 1; fi;;
@@ -1347,8 +1361,8 @@ func::cast() {
 }
 
 func::cast_or_die() {
-  if ! func::cast "$@"; then
-    IFS=' ' eval 'LOG FATAL "Type mismatch: $*"'
+  if ! func::cast "${@}"; then
+    IFS=' ' eval 'LOG FATAL "Type mismatch: ${*}"'
   fi
 }
 
@@ -1647,11 +1661,24 @@ imosh::internal::parse_args() {
     if func::isset "${upper_class_name}S_${arg_name}"; then
       if [ "${class_name}" = 'flag' ]; then
         local original_value="${arg_value}"
+        local type="$(imosh::internal::flag_type "${arg_name}")"
+        if [ "${type:0:5}" = 'multi' ]; then
+          # TODO(imos): Support delimiter.
+          func::explode arg_value ':' "${arg_value}"
+        fi
         CHECK \
             --message="${upper_class_name}S_${arg_name} is invalid: ${arg_value}" \
             func::cast arg_value "$(imosh::internal::flag_type "${arg_name}")"
+        if [ "${type:0:5}" = 'multi' ]; then
+          # Set values here.  FLAGS_* are global variables, and this does not
+          # cause scope issues.
+          func::array_values "${upper_class_name}S_${arg_name}" arg_value
+        else
+          IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value}")
+        fi
+      else
+        IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value}")
       fi
-      IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value}")
       continue
     fi
     LOG FATAL "no such ${class_name} is defined:" \
@@ -1754,6 +1781,7 @@ imosh::internal::define_flag() {
   fi
   local name="$1"; shift
   local default_value="$1"; shift
+  local original_default_value="${default_value}"
   local description="$*"
   local group="${ARGS_group}"
   func::strtoupper group
@@ -1762,17 +1790,24 @@ imosh::internal::define_flag() {
   if func::isset "IMOSH_FLAGS_${name}"; then
     func::strcpy default_value "IMOSH_FLAGS_${name}"
   fi
+  if [ "${type:0:5}" = 'multi' ]; then
+    func::explode default_value ',' "${default_value}"
+  fi
   CHECK \
-      --message="${name}'s default value is invalid: ${default_value}." \
+      --message="${name}'s default value is invalid: ${original_default_value}." \
       func::cast default_value "${type}"
   if func::isset "__IMOSH_FLAGS_TYPE_${name}"; then
     LOG FATAL "already defined flag: ${name}"
   fi
-  func::strcpy "FLAGS_${name}" 'default_value'
+  if [ "${type:0:5}" = 'multi' ]; then
+    func::array_values "FLAGS_${name}" 'default_value'
+  else
+    func::strcpy "FLAGS_${name}" 'default_value'
+  fi
   func::strcpy "__IMOSH_FLAGS_TYPE_${name}" 'type'
   if [ "${ARGS_alias}" != '' ]; then
     imosh::internal::define_flag "${type}" --alias_flag \
-        "${ARGS_alias}" "${default_value}" "${description}"
+        "${ARGS_alias}" "${original_default_value}" "${description}"
     __IMOSH_FLAGS_ALIASES+=("${name}:${ARGS_alias}")
   fi
   if (( ! ARGS_alias_flag )); then
@@ -1787,7 +1822,7 @@ imosh::internal::define_flag() {
         fi
         ;;
       *)
-        escaped_default_value="${default_value}"
+        escaped_default_value="${original_default_value}"
         func::escapeshellarg escaped_default_value
         ;;
     esac
@@ -2322,7 +2357,7 @@ readonly IMOSH_COLOR_WHITE=$'\033[0;37m'
 
 readonly IMOSH_PARSE_ARGUMENTS='
     local IMOSH_ARGV IMOSH_ARGS
-    imosh::internal::parse_args arg "$@"
+    imosh::internal::parse_args arg "${@}"
     if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
       readonly "${IMOSH_ARGS[@]}"
     fi
@@ -2330,9 +2365,13 @@ readonly IMOSH_PARSE_ARGUMENTS='
       set -- "${IMOSH_ARGV[@]}"
     fi'
 
+readonly IMOSH_WRONG_NUMBER_OF_ARGUMENTS='
+    LOG ERROR "Wrong number of arguments: ${#}"
+    return 1'
+
 readonly IMOSH_INIT='
     set -e -u
-    imosh::internal::init "$@"
+    imosh::internal::init "${@}"
     if [ "${#IMOSH_ARGV[@]}" -ne 0 ]; then
       set -- "${IMOSH_ARGV[@]}"
     else

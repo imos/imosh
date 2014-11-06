@@ -62,11 +62,24 @@ imosh::internal::parse_args() {
     if func::isset "${upper_class_name}S_${arg_name}"; then
       if [ "${class_name}" = 'flag' ]; then
         local original_value="${arg_value}"
+        local type="$(imosh::internal::flag_type "${arg_name}")"
+        if [ "${type:0:5}" = 'multi' ]; then
+          # TODO(imos): Support delimiter.
+          func::explode arg_value ':' "${arg_value}"
+        fi
         CHECK \
             --message="${upper_class_name}S_${arg_name} is invalid: ${arg_value}" \
             func::cast arg_value "$(imosh::internal::flag_type "${arg_name}")"
+        if [ "${type:0:5}" = 'multi' ]; then
+          # Set values here.  FLAGS_* are global variables, and this does not
+          # cause scope issues.
+          func::array_values "${upper_class_name}S_${arg_name}" arg_value
+        else
+          IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value}")
+        fi
+      else
+        IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value}")
       fi
-      IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value}")
       continue
     fi
     LOG FATAL "no such ${class_name} is defined:" \

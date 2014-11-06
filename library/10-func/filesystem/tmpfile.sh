@@ -8,23 +8,21 @@
 #     // 2. Command form.
 #     void sub::tmpfile() > path
 func::tmpfile() {
-  if [ "$#" -eq 1 ]; then
-    local __tmpfile_variable="$1"
+  if [ "${#}" -eq 1 ]; then
+    local __tmpfile_variable="${1}"
     func::let "${__tmpfile_variable}" \
         "${TMPDIR}/tmpfile.${RANDOM}.${RANDOM}.${RANDOM}.${RANDOM}.${RANDOM}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
 sub::tmpfile() {
-  if [ "$#" -eq 0 ]; then
+  if [ "${#}" -eq 0 ]; then
     local tmpfile=''
     func::tmpfile tmpfile
     sub::println "${tmpfile}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
