@@ -11,6 +11,7 @@ processes line by line.
 void func::implode(string* variable, string glue, string[]* pieces)
 // 2. Command form.
 void sub::implode(string glue, string[]* pieces) > result
+void sub::implode(string[]* pieces) > result
 // 3. Stream form.
 void stream::implode(string glue) < input > output
 ```

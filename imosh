@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-07 06:04:17 +0900 (6ace594)'
+IMOSH_VERSION='2014-11-08 03:18:46 +0900 (bdb7242)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -61,11 +61,12 @@ sub::array_keys() {
   if [ "$#" -eq 1 ]; then
     local __array_keys_values=()
     func::array_keys __array_keys_values "${1}"
-    sub::println "${__array_keys_values[*]}"
+    sub::implode __array_keys_values
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
+
 # array_map -- Applies a callback to elements.
 #
 # array_map applies a callback to every element.  stream::array_map applies a
@@ -921,6 +922,7 @@ __func::hex2bin() {
 #     void func::implode(string* variable, string glue, string[]* pieces)
 #     // 2. Command form.
 #     void sub::implode(string glue, string[]* pieces) > result
+#     void sub::implode(string[]* pieces) > result
 #     // 3. Stream form.
 #     void stream::implode(string glue) < input > output
 #
@@ -933,8 +935,7 @@ func::implode() {
     local __implode_variable="${1}"
     local __implode_glue="${2}"
     local __implode_pieces=()
-    eval "local __implode_pieces=(\"\${${3}[@]}\")"
-
+    func::array_values __implode_pieces "${3}"
     local __implode_size="${#__implode_pieces[@]}"
     local __implode_i=0
     local __implode_result=''
@@ -962,6 +963,8 @@ sub::implode() {
     local __implode_output=''
     func::implode __implode_output "${1}" "${2}"
     sub::println "${__implode_output}"
+  elif [ "$#" -eq 1 ]; then
+    sub::implode "${IFS:0:1}" "${1}"
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi

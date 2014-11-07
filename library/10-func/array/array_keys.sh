@@ -23,7 +23,7 @@ sub::array_keys() {
   if [ "$#" -eq 1 ]; then
     local __array_keys_values=()
     func::array_keys __array_keys_values "${1}"
-    sub::println "${__array_keys_values[*]}"
+    sub::implode __array_keys_values
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi

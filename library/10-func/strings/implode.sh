@@ -9,6 +9,7 @@
 #     void func::implode(string* variable, string glue, string[]* pieces)
 #     // 2. Command form.
 #     void sub::implode(string glue, string[]* pieces) > result
+#     void sub::implode(string[]* pieces) > result
 #     // 3. Stream form.
 #     void stream::implode(string glue) < input > output
 #
@@ -21,8 +22,7 @@ func::implode() {
     local __implode_variable="${1}"
     local __implode_glue="${2}"
     local __implode_pieces=()
-    eval "local __implode_pieces=(\"\${${3}[@]}\")"
-
+    func::array_values __implode_pieces "${3}"
     local __implode_size="${#__implode_pieces[@]}"
     local __implode_i=0
     local __implode_result=''
@@ -50,6 +50,8 @@ sub::implode() {
     local __implode_output=''
     func::implode __implode_output "${1}" "${2}"
     sub::println "${__implode_output}"
+  elif [ "$#" -eq 1 ]; then
+    sub::implode "${IFS:0:1}" "${1}"
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
