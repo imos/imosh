@@ -9,7 +9,7 @@
 #     void sub::array_values(string[]* input) > output
 func::array_values() {
   if [ "$#" -eq 2 ]; then
-    if eval "[ \"\${#${2}[*]}\" -eq 0 ]"; then
+    if sub::array_is_empty "${2}"; then
       eval "${1}=()"
     else
       eval "${1}=(\"\${${2}[@]}\")"
