@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-10 01:21:13 +0900 (7e41337)'
+IMOSH_VERSION='2014-11-10 01:33:28 +0900 (4541b8e)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -375,40 +375,36 @@ __func::quick_sort() {
 #     bool sub::fgets() > line
 func::fgets() {
   if [ "$#" -eq 1 ]; then
-    local __fgets_variable="$1"
     local __fgets_buffer=''
     local __fgets_line=''
 
-    func::let "${__fgets_variable}" ''
+    func::let "${1}" ''
+    # Check if EOF.
     if ! IFS= read -r -n 1 -d '' __fgets_buffer; then
       return 1
     fi
     __fgets_line+="${__fgets_buffer}"
     if [ "${__fgets_buffer}" = $'\n' ]; then
-      func::strcpy "${__fgets_variable}" __fgets_buffer
+      func::strcpy "${1}" __fgets_buffer
       return
     fi
     if IFS= read -r -d $'\n' __fgets_buffer; then
       __fgets_buffer+=$'\n'
     fi
     __fgets_line+="${__fgets_buffer}"
-    func::strcpy "${__fgets_variable}" __fgets_line
+    func::strcpy "${1}" __fgets_line
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
 sub::fgets() {
   if [ "$#" -eq 0 ]; then
     local variable=''
-    if ! func::fgets variable; then
-      return 1
-    fi
+    if ! func::fgets variable; then return 1; fi
     sub::print "${variable}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -441,24 +437,17 @@ sub::fgets() {
 #         stream::file_get_contents  # => helloworld
 func::file_get_contents() {
   if [ "$#" -eq 2 ]; then
-    local __file_get_contents_variable="$1"
-    local __file_get_contents_filename="$2"
-
-    IFS= read -r -d '' "${__file_get_contents_variable}" \
-        < "${__file_get_contents_filename}" || true
+    IFS= read -r -d '' "${1}" < "${2}" || true
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
 sub::file_get_contents() {
   if [ "$#" -eq 1 ]; then
-    local __file_get_contents_filename="$1"
-    cat < "${__file_get_contents_filename}"
+    cat < "${1}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -466,8 +455,7 @@ stream::file_get_contents() {
   if [ "$#" -eq 0 ]; then
     stream::array_map COMMAND cat
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 

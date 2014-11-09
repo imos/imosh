@@ -27,24 +27,17 @@
 #         stream::file_get_contents  # => helloworld
 func::file_get_contents() {
   if [ "$#" -eq 2 ]; then
-    local __file_get_contents_variable="$1"
-    local __file_get_contents_filename="$2"
-
-    IFS= read -r -d '' "${__file_get_contents_variable}" \
-        < "${__file_get_contents_filename}" || true
+    IFS= read -r -d '' "${1}" < "${2}" || true
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
 sub::file_get_contents() {
   if [ "$#" -eq 1 ]; then
-    local __file_get_contents_filename="$1"
-    cat < "${__file_get_contents_filename}"
+    cat < "${1}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -52,7 +45,6 @@ stream::file_get_contents() {
   if [ "$#" -eq 0 ]; then
     stream::array_map COMMAND cat
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
