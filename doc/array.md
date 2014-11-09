@@ -1,6 +1,7 @@
 # Arrays
 ## Functions
 * [array](array/array.sh.md) -- Creates an array.
+* [array_is_empty](array/array_is_empty.sh.md) -- Checks if an array is empty.
 * [array_keys](array/array_keys.sh.md) -- Gets an array's keys.
 * [array_map](array/array_map.sh.md) -- Applies a callback to elements.
 * [array_unique](array/array_unique.sh.md) -- Removes duplicated elements from an array variable.

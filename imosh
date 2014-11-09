@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-08 03:39:03 +0900 (75bc304)'
+IMOSH_VERSION='2014-11-08 03:48:33 +0900 (21700c7)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -33,6 +33,22 @@ func::array() {
   else
     LOG ERROR "Wrong number of arguments: $#"
     return 1
+  fi
+}
+
+# array_is_empty -- Checks if an array is empty.
+#
+# array_is_empty returns true iff a given array is empty.
+#
+# Usage:
+#     // 1. Command form.
+#     bool sub::array_is_empty(string[]* variable)
+sub::array_is_empty() {
+  if [ "$#" -eq 1 ]; then
+    if eval "[ \"\${#${1}[*]}\" -eq 0 ]"; then return 0; fi
+    return 1
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -110,14 +126,10 @@ sub::array_keys() {
 #         # => aBCbd\nBCdBCb
 func::array_map() {
   if [ "$#" -ge 3 ]; then
-    # Return if there are no elements in the variable.
-    if eval "[ \"\${#${1}[*]}\" -eq 0 ]"; then
-      return
-    fi
-
-    local __array_map_variable="$1"; shift
-    local __array_map_type="$1"; shift
-    local __array_map_callback="$1"; shift
+    if sub::array_is_empty "${1}"; then return; fi
+    local __array_map_variable="${1}"; shift
+    local __array_map_type="${1}"; shift
+    local __array_map_callback="${1}"; shift
 
     local __array_map_keys=()
     local __array_map_key=''
@@ -142,16 +154,14 @@ func::array_map() {
                        "${__array_map_variable}[${__array_map_key}]"
           "${__array_map_callback}" \
               "${__array_map_variable}[${__array_map_key}]" \
-              "${__array_map_value}" \
-              "$@"
+              "${__array_map_value}" "$@"
         done
         ;;
       'INPLACE')
         local __array_map_value=''
         for __array_map_key in "${__array_map_keys[@]}"; do
           "${__array_map_callback}" \
-              "${__array_map_variable}[${__array_map_key}]" \
-              "$@"
+              "${__array_map_variable}[${__array_map_key}]" "$@"
         done
         ;;
       'COMMAND')
@@ -162,8 +172,7 @@ func::array_map() {
           func::strcpy __array_map_value \
                        "${__array_map_variable}[${__array_map_key}]"
           "${__array_map_callback}" \
-              "${__array_map_value}" \
-              "$@" > "${__array_map_tmpfile}"
+              "${__array_map_value}" "$@" > "${__array_map_tmpfile}"
           func::file_get_contents \
               "${__array_map_variable}[${__array_map_key}]" \
               "${__array_map_tmpfile}"
@@ -175,14 +184,13 @@ func::array_map() {
         ;;
     esac
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
 stream::array_map() {
   if [ "$#" -ge 2 ]; then
-    local __array_map_type="$1"
+    local __array_map_type="${1}"
     local LINE='' NEWLINE=''
     while func::readline; do
       local __array_map_line=("${LINE}")
@@ -194,8 +202,7 @@ stream::array_map() {
       fi
     done
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -220,22 +227,22 @@ stream::array_map() {
 #
 #     echo c,b,a,b | IFS=, stream::array_unique  # => a,b,c
 func::array_unique() {
-  local __array_unique_variable="${1}"
-  if eval "[ \"\${#${__array_unique_variable}[*]}\" -eq 0 ]"; then
-    return
+  if [ "$#" -eq 1 ]; then
+    if sub::array_is_empty "${1}"; then return; fi
+    local __array_unique_values=()
+    func::array_values __array_unique_values "${1}"
+    func::sort __array_unique_values
+    local __array_unique_i="${#__array_unique_values[*]}"
+    while (( __array_unique_i -= 1 )); do
+      if [ "${__array_unique_values[$(( __array_unique_i - 1 ))]}" = \
+           "${__array_unique_values[${__array_unique_i}]}" ]; then
+        unset __array_unique_values["${__array_unique_i}"]
+      fi
+    done
+    func::array_values "${1}" __array_unique_values
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
-  eval "local __array_unique_values=(\"\${${__array_unique_variable}[@]}\")"
-  func::sort __array_unique_values
-  local __array_unique_i=0
-  local __array_unique_size="${#__array_unique_values[*]}"
-  local __array_unique_result=("${__array_unique_values[0]}")
-  while (( __array_unique_i += 1, __array_unique_i < __array_unique_size )); do
-    if [ "${__array_unique_values[$(( __array_unique_i - 1 ))]}" != \
-         "${__array_unique_values[${__array_unique_i}]}" ]; then
-      __array_unique_result+=("${__array_unique_values[${__array_unique_i}]}")
-    fi
-  done
-  eval "${__array_unique_variable}=(\"\${__array_unique_result[@]}\")"
 }
 
 stream::array_unique() {
