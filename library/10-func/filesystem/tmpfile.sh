@@ -8,9 +8,8 @@
 #     // 2. Command form.
 #     void sub::tmpfile() > path
 func::tmpfile() {
-  if [ "${#}" -eq 1 ]; then
-    local __tmpfile_variable="${1}"
-    func::let "${__tmpfile_variable}" \
+  if [ "$#" -eq 1 ]; then
+    func::let "${1}" \
         "${TMPDIR}/tmpfile.${RANDOM}.${RANDOM}.${RANDOM}.${RANDOM}.${RANDOM}"
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
@@ -18,7 +17,7 @@ func::tmpfile() {
 }
 
 sub::tmpfile() {
-  if [ "${#}" -eq 0 ]; then
+  if [ "$#" -eq 0 ]; then
     local tmpfile=''
     func::tmpfile tmpfile
     sub::println "${tmpfile}"

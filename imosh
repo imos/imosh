@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-10 01:56:25 +0900 (157324a)'
+IMOSH_VERSION='2014-11-10 02:37:48 +0900 (94e13d7)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -468,7 +468,6 @@ stream::file_get_contents() {
 #     void func::readarray() < input
 func::readarray() {
   if [ "$#" -eq 0 ]; then
-    local line=''
     NEWLINE=''
     LINE=''
     if ! func::readline; then
@@ -476,12 +475,11 @@ func::readarray() {
       return 1
     fi
     local ifs="${IFS}"
-    ifs="${ifs//'['/\[}"
-    ifs="${ifs//']'/\]}"
+    func::str_replace ifs '[' '\['
+    func::str_replace ifs ']' '\]'
     func::greg_split LINE "[${ifs}]" "${LINE}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -511,8 +509,7 @@ func::readline() {
       LINE="${line}"
     fi
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -526,9 +523,8 @@ func::readline() {
 #     // 2. Command form.
 #     void sub::tmpfile() > path
 func::tmpfile() {
-  if [ "${#}" -eq 1 ]; then
-    local __tmpfile_variable="${1}"
-    func::let "${__tmpfile_variable}" \
+  if [ "$#" -eq 1 ]; then
+    func::let "${1}" \
         "${TMPDIR}/tmpfile.${RANDOM}.${RANDOM}.${RANDOM}.${RANDOM}.${RANDOM}"
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
@@ -536,7 +532,7 @@ func::tmpfile() {
 }
 
 sub::tmpfile() {
-  if [ "${#}" -eq 0 ]; then
+  if [ "$#" -eq 0 ]; then
     local tmpfile=''
     func::tmpfile tmpfile
     sub::println "${tmpfile}"

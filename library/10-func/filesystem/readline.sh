@@ -24,7 +24,6 @@ func::readline() {
       LINE="${line}"
     fi
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
