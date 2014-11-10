@@ -1,37 +1,51 @@
-# func::rand -- Generates a random integer.
+# rand -- Generates a random integer.
 #
-# Generates a random integer.
+# rand generates a random integer.
 #
 # Usage:
-#     // a. Function form.
-#     void func::rand(int* variable)
-#     // b. Function form with a range.
+#     // 1. Function form.
 #     void func::rand(int* variable, int minimum, int maximum)
+#     void func::rand(int* variable, int maximum)
+#     void func::rand(int* variable)
+#     // 2. Command form.
+#     void sub::rand(int minimum, int maximum) > output
+#     void sub::rand(int maximum) > output
+#     void sub::rand() > output
 func::rand() {
   if [ "$#" -eq 3 ]; then
-    local __rand_variable="$1"
-    local __rand_minimum="$2"
-    local __rand_maximum="$3"
-    local __rand_range=0 __rand_value=0
-    if (( __rand_minimum > __rand_maximum )); then
-      LOG FATAL "minimum must be larger than maximum:" \
-                "minimum=${__rand_minimum}, maximum=${__rand_maximum}"
-    fi
-    ((
-      __rand_value = RANDOM ^ (RANDOM << 8) ^
-                     (RANDOM << 16) ^ (RANDOM << 24) ^
-                     (RANDOM << 32) ^ (RANDOM << 40) ^
-                     (RANDOM << 48) ^ (RANDOM << 56),
-      __rand_range = __rand_maximum - __rand_minimum + 1,
-      __rand_value = __rand_minimum +
-          ( __rand_value % __rand_range + __rand_range ) % __rand_range
-    )) || true
-    func::let "${__rand_variable}" "${__rand_value}"
+    local __rand_value=0
+    __func::rand "${2}" "${3}" || return 1
+    func::let "${1}" "${__rand_value}"
+  elif [ "$#" -eq 2 ]; then
+    func::rand "${1}" 0 "${2}"
   elif [ "$#" -eq 1 ]; then
-    func::rand "$1" 0 2147483647
-    return
+    func::rand "${1}" 2147483647
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
+}
+
+sub::rand() {
+  if [ "$#" -le 2 ]; then
+    local __rand_variable=0
+    func::rand __rand_variable "$@"
+    sub::println "${__rand_variable}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+__func::rand() {
+  local min="${1}" max="${2}" range=0
+  if [ "${1}" -eq "${2}" ]; then
+    __rand_value="${1}"
+    return
+  fi
+  (( __rand_value = RANDOM ^ (RANDOM << 8) ^ (RANDOM << 16) ^ (RANDOM << 24) ^
+         (RANDOM << 32) ^ (RANDOM << 40) ^ (RANDOM << 48) ^ (RANDOM << 56),
+     range = max - min + 1,
+     __rand_value = min + (__rand_value % range + range) % range,
+     min <= max )) || (
+      LOG ERROR "min must not be larger than max: ${min} > ${max}."
+      return 1 )
 }
