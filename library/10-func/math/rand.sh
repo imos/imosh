@@ -14,7 +14,7 @@
 func::rand() {
   if [ "$#" -eq 3 ]; then
     local __rand_value=0
-    __func::rand "${2}" "${3}" || return 1
+    __func::rand "${2}" "${3}"
     func::let "${1}" "${__rand_value}"
   elif [ "$#" -eq 2 ]; then
     func::rand "${1}" 0 "${2}"
@@ -37,15 +37,14 @@ sub::rand() {
 
 __func::rand() {
   local min="${1}" max="${2}" range=0
-  if [ "${1}" -eq "${2}" ]; then
-    __rand_value="${1}"
+  if [ "${min}" -eq "${max}" ]; then
+    __rand_value="${min}"
     return
+  elif [ "${min}" -gt "${max}" ]; then
+    local min="${max}" max="${min}"
   fi
   (( __rand_value = RANDOM ^ (RANDOM << 8) ^ (RANDOM << 16) ^ (RANDOM << 24) ^
          (RANDOM << 32) ^ (RANDOM << 40) ^ (RANDOM << 48) ^ (RANDOM << 56),
      range = max - min + 1,
-     __rand_value = min + (__rand_value % range + range) % range,
-     min <= max )) || (
-      LOG ERROR "min must not be larger than max: ${min} > ${max}."
-      return 1 )
+     __rand_value = min + (__rand_value % range + range) % range )) || true
 }
