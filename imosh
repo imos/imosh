@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-11 03:22:24 +0900 (68ca336)'
+IMOSH_VERSION='2014-11-11 03:28:29 +0900 (46bb8ad)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -474,10 +474,7 @@ func::readarray() {
       LINE=()
       return 1
     fi
-    local ifs="${IFS}"
-    func::str_replace ifs '[' '\['
-    func::str_replace ifs ']' '\]'
-    func::greg_split LINE "[${ifs}]" "${LINE}"
+    func::array LINE "${LINE}"
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi

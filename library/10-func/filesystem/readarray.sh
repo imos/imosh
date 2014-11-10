@@ -13,10 +13,7 @@ func::readarray() {
       LINE=()
       return 1
     fi
-    local ifs="${IFS}"
-    func::str_replace ifs '[' '\['
-    func::str_replace ifs ']' '\]'
-    func::greg_split LINE "[${ifs}]" "${LINE}"
+    func::array LINE "${LINE}"
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
