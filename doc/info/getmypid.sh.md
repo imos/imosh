@@ -1,7 +1,7 @@
-# func::getmypid
-func::getmypid -- Gets the current process ID.
+# getmypid
+getmypid -- Gets the current process ID.
 
 ## Usage
 ```sh
-void func::pid(int* variable)
+void func::getmypid(int* variable)
 ```
