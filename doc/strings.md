@@ -1,9 +1,9 @@
 # Strings
 ## Functions
 * [addslashes](strings/addslashes.sh.md) -- Quotes a string with backslahses.
-* [func::bin2hex](strings/bin2hex.sh.md) -- Converts a binary string into hexadecimal representation.
+* [bin2hex](strings/bin2hex.sh.md) -- Converts a binary string into hexadecimal representation.
 * [escapeshellarg](strings/escapeshellarg.sh.md) -- Escapes a variable as a shell argument.
-* [func::explode](strings/explode.sh.md) -- Splits a string by a substring.
+* [explode](strings/explode.sh.md) -- Splits a string by a substring.
 * [func::hex2bin](strings/hex2bin.sh.md) -- Decodes a hexadecimally encoded binary string.
 * [func::implode](strings/implode.sh.md) -- Joins array elements with a string.
 * [func::ltrim](strings/ltrim.sh.md) -- Strips whitespace(s) from the beginning of a string.

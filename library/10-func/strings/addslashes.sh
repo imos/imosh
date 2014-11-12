@@ -4,6 +4,7 @@
 # subject are escaped.
 #
 # Usage:
+#     // 1. Function form.
 #     void func::addslashes(string* subject)
 func::addslashes() {
   if [ "$#" -eq 1 ]; then

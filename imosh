@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-13 02:10:48 +0900 (caa086f)'
+IMOSH_VERSION='2014-11-13 02:38:14 +0900 (c62f265)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -831,6 +831,7 @@ sub::throttle() {
 # subject are escaped.
 #
 # Usage:
+#     // 1. Function form.
 #     void func::addslashes(string* subject)
 func::addslashes() {
   if [ "$#" -eq 1 ]; then
@@ -842,7 +843,7 @@ func::addslashes() {
   fi
 }
 
-# func::bin2hex -- Converts a binary string into hexadecimal representation.
+# bin2hex -- Converts a binary string into hexadecimal representation.
 #
 # Converts binary data into hexadecimal representation.
 #
@@ -882,34 +883,40 @@ stream::bin2hex() {
 # escapeshellarg escapes variable's content so as to use it as a shell argument.
 #
 # Usage:
+#     // 1. Function form.
 #     void func::escapeshellarg(string* variable)
 func::escapeshellarg() {
-  local __escapeshellarg_variable="$1"
-  local __escapeshellarg_search="'"
-  local __escapeshellarg_replace="'\\''"
-
-  eval "${__escapeshellarg_variable}=\"'\${${__escapeshellarg_variable}//\${__escapeshellarg_search}/\${__escapeshellarg_replace}}'\""
+  if [ "$#" -eq 1 ]; then
+    local __escapeshellarg_value=''
+    func::strcpy __escapeshellarg_value "${1}"
+    func::str_replace __escapeshellarg_value "'" "'\\''"
+    func::let "${1}" "'${__escapeshellarg_value}'"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
 }
 
-# func::explode -- Splits a string by a substring.
+# explode -- Splits a string by a substring.
 #
 # Splits a string by string.
 #
 # Usage:
+#     // 1. Function form.
 #     void func::explode(string* variable, string delimiter, string value)
 func::explode() {
-  local __explode_variable="${1}"
-  local __explode_delimiter="${2}"
-  local __explode_value="${3}"
-  local __explode_result=()
-
-  if [ "${__explode_delimiter}" != $'\x02' ]; then
-    func::str_replace __explode_value "${__explode_delimiter}" $'\x02'
+  if [ "$#" -eq 3 ]; then
+    local __explode_value="${3}"
+    if [ "${2}" != $'\x02' ]; then
+      func::str_replace __explode_value "${2}" $'\x02'
+    fi
+    local __explode_result=()
+    while IFS= read -r -d $'\x02' __explode_term; do
+      __explode_result+=("${__explode_term}")
+    done <<<"${__explode_value}"$'\x02'
+    func::array_values "${1}" __explode_result
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
-  while IFS='' read -r -d $'\x02' __explode_term; do
-    __explode_result+=("${__explode_term}")
-  done <<<"${__explode_value}"$'\x02'
-  eval "${__explode_variable}=(\"\${__explode_result[@]}\")"
 }
 
 # func::hex2bin -- Decodes a hexadecimally encoded binary string.

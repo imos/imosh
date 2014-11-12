@@ -1,5 +1,5 @@
-# func::bin2hex
-func::bin2hex -- Converts a binary string into hexadecimal representation.
+# bin2hex
+bin2hex -- Converts a binary string into hexadecimal representation.
 
 Converts binary data into hexadecimal representation.
 

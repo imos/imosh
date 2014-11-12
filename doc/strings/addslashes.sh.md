@@ -6,5 +6,6 @@ subject are escaped.
 
 ## Usage
 ```sh
+// 1. Function form.
 void func::addslashes(string* subject)
 ```
