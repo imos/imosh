@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-13 02:38:14 +0900 (c62f265)'
+IMOSH_VERSION='2014-11-13 03:24:11 +0900 (c512abd)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -910,6 +910,7 @@ func::explode() {
       func::str_replace __explode_value "${2}" $'\x02'
     fi
     local __explode_result=()
+    local __explode_term=''
     while IFS= read -r -d $'\x02' __explode_term; do
       __explode_result+=("${__explode_term}")
     done <<<"${__explode_value}"$'\x02'

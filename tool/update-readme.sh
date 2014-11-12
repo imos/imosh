@@ -32,44 +32,38 @@ show_introduction() {
 #         string usage, string readme_output = '',
 #         string readme_link = '', string readme_toc_output = '')
 process_usage() {
-  if [ "$#" -eq 4 ]; then
+  if [ "$#" -eq 3 ]; then
     local usage="$1"
     local readme_output="$2"
     local readme_link="$3"
-    local readme_toc_output="$4"
 
     func::rtrim usage
-    if [ "${readme_toc_output}" != '' ]; then
-      local lines=()
-      func::explode lines $'\n\n' "${usage}"
-      CHECK [ "${#lines[*]}" -gt 1 ]
-      local first_line="${lines[0]#'#'}"
-      local words=()
-      func::explode words '--' "${first_line}"
-      local title="${words[0]}"
-      unset words[0]
-      if [ "${#words[*]}" -gt 0 ]; then
-        local description="${words[*]}"
-      else
-        local description=''
-      fi
-      func::trim title
-      func::trim description
-      if [ "${description}" = '' ]; then
-        sub::println "* [${title}](${readme_link})" >> "${readme_toc_output}"
-        lines[0]="# ${title}"
-      else
-        sub::println "* [${title}](${readme_link}) -- ${description}" \
-            >> "${readme_toc_output}"
-        lines[0]="# ${title}"$'\n'"${title} -- ${description}"
-      fi
-      func::implode usage $'\n\n' lines
+    local lines=()
+    func::explode lines $'\n\n' "${usage}"
+    CHECK [ "${#lines[*]}" -gt 1 ]
+    local first_line="${lines[0]#'#'}"
+    local words=()
+    func::explode words '--' "${first_line}"
+    local title="${words[0]}"
+    unset words[0]
+    if [ "${#words[*]}" -gt 0 ]; then
+      local description="${words[*]}"
+    else
+      local description=''
     fi
+    func::trim title
+    func::trim description
+    if [ "${description}" = '' ]; then
+      sub::println "* [${title}](${readme_link})"
+      lines[0]="# ${title}"
+    else
+      sub::println "* [${title}](${readme_link}) -- ${description}"
+      lines[0]="# ${title}"$'\n'"${title} -- ${description}"
+    fi
+    func::implode usage $'\n\n' lines
     if [ "${readme_output}" != '' ]; then
       sub::println "${usage}" >> "${readme_output}"
     fi
-  elif [ "$#" -eq 3 ]; then
-    process_usage "$@" ''
   elif [ "$#" -eq 2 ]; then
     process_usage "$@" ''
   elif [ "$#" -eq 1 ]; then
@@ -80,17 +74,15 @@ process_usage() {
 }
 
 process_file() {
-  if [ "$#" -eq 4 ]; then
+  if [ "$#" -eq 3 ]; then
     local input_file="$1"
     local output_file="$2"
     local readme_link="$3"
-    local output_toc_file="$4"
 
     local usage="$(
         __imosh::show_usage  --format=markdown --title \
             --markdown_heading='#' "${input_file}")"
-    process_usage "${usage}" "${output_file}" "${readme_link}" \
-        "${output_toc_file}"
+    process_usage "${usage}" "${output_file}" "${readme_link}"
   else
     LOG FATAL "Wrong number of arguments: $#"
   fi
@@ -108,26 +100,22 @@ show_readme() {
     pushd "${directory}" > '/dev/null'
     for subdirectory in *; do
       if [ ! -d "${subdirectory}" ]; then continue; fi
-      local toc_file="${FLAGS_root_directory}/doc/${subdirectory}.md"
-      if [ ! -f "${toc_file}" ]; then
-        if [ -f "${subdirectory}/README.md" ]; then
-          cp "${subdirectory}/README.md" "${toc_file}"
-          local title="$(
-              head -n 1 "${subdirectory}/README.md" | sed -e 's/#//')"
-          func::trim title
-          sub::println "* [${title}](doc/${subdirectory}.md)"
-          echo '## Functions' >> "${toc_file}"
-        else
-          echo '# Functions' > "${toc_file}"
-        fi
+      if [ -f "${subdirectory}/README.md" ]; then
+        func::print '#'
+        cat "${subdirectory}/README.md"
+        local title="$(
+            head -n 1 "${subdirectory}/README.md" | sed -e 's/#//')"
+        func::trim title
       fi
+      func::println
       pushd "${subdirectory}" > '/dev/null'
       mkdir -p "${FLAGS_root_directory}/doc/${subdirectory}"
       for file in *.sh; do
         process_file "${file}" \
             "${FLAGS_root_directory}/doc/${subdirectory}/${file}.md" \
-            "${subdirectory}/${file}.md" "${toc_file}"
+            "doc/${subdirectory}/${file}.md"
       done
+      func::println
       popd > '/dev/null'
     done
     popd > '/dev/null'

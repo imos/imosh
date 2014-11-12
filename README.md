@@ -131,11 +131,74 @@ imosh outputs log files to `${TMPDIR}/<program name>.<host name>.<user>.<severit
 <!-- MARKER:AUTO_GENERATED -->
 
 # Functions
-* [Arrays](doc/array.md)
-* [Filesystem](doc/filesystem.md)
-* [Regular Expressions (Glob-Compatible)](doc/greg.md)
-* [imosh Options and Information](doc/info.md)
-* [Mathematical Functions](doc/math.md)
-* [Miscellaneous Functions](doc/misc.md)
-* [Strings](doc/strings.md)
-* [Variable handling](doc/var.md)
+## Arrays
+
+* [array](doc/array/array.sh.md) -- Creates an array.
+* [array_is_empty](doc/array/array_is_empty.sh.md) -- Checks if an array is empty.
+* [array_keys](doc/array/array_keys.sh.md) -- Gets an array's keys.
+* [array_map](doc/array/array_map.sh.md) -- Applies a callback to elements.
+* [array_unique](doc/array/array_unique.sh.md) -- Removes duplicated elements from an array variable.
+* [array_values](doc/array/array_values.sh.md) -- Copies elements from an array to an array.
+* [count](doc/array/count.sh.md) -- Counts the number of elements.
+* [sort](doc/array/sort.sh.md) -- Sorts elements.
+
+## Filesystem
+
+* [fgets](doc/filesystem/fgets.sh.md) -- Gets a line from STDIN.
+* [file_get_contents](doc/filesystem/file_get_contents.sh.md) -- Reads an entire file into a string.
+* [readarray](doc/filesystem/readarray.sh.md) -- Reads a line as an array.
+* [readline](doc/filesystem/readline.sh.md) -- Gets a line.
+* [tmpfile](doc/filesystem/tmpfile.sh.md) -- Creates a temporary file.
+
+## Regular Expressions (Glob-Compatible)
+For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://mywiki.wooledge.org/glob).
+
+* [greg_match](doc/greg/greg_match.sh.md) -- Checks if a string matches a GREG pattern.
+* [greg_replace](doc/greg/greg_replace.sh.md) -- Replace a GREG pattern with a string.
+* [func::greg_split](doc/greg/greg_split.sh.md) -- Splits a string with a GREG pattern.
+
+## imosh Options and Information
+
+* [getchildpids](doc/info/getchildpids.sh.md) -- Gets child process IDs.
+* [getmypid](doc/info/getmypid.sh.md) -- Gets the current process ID.
+
+## Mathematical Functions
+
+* [rand](doc/math/rand.sh.md) -- Generates a random integer.
+
+## Miscellaneous Functions
+
+* [atexit](doc/misc/atexit.sh.md) -- Registers a function on shutdown.
+* [exit, die](doc/misc/exit.sh.md) -- Kills the current script.
+* [throttle](doc/misc/throttle.sh.md) -- Throttles by the number of child processes.
+
+## Strings
+
+* [addslashes](doc/strings/addslashes.sh.md) -- Quotes a string with backslahses.
+* [bin2hex](doc/strings/bin2hex.sh.md) -- Converts a binary string into hexadecimal representation.
+* [escapeshellarg](doc/strings/escapeshellarg.sh.md) -- Escapes a variable as a shell argument.
+* [explode](doc/strings/explode.sh.md) -- Splits a string by a substring.
+* [func::hex2bin](doc/strings/hex2bin.sh.md) -- Decodes a hexadecimally encoded binary string.
+* [func::implode](doc/strings/implode.sh.md) -- Joins array elements with a string.
+* [func::ltrim](doc/strings/ltrim.sh.md) -- Strips whitespace(s) from the beginning of a string.
+* [func::md5](doc/strings/md5.sh.md) -- Calculates a MD5 hash.
+* [func::ord](doc/strings/ord.sh.md) -- Gets a character's ASCII code.
+* [print](doc/strings/print.sh.md) -- Prints a message.
+* [println](doc/strings/println.sh.md) -- Prints a message with a new line.
+* [func::rtrim](doc/strings/rtrim.sh.md) -- Strips whitespace(s) from the end of a string.
+* [func::str_replace](doc/strings/str_replace.sh.md) -- Replaces a substring with another substring.
+* [func::strcpy](doc/strings/strcpy.sh.md) -- Copies a string from a variable to another variable.
+* [strtolower](doc/strings/strtolower.sh.md) -- Makes a string lowercase.
+* [strtoupper](doc/strings/strtoupper.sh.md) -- Makes a string uppercase.
+* [func::trim](doc/strings/trim.sh.md) -- Strips whitespaces from both sides.
+
+## Variable handling
+
+* [func::boolval](doc/var/boolval.sh.md) -- Casts a variable as a boolean value.
+* [func::cast](doc/var/cast.sh.md) -- Casts a variable.
+* [func::floatval](doc/var/floatval.sh.md) -- Casts a variable as a float value.
+* [func::intval](doc/var/intval.sh.md) -- Casts a variable as an integer value.
+* [func::isset](doc/var/isset.sh.md) -- Checks if a variable exists.
+* [func::let](doc/var/let.sh.md) -- Assigns a value into a variable.
+* [func::strval](doc/var/strval.sh.md) -- Casts a variable as a string value.
+
