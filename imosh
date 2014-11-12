@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-11 03:28:29 +0900 (46bb8ad)'
+IMOSH_VERSION='2014-11-11 03:41:18 +0900 (ffbc01a)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -662,7 +662,10 @@ sub::getchildpids() {
 # getmypid -- Gets the current process ID.
 #
 # Usage:
+#     // 1. Function form.
 #     void func::getmypid(int* variable)
+#     // 2. Command form.
+#     void sub::getmypid() > output
 func::getmypid() {
   if [ "$#" -eq 1 ]; then
     if func::isset BASHPID; then
@@ -739,18 +742,18 @@ __func::rand() {
      __rand_value = min + (__rand_value % range + range) % range )) || true
 }
 
-# func::atexit -- Registers a function on shutdown.
+# atexit -- Registers a function on shutdown.
 #
 # atexit registers a function to be excuted on shutdown.
 #
 # Usage:
-#     void func::atexit(string command)
-func::atexit() {
+#     // 1. Command form.
+#     void sub::atexit(string command)
+sub::atexit() {
   if [ "$#" -eq 1 ]; then
-    echo "$1" >> "${__IMOSH_CORE_TMPDIR}/atexit.sh"
+    sub::println "${1}" >> "${__IMOSH_CORE_TMPDIR}/atexit.sh"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -2119,7 +2122,7 @@ __imosh::mktemp() {
   mkdir "${__IMOSH_CORE_TMPDIR}"
   local tmpdir="${TMPDIR}"
   func::escapeshellarg tmpdir
-  func::atexit "rm -rf ${tmpdir}"
+  sub::atexit "rm -rf ${tmpdir}"
 
   # For backward compatibility.
   export IMOSH_TMPDIR="${TMPDIR}"

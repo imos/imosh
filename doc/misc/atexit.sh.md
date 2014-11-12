@@ -1,9 +1,10 @@
-# func::atexit
-func::atexit -- Registers a function on shutdown.
+# atexit
+atexit -- Registers a function on shutdown.
 
 atexit registers a function to be excuted on shutdown.
 
 ## Usage
 ```sh
-void func::atexit(string command)
+// 1. Command form.
+void sub::atexit(string command)
 ```

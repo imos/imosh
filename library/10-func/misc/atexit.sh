@@ -1,14 +1,14 @@
-# func::atexit -- Registers a function on shutdown.
+# atexit -- Registers a function on shutdown.
 #
 # atexit registers a function to be excuted on shutdown.
 #
 # Usage:
-#     void func::atexit(string command)
-func::atexit() {
+#     // 1. Command form.
+#     void sub::atexit(string command)
+sub::atexit() {
   if [ "$#" -eq 1 ]; then
-    echo "$1" >> "${__IMOSH_CORE_TMPDIR}/atexit.sh"
+    sub::println "${1}" >> "${__IMOSH_CORE_TMPDIR}/atexit.sh"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }

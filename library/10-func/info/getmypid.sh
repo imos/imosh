@@ -1,7 +1,10 @@
 # getmypid -- Gets the current process ID.
 #
 # Usage:
+#     // 1. Function form.
 #     void func::getmypid(int* variable)
+#     // 2. Command form.
+#     void sub::getmypid() > output
 func::getmypid() {
   if [ "$#" -eq 1 ]; then
     if func::isset BASHPID; then
