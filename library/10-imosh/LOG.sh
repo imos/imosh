@@ -87,7 +87,7 @@ LOG() {
         echo "${message}" >&103
         echo "${message}" >&104
       fi
-      func::exit 1
+      sub::exit 1
       ;;
   esac
 }

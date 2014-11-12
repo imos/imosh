@@ -1,10 +1,10 @@
 #!/bin/bash
-# Test func::exit.
+# Test sub::exit.
 
 source "$(dirname "${BASH_SOURCE}")"/../../imosh || exit 1
 DEFINE_int 'status' 0 'Status code to exit.'
 DEFINE_int 'depth' 0 'Max depth of subprocesses.'
-DEFINE_int 'exit_depth' 0 'Depth of a subprocess calling func::exit.'
+DEFINE_int 'exit_depth' 0 'Depth of a subprocess calling sub::exit.'
 eval "${IMOSH_INIT}"
 
 f() {
@@ -17,8 +17,8 @@ f() {
   fi
   if (( primary && depth == FLAGS_exit_depth )); then
     sleep 0.1
-    LOG INFO "Calling func::exit ${FLAGS_status}"
-    func::exit "${FLAGS_status}"
+    LOG INFO "Calling sub::exit ${FLAGS_status}"
+    sub::exit "${FLAGS_status}"
     exit
   fi
   sleep 5

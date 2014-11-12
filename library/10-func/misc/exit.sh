@@ -1,20 +1,20 @@
 # exit, die -- Kills the current script.
 #
-# func::exit kills all the subprocesses of the current program.  If an integer
-# argument is given, func::exit exits with the status.  Otherwise, func::exit
-# shows the given message and exits with status 0.  func::die shows a stack
-# trace and delegates arguments to func::exit.
+# sub::exit kills all the subprocesses of the current program.  If an integer
+# argument is given, sub::exit exits with the status.  Otherwise, sub::exit
+# shows the given message and exits with status 0.  sub::die shows a stack
+# trace and delegates arguments to sub::exit.
 #
 # Usage:
-#     // 1-a. Function form with a message.
-#     void func::exit(string message)
-#     // 1-b. Function form with a status.
-#     void func::exit(int status = 0)
-#     // 1-c. Function form with a message.
-#     void func::die(string message)
-#     // 1-d. Function form with a status.
-#     void func::die(int status = 0)
-func::exit() {
+#     // 1-a. Command form with a message.
+#     void sub::exit(string message)
+#     // 1-b. Command form with a status.
+#     void sub::exit(int status = 0)
+#     // 1-c. Command form with a message.
+#     void sub::die(string message)
+#     // 1-d. Command form with a status.
+#     void sub::die(int status = 0)
+sub::exit() {
   if [ "$#" -eq 1 ]; then
     local status=0
     if [[ "$1" =~ ^[0-9]+$ ]]; then
@@ -26,14 +26,13 @@ func::exit() {
     fi
     imosh::exit "${status}"
   elif [ "$#" -eq 0 ]; then
-    func::exit 0
+    sub::exit 0
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
-func::die() {
+sub::die() {
   imosh::stack_trace "*** imosh::die stack trace: ***"
-  func::exit "$@"
+  sub::exit "$@"
 }
