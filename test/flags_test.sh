@@ -8,7 +8,7 @@ run_testcase() {
   local expected="$1"; shift
   local flags=("$@")
 
-  func::throttle 4
+  sub::throttle 4
   ASSERT_EQ "${expected}" "$(get_flag "${flags[@]}")" &
   pids+=("$!")
 }

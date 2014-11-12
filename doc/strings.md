@@ -1,6 +1,6 @@
 # Strings
 ## Functions
-* [func::addslashes](strings/addslashes.sh.md) -- Quotes a string with backslahses.
+* [addslashes](strings/addslashes.sh.md) -- Quotes a string with backslahses.
 * [func::bin2hex](strings/bin2hex.sh.md) -- Converts a binary string into hexadecimal representation.
 * [escapeshellarg](strings/escapeshellarg.sh.md) -- Escapes a variable as a shell argument.
 * [func::explode](strings/explode.sh.md) -- Splits a string by a substring.

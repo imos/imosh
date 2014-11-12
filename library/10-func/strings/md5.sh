@@ -6,7 +6,7 @@
 #     void func::md5(string* variable, string data)
 func::md5() {
   if [ "$#" -eq 0 ]; then
-    openssl md5 -binary | func::bin2hex
+    openssl md5 -binary | stream::bin2hex
   elif [ "$#" -eq 1 ]; then
     sub::print "${1}" | func::md5
   elif [ "$#" -eq 2 ]; then
