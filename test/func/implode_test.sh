@@ -17,9 +17,9 @@ test::func_implode() {
 
   # Command form.
   values=(a b c)
-  EXPECT_EQ 'a,b,c' "$(func::implode ',' values)"
+  EXPECT_EQ 'a,b,c' "$(sub::implode ',' values)"
 
   # Stream form.
   IFS=' \t\n' EXPECT_EQ $'a,b,c\nd,e\nf' \
-                        "$(func::implode ',' <<<$'a b c\nd\te\nf')"
+                        "$(stream::implode ',' <<<$'a b c\nd\te\nf')"
 }

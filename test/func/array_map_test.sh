@@ -5,14 +5,14 @@ run_test_case() {
   variable=("${INPUT[@]}")
   func::array_map variable "$@"
   if [ "${type}" = 'COMMAND' ]; then
-    EXPECT_EQ "${EXPECTED}" "$(func::implode $'' variable)"
+    EXPECT_EQ "${EXPECTED}" "$(sub::implode $'' variable)"
   else
-    EXPECT_EQ "${EXPECTED}" "$(func::implode $'\n' variable)"
+    EXPECT_EQ "${EXPECTED}" "$(sub::implode $'\n' variable)"
   fi
 
   variable=("${INPUT[@]}")
   local actual="$(
-      func::implode $'\n' variable |
+      sub::implode $'\n' variable |
       stream::array_map "$@")"
   EXPECT_EQ "${EXPECTED}" "${actual}"
 }
