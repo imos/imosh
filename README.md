@@ -181,7 +181,7 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 * [hex2bin](doc/strings/hex2bin.sh.md) -- Decodes a hexadecimally encoded binary string.
 * [implode](doc/strings/implode.sh.md) -- Joins array elements with a string.
 * [func::ltrim](doc/strings/ltrim.sh.md) -- Strips whitespace(s) from the beginning of a string.
-* [func::md5](doc/strings/md5.sh.md) -- Calculates a MD5 hash.
+* [md5](doc/strings/md5.sh.md) -- Calculates a MD5 hash.
 * [func::ord](doc/strings/ord.sh.md) -- Gets a character's ASCII code.
 * [print](doc/strings/print.sh.md) -- Prints a message.
 * [println](doc/strings/println.sh.md) -- Prints a message with a new line.

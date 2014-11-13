@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-14 02:10:59 +0900 (0aecbbc)'
+IMOSH_VERSION='2014-11-14 02:12:38 +0900 (56bcc7d)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -1059,37 +1059,64 @@ stream::join() { stream::implode "$@"; }
 # Strips whitespace (or other characters) from the beginning of a string.
 #
 # Usage:
+#     // 1-a. Function form.
 #     void func::ltrim(string* variable)
+#     // 1-b. Function form.
+#     void func::ltrim(string* variable, string input)
 func::ltrim() {
   if [ "$#" -eq 1 ]; then
-    local __ltrim_variable="$1"
-    eval "${__ltrim_variable}=\"\${${__ltrim_variable}#\"\${${__ltrim_variable}%%[![:space:]]*}\"}\""
+    eval "${1}=\"\${${1}#\"\${${1}%%[![:space:]]*}\"}\""
   elif [ "$#" -eq 2 ]; then
-    local __ltrim_output="$1"
-    local __ltrim_input="$2"
-    func::let "${__ltrim_output}" "${__ltrim_input}"
-    func::ltrim "${__ltrim_output}"
+    func::let "${1}" "${2}"
+    func::ltrim "${1}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
-# func::md5 -- Calculates a MD5 hash.
+# md5 -- Calculates a MD5 hash.
 #
 # Usage:
-#     void func::md5() < input > hash
-#     void func::md5(string data) > hash
+#     // 1. Function form.
 #     void func::md5(string* variable, string data)
+#     // 2. Command form.
+#     void sub::md5(string data) > hash
+#     // 3. Stream form.
+#     void stream::md5(bool binary = false) < input > hash
 func::md5() {
-  if [ "$#" -eq 0 ]; then
-    openssl md5 -binary | stream::bin2hex
-  elif [ "$#" -eq 1 ]; then
-    sub::print "${1}" | func::md5
+  if [ "$#" -eq 3 ]; then
+    local __md5_file=''
+    func::tmpfile __md5_file
+    sub::md5 "${2}" "${3}" > "${__md5_file}"
+    func::file_get_contents "${1}" "${__md5_file}"
   elif [ "$#" -eq 2 ]; then
-    local __md5_variable="$1"
-    local __md5_data="$2"
-    eval "${__md5_variable}=\"\$(func::md5 \"\${__md5_data}\")\""
+    func::md5 "${1}" "${2}" 0
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+sub::md5() {
+  if [ "$#" -eq 2 ]; then
+    sub::print "${1}" | stream::md5 "${2}"
+  elif [ "$#" -eq 1 ]; then
+    sub::md5 "$@" 0
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+stream::md5() {
+  if [ "$#" -eq 1 ]; then
+    if [ "${1}" -eq 0 ]; then
+      stream::md5 1 | stream::bin2hex
+    else
+      openssl md5 -binary
+    fi
+  elif [ "$#" -eq 0 ]; then
+    stream::md5 0
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
