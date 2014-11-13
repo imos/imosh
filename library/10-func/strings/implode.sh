@@ -21,7 +21,7 @@ func::implode() {
   if [ "$#" -eq 3 ]; then
     local __implode_pieces=()
     func::array_values __implode_pieces "${3}"
-    local __implode_size="${#__implode_pieces[@]}"
+    local __implode_size="${#__implode_pieces[*]}"
     local __implode_i=0
     local __implode_result=''
     while (( __implode_i < __implode_size )); do

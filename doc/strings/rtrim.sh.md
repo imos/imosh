@@ -9,8 +9,8 @@ Strips whitespace (or other characters) from the end of a string.
 void func::rtrim(string* output, string input)
 // 1-b. Function form.
 void func::rtrim(string* variable)
-// 3. Command form.
+// 2. Command form.
 void sub::rtrim(string value) > output
-// 4. Stream form.
+// 3. Stream form.
 void stream::rtrim() < input > output
 ```

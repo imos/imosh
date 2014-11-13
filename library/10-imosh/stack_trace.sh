@@ -6,7 +6,7 @@ imosh::stack_trace() {
   local ARGS_skip_imosh=0
   eval "${IMOSH_PARSE_ARGUMENTS}"
 
-  local max_depth="${#BASH_LINENO[@]}"
+  local max_depth="${#BASH_LINENO[*]}"
   local i=0
   if [ "$*" = '' ]; then
     echo 'imosh::stack_trace is called' >&2

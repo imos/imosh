@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-14 02:47:58 +0900 (f7aa975)'
+IMOSH_VERSION='2014-11-14 02:58:12 +0900 (7d2fc9b)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -1005,7 +1005,7 @@ func::implode() {
   if [ "$#" -eq 3 ]; then
     local __implode_pieces=()
     func::array_values __implode_pieces "${3}"
-    local __implode_size="${#__implode_pieces[@]}"
+    local __implode_size="${#__implode_pieces[*]}"
     local __implode_i=0
     local __implode_result=''
     while (( __implode_i < __implode_size )); do
@@ -1198,9 +1198,9 @@ sub::println() {
 #     void func::rtrim(string* output, string input)
 #     // 1-b. Function form.
 #     void func::rtrim(string* variable)
-#     // 3. Command form.
+#     // 2. Command form.
 #     void sub::rtrim(string value) > output
-#     // 4. Stream form.
+#     // 3. Stream form.
 #     void stream::rtrim() < input > output
 func::rtrim() {
   if [ "$#" -eq 1 ]; then
@@ -1235,34 +1235,70 @@ stream::rtrim() {
   fi
 }
 
-# func::str_replace -- Replaces a substring with another substring.
+# str_replace -- Replaces a substring with another substring.
 #
 # Replace search with replace in *subject.
 #
 # Usage:
+#     // 1. Function form.
 #     void func::str_replace(string* subject, string search, string replace)
+#     // 2. Command form.
+#     void sub::str_replace(
+#         string input, string search, string replace) > output
+#     // 3. Stream form.
+#     void stream::str_replace(string search, string replace) < input > output
 func::str_replace() {
-  if [ "$#" -ne 3 ]; then
-    LOG FATAL 'func::str_replace takes exactly 3 arguments.'
+  if [ "$#" -eq 3 ]; then
+    eval "${1}=\"\${${1}//\"\${2}\"/\${3}}\""
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
-  local __str_replace_subject_variable="${1}"
-  local __str_replace_search="${2}"
-  local __str_replace_replace="${3}"
-
-  eval "${__str_replace_subject_variable}=\"\${${__str_replace_subject_variable}//\"\${__str_replace_search}\"/\${__str_replace_replace}}\""
 }
 
-# func::strcpy -- Copies a string from a variable to another variable.
+sub::str_replace() {
+  if [ "$#" -eq 3 ]; then
+    local __str_replace_value="${1}"
+    func::str_replace __str_replace_value "${2}" "${3}"
+    sub::println "${__str_replace_value}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+stream::str_replace() {
+  if [ "$#" -eq 2 ]; then
+    local __str_replace_search="${1}"
+    local __str_replace_replace="${2}"
+    func::str_replace __str_replace_search '\' '\\'
+    func::str_replace __str_replace_search '/' '\/'
+    func::str_replace __str_replace_search '.' '\.'
+    func::str_replace __str_replace_search '*' '\*'
+    func::str_replace __str_replace_search '^' '\^'
+    func::str_replace __str_replace_search '$' '\$'
+    func::str_replace __str_replace_search '[' '\['
+    func::str_replace __str_replace_search ']' '\]'
+    func::str_replace __str_replace_replace '\' '\\'
+    func::str_replace __str_replace_replace '/' '\/'
+    func::str_replace __str_replace_replace '&' '\&'
+    sed -e "s/${__str_replace_search}/${__str_replace_replace}/g"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# strcpy -- Copies a string from a variable to another variable.
 #
 # Assigns the content of a variable specified as source into destination.
 #
 # Usage:
+#     // 1. Function form.
 #     void func::strcpy(string* destination, string *source)
 func::strcpy() {
-  local __strcpy_destination="$1"
-  local __strcpy_source="$2"
-
-  eval "${__strcpy_destination}=\"\${${__strcpy_source}}\""
+  if [ "$#" -eq 2 ]; then
+    eval "${1}=\"\${${2}}\""
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
 }
 
 # strtolower -- Makes a string lowercase.
@@ -1278,7 +1314,7 @@ func::strcpy() {
 #     void stream::strtolower() < input > output
 func::strtolower() {
   if [ "$#" -eq 1 ]; then
-    local __strtolower_variable="$1"
+    local __strtolower_variable="${1}"
     local __strtolower_value=''
     func::strcpy __strtolower_value "${__strtolower_variable}"
     # This is faster than tr for short strings.
@@ -1311,19 +1347,17 @@ func::strtolower() {
     __strtolower_value="${__strtolower_value//Z/z}"
     func::let "${__strtolower_variable}" "${__strtolower_value}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
 sub::strtolower() {
   if [ "$#" -eq 1 ]; then
-    local value="$1"
+    local value="${1}"
     func::strtolower value
     sub::println "${value}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -1331,8 +1365,7 @@ stream::strtolower() {
   if [ "$#" -eq 0 ]; then
     tr '[A-Z]' '[a-z]'
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -1349,7 +1382,8 @@ stream::strtolower() {
 #     void stream::strtoupper() < input > output
 func::strtoupper() {
   if [ "$#" -eq 1 ]; then
-    local __strtoupper_variable="$1"
+    local __strtoupper_variable="${1}"
+    local __strtoupper_value=''
     func::strcpy __strtoupper_value "${__strtoupper_variable}"
     # This is faster than tr for short strings.
     # TODO(imos): Use ${variable^^} instead once Mac OSX supports BASH 4.
@@ -1381,19 +1415,17 @@ func::strtoupper() {
     __strtoupper_value="${__strtoupper_value//z/Z}"
     func::let "${__strtoupper_variable}" "${__strtoupper_value}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
 sub::strtoupper() {
   if [ "$#" -eq 1 ]; then
-    local value="$1"
+    local value="${1}"
     func::strtoupper value
     sub::println "${value}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -1401,34 +1433,29 @@ stream::strtoupper() {
   if [ "$#" -eq 0 ]; then
     tr '[a-z]' '[A-Z]'
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
-# func::trim -- Strips whitespaces from both sides.
+# trim -- Strips whitespaces from both sides.
 #
 # trim strips whitespaces (or other characters) from the beginning and end of a
 # string.
 #
 # Usage:
-#     // 1. Function format.
+#     // 1-a. Function format.
 #     void func::trim(string* output, string input)
-#     // 2. Inplace format.
+#     // 1-b. Function format.
 #     void func::trim(string* variable)
 func::trim() {
   if [ "$#" -eq 1 ]; then
-    local __trim_variable="$1"
-    func::rtrim "${__trim_variable}"
-    func::ltrim "${__trim_variable}"
+    func::rtrim "${1}"
+    func::ltrim "${1}"
   elif [ "$#" -eq 2 ]; then
-    local __trim_output="$1"
-    local __trim_input="$2"
-    func::let "${__trim_output}" "${__trim_input}"
-    func::trim "${__trim_output}"
+    func::let "${1}" "${2}"
+    func::trim "${1}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -1980,10 +2007,10 @@ DEFINE_multistring() { imosh::internal::define_flag multistring "$@"; }
 DEFINE_multiint() { imosh::internal::define_flag multiint "$@"; }
 DEFINE_multibool() { imosh::internal::define_flag multibool "$@"; }
 DEFINE_multidouble() { imosh::internal::define_flag multidouble "$@"; }
-DEFINE_list() { DEFINE_multistring "${@}"; }
+DEFINE_list() { DEFINE_multistring "$@"; }
 
 imosh::internal::get_main_script() {
-  local depth="${#BASH_SOURCE[@]}"
+  local depth="${#BASH_SOURCE[*]}"
   local main_script="${BASH_SOURCE[$((depth-1))]}"
   echo "${main_script}"
 }
@@ -2027,7 +2054,7 @@ imosh::internal::flag_groups() {
   if (( main_group_exists )); then
     echo 'main'
   fi
-  if [ "${#groups[@]}" -ne 0 -a "${FLAGS_helpfull}" -ne 0 ]; then
+  if [ "${#groups[*]}" -ne 0 -a "${FLAGS_helpfull}" -ne 0 ]; then
     func::array_unique groups
     for group in "${groups[@]}"; do
       echo "${group}"
@@ -2132,13 +2159,13 @@ imosh::internal::init() {
     eval "${IMOSH_ARGS[@]}"
   fi
   imosh::internal::init_log
-  if [ "${#__IMOSH_FLAGS_ALIASES[@]}" -ne 0 ]; then
+  if [ "${#__IMOSH_FLAGS_ALIASES[*]}" -ne 0 ]; then
     for alias in "${__IMOSH_FLAGS_ALIASES[@]}"; do
       eval "FLAGS_${alias%%:*}=\"\${FLAGS_${alias#*:}}\""
       unset "FLAGS_${alias#*:}"
     done
   fi
-  if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
+  if [ "${#IMOSH_ARGS[*]}" -ne 0 ]; then
     eval "${IMOSH_ARGS[@]}"
   fi
   if (( FLAGS_help || FLAGS_helpfull )) ||
@@ -2169,7 +2196,7 @@ imosh::stack_trace() {
   local ARGS_skip_imosh=0
   eval "${IMOSH_PARSE_ARGUMENTS}"
 
-  local max_depth="${#BASH_LINENO[@]}"
+  local max_depth="${#BASH_LINENO[*]}"
   local i=0
   if [ "$*" = '' ]; then
     echo 'imosh::stack_trace is called' >&2
@@ -2499,10 +2526,10 @@ readonly IMOSH_COLOR_WHITE=$'\033[0;37m'
 readonly IMOSH_PARSE_ARGUMENTS='
     local IMOSH_ARGV IMOSH_ARGS
     imosh::internal::parse_args arg "$@"
-    if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
+    if [ "${#IMOSH_ARGS[*]}" -ne 0 ]; then
       readonly "${IMOSH_ARGS[@]}"
     fi
-    if [ "${#IMOSH_ARGV[@]}" -ne 0 ]; then
+    if [ "${#IMOSH_ARGV[*]}" -ne 0 ]; then
       set -- "${IMOSH_ARGV[@]}"
     else
       set --
@@ -2515,7 +2542,7 @@ readonly IMOSH_WRONG_NUMBER_OF_ARGUMENTS='
 readonly IMOSH_INIT='
     set -e -u
     imosh::internal::init "$@"
-    if [ "${#IMOSH_ARGV[@]}" -ne 0 ]; then
+    if [ "${#IMOSH_ARGV[*]}" -ne 0 ]; then
       set -- "${IMOSH_ARGV[@]}"
     else
       set --

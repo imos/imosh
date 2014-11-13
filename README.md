@@ -186,11 +186,11 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 * [print](doc/strings/print.sh.md) -- Prints a message.
 * [println](doc/strings/println.sh.md) -- Prints a message with a new line.
 * [rtrim](doc/strings/rtrim.sh.md) -- Strips whitespace(s) from the end of a string.
-* [func::str_replace](doc/strings/str_replace.sh.md) -- Replaces a substring with another substring.
-* [func::strcpy](doc/strings/strcpy.sh.md) -- Copies a string from a variable to another variable.
+* [str_replace](doc/strings/str_replace.sh.md) -- Replaces a substring with another substring.
+* [strcpy](doc/strings/strcpy.sh.md) -- Copies a string from a variable to another variable.
 * [strtolower](doc/strings/strtolower.sh.md) -- Makes a string lowercase.
 * [strtoupper](doc/strings/strtoupper.sh.md) -- Makes a string uppercase.
-* [func::trim](doc/strings/trim.sh.md) -- Strips whitespaces from both sides.
+* [trim](doc/strings/trim.sh.md) -- Strips whitespaces from both sides.
 
 ## Variable handling
 

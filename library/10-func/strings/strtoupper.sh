@@ -11,7 +11,8 @@
 #     void stream::strtoupper() < input > output
 func::strtoupper() {
   if [ "$#" -eq 1 ]; then
-    local __strtoupper_variable="$1"
+    local __strtoupper_variable="${1}"
+    local __strtoupper_value=''
     func::strcpy __strtoupper_value "${__strtoupper_variable}"
     # This is faster than tr for short strings.
     # TODO(imos): Use ${variable^^} instead once Mac OSX supports BASH 4.
@@ -43,19 +44,17 @@ func::strtoupper() {
     __strtoupper_value="${__strtoupper_value//z/Z}"
     func::let "${__strtoupper_variable}" "${__strtoupper_value}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
 sub::strtoupper() {
   if [ "$#" -eq 1 ]; then
-    local value="$1"
+    local value="${1}"
     func::strtoupper value
     sub::println "${value}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -63,7 +62,6 @@ stream::strtoupper() {
   if [ "$#" -eq 0 ]; then
     tr '[a-z]' '[A-Z]'
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }

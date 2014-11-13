@@ -85,10 +85,10 @@ DEFINE_multistring() { imosh::internal::define_flag multistring "$@"; }
 DEFINE_multiint() { imosh::internal::define_flag multiint "$@"; }
 DEFINE_multibool() { imosh::internal::define_flag multibool "$@"; }
 DEFINE_multidouble() { imosh::internal::define_flag multidouble "$@"; }
-DEFINE_list() { DEFINE_multistring "${@}"; }
+DEFINE_list() { DEFINE_multistring "$@"; }
 
 imosh::internal::get_main_script() {
-  local depth="${#BASH_SOURCE[@]}"
+  local depth="${#BASH_SOURCE[*]}"
   local main_script="${BASH_SOURCE[$((depth-1))]}"
   echo "${main_script}"
 }
@@ -132,7 +132,7 @@ imosh::internal::flag_groups() {
   if (( main_group_exists )); then
     echo 'main'
   fi
-  if [ "${#groups[@]}" -ne 0 -a "${FLAGS_helpfull}" -ne 0 ]; then
+  if [ "${#groups[*]}" -ne 0 -a "${FLAGS_helpfull}" -ne 0 ]; then
     func::array_unique groups
     for group in "${groups[@]}"; do
       echo "${group}"
@@ -237,13 +237,13 @@ imosh::internal::init() {
     eval "${IMOSH_ARGS[@]}"
   fi
   imosh::internal::init_log
-  if [ "${#__IMOSH_FLAGS_ALIASES[@]}" -ne 0 ]; then
+  if [ "${#__IMOSH_FLAGS_ALIASES[*]}" -ne 0 ]; then
     for alias in "${__IMOSH_FLAGS_ALIASES[@]}"; do
       eval "FLAGS_${alias%%:*}=\"\${FLAGS_${alias#*:}}\""
       unset "FLAGS_${alias#*:}"
     done
   fi
-  if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
+  if [ "${#IMOSH_ARGS[*]}" -ne 0 ]; then
     eval "${IMOSH_ARGS[@]}"
   fi
   if (( FLAGS_help || FLAGS_helpfull )) ||
