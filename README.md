@@ -178,8 +178,8 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 * [bin2hex](doc/strings/bin2hex.sh.md) -- Converts a binary string into hexadecimal representation.
 * [escapeshellarg](doc/strings/escapeshellarg.sh.md) -- Escapes a variable as a shell argument.
 * [explode](doc/strings/explode.sh.md) -- Splits a string by a substring.
-* [func::hex2bin](doc/strings/hex2bin.sh.md) -- Decodes a hexadecimally encoded binary string.
-* [func::implode](doc/strings/implode.sh.md) -- Joins array elements with a string.
+* [hex2bin](doc/strings/hex2bin.sh.md) -- Decodes a hexadecimally encoded binary string.
+* [implode](doc/strings/implode.sh.md) -- Joins array elements with a string.
 * [func::ltrim](doc/strings/ltrim.sh.md) -- Strips whitespace(s) from the beginning of a string.
 * [func::md5](doc/strings/md5.sh.md) -- Calculates a MD5 hash.
 * [func::ord](doc/strings/ord.sh.md) -- Gets a character's ASCII code.

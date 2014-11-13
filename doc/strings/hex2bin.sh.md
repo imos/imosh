@@ -1,5 +1,5 @@
-# func::hex2bin
-func::hex2bin -- Decodes a hexadecimally encoded binary string.
+# hex2bin
+hex2bin -- Decodes a hexadecimally encoded binary string.
 
 Decodes a hexadecimally encoded binary string.
 

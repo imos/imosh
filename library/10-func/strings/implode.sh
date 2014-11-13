@@ -1,4 +1,4 @@
-# func::implode -- Joins array elements with a string.
+# implode -- Joins array elements with a string.
 #
 # func::implode joins `pieces` with `glue`.
 # *Stream form* uses the IFS environment variable as an input separator and
@@ -19,8 +19,6 @@
 func::implode() {
   # 1. Function form.
   if [ "$#" -eq 3 ]; then
-    local __implode_variable="${1}"
-    local __implode_glue="${2}"
     local __implode_pieces=()
     func::array_values __implode_pieces "${3}"
     local __implode_size="${#__implode_pieces[@]}"
@@ -28,12 +26,12 @@ func::implode() {
     local __implode_result=''
     while (( __implode_i < __implode_size )); do
       if (( __implode_i != 0 )); then
-        __implode_result+="${__implode_glue}"
+        __implode_result+="${2}"
       fi
       __implode_result+="${__implode_pieces[${__implode_i}]}"
       (( __implode_i += 1 )) || true
     done
-    func::let "${__implode_variable}" "${__implode_result}"
+    func::let "${1}" "${__implode_result}"
   elif [ "$#" -eq 2 ]; then
     LOG ERROR 'This form is deprecated.'
     sub::implode "$@"

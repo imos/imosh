@@ -1,5 +1,5 @@
-# func::implode
-func::implode -- Joins array elements with a string.
+# implode
+implode -- Joins array elements with a string.
 
 func::implode joins `pieces` with `glue`.
 *Stream form* uses the IFS environment variable as an input separator and
