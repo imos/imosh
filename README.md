@@ -185,7 +185,7 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 * [ord](doc/strings/ord.sh.md) -- Gets a character's ASCII code.
 * [print](doc/strings/print.sh.md) -- Prints a message.
 * [println](doc/strings/println.sh.md) -- Prints a message with a new line.
-* [func::rtrim](doc/strings/rtrim.sh.md) -- Strips whitespace(s) from the end of a string.
+* [rtrim](doc/strings/rtrim.sh.md) -- Strips whitespace(s) from the end of a string.
 * [func::str_replace](doc/strings/str_replace.sh.md) -- Replaces a substring with another substring.
 * [func::strcpy](doc/strings/strcpy.sh.md) -- Copies a string from a variable to another variable.
 * [strtolower](doc/strings/strtolower.sh.md) -- Makes a string lowercase.
