@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-14 02:41:58 +0900 (79531ea)'
+IMOSH_VERSION='2014-11-14 02:45:18 +0900 (93ea3b7)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -592,7 +592,7 @@ sub::greg_replace() {
   fi
 }
 
-# func::greg_split -- Splits a string with a GREG pattern.
+# greg_split -- Splits a string with a GREG pattern.
 #
 # greg_split splits a string with a GREG pattern.
 #
@@ -1054,7 +1054,7 @@ func::join() { func::implode "$@"; }
 sub::join() { sub::implode "$@"; }
 stream::join() { stream::implode "$@"; }
 
-# func::ltrim -- Strips whitespace(s) from the beginning of a string.
+# ltrim -- Strips whitespace(s) from the beginning of a string.
 #
 # Strips whitespace (or other characters) from the beginning of a string.
 #
@@ -1118,7 +1118,7 @@ stream::md5() {
   fi
 }
 
-# func::ord -- Gets a character's ASCII code.
+# ord -- Gets a character's ASCII code.
 #
 # Sets ASCII value of character to variable.
 #

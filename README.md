@@ -155,7 +155,7 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 
 * [greg_match](doc/greg/greg_match.sh.md) -- Checks if a string matches a GREG pattern.
 * [greg_replace](doc/greg/greg_replace.sh.md) -- Replace a GREG pattern with a string.
-* [func::greg_split](doc/greg/greg_split.sh.md) -- Splits a string with a GREG pattern.
+* [greg_split](doc/greg/greg_split.sh.md) -- Splits a string with a GREG pattern.
 
 ## imosh Options and Information
 
@@ -180,9 +180,9 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 * [explode](doc/strings/explode.sh.md) -- Splits a string by a substring.
 * [hex2bin](doc/strings/hex2bin.sh.md) -- Decodes a hexadecimally encoded binary string.
 * [implode](doc/strings/implode.sh.md) -- Joins array elements with a string.
-* [func::ltrim](doc/strings/ltrim.sh.md) -- Strips whitespace(s) from the beginning of a string.
+* [ltrim](doc/strings/ltrim.sh.md) -- Strips whitespace(s) from the beginning of a string.
 * [md5](doc/strings/md5.sh.md) -- Calculates a MD5 hash.
-* [func::ord](doc/strings/ord.sh.md) -- Gets a character's ASCII code.
+* [ord](doc/strings/ord.sh.md) -- Gets a character's ASCII code.
 * [print](doc/strings/print.sh.md) -- Prints a message.
 * [println](doc/strings/println.sh.md) -- Prints a message with a new line.
 * [func::rtrim](doc/strings/rtrim.sh.md) -- Strips whitespace(s) from the end of a string.

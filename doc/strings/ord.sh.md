@@ -1,5 +1,5 @@
-# func::ord
-func::ord -- Gets a character's ASCII code.
+# ord
+ord -- Gets a character's ASCII code.
 
 Sets ASCII value of character to variable.
 

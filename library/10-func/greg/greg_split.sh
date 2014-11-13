@@ -1,4 +1,4 @@
-# func::greg_split -- Splits a string with a GREG pattern.
+# greg_split -- Splits a string with a GREG pattern.
 #
 # greg_split splits a string with a GREG pattern.
 #
