@@ -101,13 +101,13 @@ show_readme() {
     for subdirectory in *; do
       if [ ! -d "${subdirectory}" ]; then continue; fi
       if [ -f "${subdirectory}/README.md" ]; then
-        func::print '#'
+        sub::print '#'
         cat "${subdirectory}/README.md"
         local title="$(
             head -n 1 "${subdirectory}/README.md" | sed -e 's/#//')"
         func::trim title
       fi
-      func::println
+      sub::println
       pushd "${subdirectory}" > '/dev/null'
       mkdir -p "${FLAGS_root_directory}/doc/${subdirectory}"
       for file in *.sh; do
@@ -115,7 +115,7 @@ show_readme() {
             "${FLAGS_root_directory}/doc/${subdirectory}/${file}.md" \
             "doc/${subdirectory}/${file}.md"
       done
-      func::println
+      sub::println
       popd > '/dev/null'
     done
     popd > '/dev/null'

@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-14 02:34:30 +0900 (36c9421)'
+IMOSH_VERSION='2014-11-14 02:41:58 +0900 (79531ea)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -1162,12 +1162,14 @@ sub::ord() {
 #     // 1. Command form.
 #     void sub::print(string message...) > output
 func::print() {
+  LOG ERROR 'This form is deprecated.'
   printf "%s" "$*"
 }
 
 sub::print() {
   IFS=' ' eval 'printf "%s" "$*"'
 }
+
 # println -- Prints a message with a new line.
 #
 # Print message to the standard output with a new line.  While "echo" consumes
@@ -1179,6 +1181,7 @@ sub::print() {
 #     // 1. Command form.
 #     void sub::println(string message...) > output
 func::println() {
+  LOG ERROR 'This form is deprecated.'
   printf "%s\n" "$*"
 }
 
