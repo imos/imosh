@@ -4,17 +4,15 @@
 #     // 1. Function form.
 #     void func::md5(string* variable, string data)
 #     // 2. Command form.
-#     void sub::md5(string data) > hash
+#     void sub::md5(string data, bool binary = false) > hash
 #     // 3. Stream form.
 #     void stream::md5(bool binary = false) < input > hash
 func::md5() {
-  if [ "$#" -eq 3 ]; then
+  if [ "$#" -eq 2 ]; then
     local __md5_file=''
     func::tmpfile __md5_file
-    sub::md5 "${2}" "${3}" > "${__md5_file}"
+    sub::md5 "${2}" 0 > "${__md5_file}"
     func::file_get_contents "${1}" "${__md5_file}"
-  elif [ "$#" -eq 2 ]; then
-    func::md5 "${1}" "${2}" 0
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
