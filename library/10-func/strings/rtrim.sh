@@ -1,28 +1,24 @@
-# func::rtrim -- Strips whitespace(s) from the end of a string.
+# rtrim -- Strips whitespace(s) from the end of a string.
 #
 # Strips whitespace (or other characters) from the end of a string.
 #
 # Usage:
-#     // 1. Function form.
+#     // 1-a. Function form.
 #     void func::rtrim(string* output, string input)
-#     // 2. Inplace form.
+#     // 1-b. Function form.
 #     void func::rtrim(string* variable)
-#     // 3. Command form.
+#     // 2. Command form.
 #     void sub::rtrim(string value) > output
-#     // 4. Stream form.
+#     // 3. Stream form.
 #     void stream::rtrim() < input > output
 func::rtrim() {
   if [ "$#" -eq 1 ]; then
-    local __rtrim_variable="$1"
-    eval "${__rtrim_variable}=\"\${${__rtrim_variable}%\"\${${__rtrim_variable}##*[![:space:]]}\"}\""
+    eval "${1}=\"\${${1}%\"\${${1}##*[![:space:]]}\"}\""
   elif [ "$#" -eq 2 ]; then
-    local __rtrim_output="$1"
-    local __rtrim_input="$2"
-    func::let "${__rtrim_output}" "${__rtrim_input}"
-    func::rtrim "${__rtrim_output}"
+    func::let "${1}" "${2}"
+    func::rtrim "${1}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -32,8 +28,7 @@ sub::rtrim() {
     func::rtrim __rtrim_value
     sub::println "${__rtrim_value}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -45,7 +40,6 @@ stream::rtrim() {
       sub::print "${LINE}${NEWLINE}"
     done
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }

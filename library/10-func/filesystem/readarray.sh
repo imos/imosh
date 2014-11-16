@@ -7,19 +7,14 @@
 #     void func::readarray() < input
 func::readarray() {
   if [ "$#" -eq 0 ]; then
-    local line=''
     NEWLINE=''
     LINE=''
     if ! func::readline; then
       LINE=()
       return 1
     fi
-    local ifs="${IFS}"
-    ifs="${ifs//'['/\[}"
-    ifs="${ifs//']'/\]}"
-    func::greg_split LINE "[${ifs}]" "${LINE}"
+    func::array LINE "${LINE}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }

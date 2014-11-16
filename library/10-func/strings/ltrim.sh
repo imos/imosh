@@ -1,20 +1,19 @@
-# func::ltrim -- Strips whitespace(s) from the beginning of a string.
+# ltrim -- Strips whitespace(s) from the beginning of a string.
 #
 # Strips whitespace (or other characters) from the beginning of a string.
 #
 # Usage:
+#     // 1-a. Function form.
 #     void func::ltrim(string* variable)
+#     // 1-b. Function form.
+#     void func::ltrim(string* variable, string input)
 func::ltrim() {
   if [ "$#" -eq 1 ]; then
-    local __ltrim_variable="$1"
-    eval "${__ltrim_variable}=\"\${${__ltrim_variable}#\"\${${__ltrim_variable}%%[![:space:]]*}\"}\""
+    eval "${1}=\"\${${1}#\"\${${1}%%[![:space:]]*}\"}\""
   elif [ "$#" -eq 2 ]; then
-    local __ltrim_output="$1"
-    local __ltrim_input="$2"
-    func::let "${__ltrim_output}" "${__ltrim_input}"
-    func::ltrim "${__ltrim_output}"
+    func::let "${1}" "${2}"
+    func::ltrim "${1}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }

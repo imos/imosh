@@ -11,8 +11,7 @@ func::count() {
   if [ "$#" -eq 2 ]; then
     func::strcpy "${1}" "#${2}[*]"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -20,7 +19,6 @@ sub::count() {
   if [ "$#" -eq 1 ]; then
     eval "sub::println \"\${#${1}[*]}\""
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }

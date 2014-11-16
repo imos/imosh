@@ -1,25 +1,32 @@
-# func::greg_replace -- Replace a GREG pattern with a string.
+# greg_replace -- Replace a GREG pattern with a string.
 #
 # greg_replace replaces substrings matching a pattern with a string.
 #
 # Usage:
+#     // 1. Function form.
 #     void func::greg_replace(string* subject, string pattern, string replace)
+#     // 2. Command form.
+#     void sub::greg_replace(
+#         string subject, string pattern, string replace) > output
 func::greg_replace() {
   if ! shopt extglob >/dev/null; then
+    local __greg_replace_status=0
     shopt -s extglob
     func::greg_replace "$@"
     shopt -u extglob
-    return "$?"
-  fi
-
-  if [ "$#" -eq 3 ]; then
-    local __greg_replace_subject_variable="${1}"
-    local __greg_replace_search="${2}"
-    local __greg_replace_replace="${3}"
-
-    eval "${__greg_replace_subject_variable}=\"\${${__greg_replace_subject_variable}//\${__greg_replace_search}/\${__greg_replace_replace}}\""
+  elif [ "$#" -eq 3 ]; then
+    eval "${1}=\"\${${1}//\${2}/\${3}}\""
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+sub::greg_replace() {
+  if [ "$#" -eq 3 ]; then
+    local __greg_replace_subject="${1}"
+    func::greg_replace __greg_replace_subject "${2}" "${3}"
+    sub::println "${__greg_replace_subject}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }

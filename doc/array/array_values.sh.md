@@ -5,6 +5,8 @@ array_values copies elements in an array variable into an array variable.
 
 ## Usage
 ```sh
-// 1. Function form
+// 1. Function form.
 void func::array_values(string[]* output, string[]* input)
+// 2. Command form.
+void sub::array_values(string[]* input) > output
 ```

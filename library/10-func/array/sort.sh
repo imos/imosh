@@ -10,22 +10,23 @@
 #     // 2. Stream form.
 #     void stream::sort() < input > output
 func::sort() {
-  local __sort_name="${1}"
-  eval "local __sort_size=\"\${#${__sort_name}[*]}\""
-  if [ "${__sort_size}" -lt 2 ]; then
-    return
+  if [ "$#" -eq 1 ]; then
+    local __sort_name="${1}"
+    if eval "[ \"\${#${__sort_name}[*]}\" -lt 2 ]"; then return; fi
+    local __sort_values=()
+    func::array_values __sort_values "${__sort_name}"
+    __func::quick_sort
+    func::array_values "${__sort_name}" __sort_values
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
-  eval "local __sort_values=(\"\${${__sort_name}[@]}\")"
-  __func::quick_sort
-  eval "${__sort_name}=(\"\${__sort_values[@]}\")"
 }
 
 stream::sort() {
   if [ "$#" -eq 0 ]; then
     stream::array_map ARRAY func::sort
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -46,13 +47,7 @@ __func::quick_sort() {
   func::sort values1
   func::sort values3
   __sort_values=()
-  if [ "${#values1[*]}" -ne 0 ]; then
-    __sort_values+=("${values1[@]}")
-  fi
-  if [ "${#values2[*]}" -ne 0 ]; then
-    __sort_values+=("${values2[@]}")
-  fi
-  if [ "${#values3[*]}" -ne 0 ]; then
-    __sort_values+=("${values3[@]}")
-  fi
+  if ! sub::array_is_empty values1; then __sort_values+=("${values1[@]}"); fi
+  if ! sub::array_is_empty values2; then __sort_values+=("${values2[@]}"); fi
+  if ! sub::array_is_empty values3; then __sort_values+=("${values3[@]}"); fi
 }

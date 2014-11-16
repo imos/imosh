@@ -1,27 +1,38 @@
-# func::boolval -- Casts a variable as a boolean value.
+# boolval -- Casts a variable as a boolean value.
 #
 # Casts variable as a boolean value.  If it fails, returns 1.
 #
 # Usage:
 #     bool func::boolval(string* variable)
 func::boolval() {
-  local __boolval_variable="$1"
-  eval "local __boolval_value=\"\${${__boolval_variable}}\""
-
-  func::trim __boolval_value
-  if [ "${__boolval_value}" = '' ]; then
-    __boolval_value=0
-  elif [[ "${__boolval_value}" =~ ^T|t|[Tt]rue$ ]]; then
-    __boolval_value=1
-  elif [[ "${__boolval_value}" =~ ^F|f|[Ff]alse$ ]]; then
-    __boolval_value=0
-  elif func::intval __boolval_value; then
-    if (( __boolval_value )); then
-      __boolval_value=1
+  if [ "$#" -eq 2 ]; then
+    func::let "${1}" 0
+    local __boolval_value="${2}"
+    func::trim __boolval_value
+    if [ "${__boolval_value}" = '' ] || \
+       [[ "${__boolval_value}" =~ ^F|f|[Ff]alse$ ]]; then
+      return
+    elif [[ "${__boolval_value}" =~ ^T|t|[Tt]rue$ ]]; then
+      func::let "${1}" 1
+    else
+      func::intval __boolval_value || return "$?"
+      if (( __boolval_value != 0 )); then
+        func::let "${1}" 1
+      fi
     fi
+  elif [ "$#" -eq 1 ]; then
+    eval "func::boolval \"\${1}\" \"\${${1}}\"" || return "$?"
   else
-    func::let "${__boolval_variable}" 0
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
-  func::let "${__boolval_variable}" "${__boolval_value}"
+}
+
+sub::boolval() {
+  if [ "$#" -eq 1 ]; then
+    local __boolval_sub_value="${1}"
+    func::booval __boolval_sub_value || return "$?"
+    sub::println "${__boolval_sub_value}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
 }

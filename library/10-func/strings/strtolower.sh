@@ -11,7 +11,7 @@
 #     void stream::strtolower() < input > output
 func::strtolower() {
   if [ "$#" -eq 1 ]; then
-    local __strtolower_variable="$1"
+    local __strtolower_variable="${1}"
     local __strtolower_value=''
     func::strcpy __strtolower_value "${__strtolower_variable}"
     # This is faster than tr for short strings.
@@ -44,19 +44,17 @@ func::strtolower() {
     __strtolower_value="${__strtolower_value//Z/z}"
     func::let "${__strtolower_variable}" "${__strtolower_value}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
 sub::strtolower() {
   if [ "$#" -eq 1 ]; then
-    local value="$1"
+    local value="${1}"
     func::strtolower value
     sub::println "${value}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -64,7 +62,6 @@ stream::strtolower() {
   if [ "$#" -eq 0 ]; then
     tr '[A-Z]' '[a-z]'
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }

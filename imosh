@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-05 02:18:33 +0900 (3152d29)'
+IMOSH_VERSION='2014-11-17 00:21:24 +0900 (9ab4e05)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -27,12 +27,27 @@ fi
 func::array() {
   if [ "$#" -eq 2 ]; then
     local __array_ifs="${IFS}"
-    __array_ifs="${__array_ifs//'['/\[}"
-    __array_ifs="${__array_ifs//']'/\]}"
+    func::str_replace __array_ifs '[' '\['
+    func::str_replace __array_ifs ']' '\]'
     func::greg_split "${1}" "[${__array_ifs}]" "${2}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# array_is_empty -- Checks if an array is empty.
+#
+# array_is_empty returns true iff a given array is empty.
+#
+# Usage:
+#     // 1. Command form.
+#     bool sub::array_is_empty(string[]* variable)
+sub::array_is_empty() {
+  if [ "$#" -eq 1 ]; then
+    if eval "[ \"\${#${1}[*]}\" -eq 0 ]"; then return 0; fi
     return 1
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -41,8 +56,10 @@ func::array() {
 # array_keys gets an array's keys.
 #
 # Usage:
-#     // 1. Function form
+#     // 1. Function form.
 #     void func::array_keys(string[]* output, string[]* input)
+#     // 2. Command form.
+#     void sub::array_keys(string[]* input) > output
 func::array_keys() {
   if [ "$#" -eq 2 ]; then
     if eval "[ \"\${#${2}[*]}\" -eq 0 ]"; then
@@ -51,8 +68,17 @@ func::array_keys() {
       eval "${1}=(\"\${!${2}[@]}\")"
     fi
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+sub::array_keys() {
+  if [ "$#" -eq 1 ]; then
+    local __array_keys_values=()
+    func::array_keys __array_keys_values "${1}"
+    sub::implode __array_keys_values
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -99,14 +125,10 @@ func::array_keys() {
 #         # => aBCbd\nBCdBCb
 func::array_map() {
   if [ "$#" -ge 3 ]; then
-    # Return if there are no elements in the variable.
-    if eval "[ \"\${#${1}[*]}\" -eq 0 ]"; then
-      return
-    fi
-
-    local __array_map_variable="$1"; shift
-    local __array_map_type="$1"; shift
-    local __array_map_callback="$1"; shift
+    if sub::array_is_empty "${1}"; then return; fi
+    local __array_map_variable="${1}"; shift
+    local __array_map_type="${1}"; shift
+    local __array_map_callback="${1}"; shift
 
     local __array_map_keys=()
     local __array_map_key=''
@@ -131,16 +153,14 @@ func::array_map() {
                        "${__array_map_variable}[${__array_map_key}]"
           "${__array_map_callback}" \
               "${__array_map_variable}[${__array_map_key}]" \
-              "${__array_map_value}" \
-              "$@"
+              "${__array_map_value}" "$@"
         done
         ;;
       'INPLACE')
         local __array_map_value=''
         for __array_map_key in "${__array_map_keys[@]}"; do
           "${__array_map_callback}" \
-              "${__array_map_variable}[${__array_map_key}]" \
-              "$@"
+              "${__array_map_variable}[${__array_map_key}]" "$@"
         done
         ;;
       'COMMAND')
@@ -151,8 +171,7 @@ func::array_map() {
           func::strcpy __array_map_value \
                        "${__array_map_variable}[${__array_map_key}]"
           "${__array_map_callback}" \
-              "${__array_map_value}" \
-              "$@" > "${__array_map_tmpfile}"
+              "${__array_map_value}" "$@" > "${__array_map_tmpfile}"
           func::file_get_contents \
               "${__array_map_variable}[${__array_map_key}]" \
               "${__array_map_tmpfile}"
@@ -164,14 +183,13 @@ func::array_map() {
         ;;
     esac
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
 stream::array_map() {
   if [ "$#" -ge 2 ]; then
-    local __array_map_type="$1"
+    local __array_map_type="${1}"
     local LINE='' NEWLINE=''
     while func::readline; do
       local __array_map_line=("${LINE}")
@@ -183,8 +201,7 @@ stream::array_map() {
       fi
     done
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -209,30 +226,29 @@ stream::array_map() {
 #
 #     echo c,b,a,b | IFS=, stream::array_unique  # => a,b,c
 func::array_unique() {
-  local __array_unique_variable="${1}"
-  if eval "[ \"\${#${__array_unique_variable}[*]}\" -eq 0 ]"; then
-    return
+  if [ "$#" -eq 1 ]; then
+    if sub::array_is_empty "${1}"; then return; fi
+    local __array_unique_values=()
+    func::array_values __array_unique_values "${1}"
+    func::sort __array_unique_values
+    local __array_unique_i="${#__array_unique_values[*]}"
+    while (( __array_unique_i -= 1 )); do
+      if [ "${__array_unique_values[$(( __array_unique_i - 1 ))]}" = \
+           "${__array_unique_values[${__array_unique_i}]}" ]; then
+        unset "__array_unique_values[${__array_unique_i}]"
+      fi
+    done
+    func::array_values "${1}" __array_unique_values
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
-  eval "local __array_unique_values=(\"\${${__array_unique_variable}[@]}\")"
-  func::sort __array_unique_values
-  local __array_unique_i=0
-  local __array_unique_size="${#__array_unique_values[*]}"
-  local __array_unique_result=("${__array_unique_values[0]}")
-  while (( __array_unique_i += 1, __array_unique_i < __array_unique_size )); do
-    if [ "${__array_unique_values[$(( __array_unique_i - 1 ))]}" != \
-         "${__array_unique_values[${__array_unique_i}]}" ]; then
-      __array_unique_result+=("${__array_unique_values[${__array_unique_i}]}")
-    fi
-  done
-  eval "${__array_unique_variable}=(\"\${__array_unique_result[@]}\")"
 }
 
 stream::array_unique() {
   if [ "$#" -eq 0 ]; then
     stream::array_map ARRAY func::array_unique
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -241,18 +257,29 @@ stream::array_unique() {
 # array_values copies elements in an array variable into an array variable.
 #
 # Usage:
-#     // 1. Function form
+#     // 1. Function form.
 #     void func::array_values(string[]* output, string[]* input)
+#     // 2. Command form.
+#     void sub::array_values(string[]* input) > output
 func::array_values() {
   if [ "$#" -eq 2 ]; then
-    if eval "[ \"\${#${2}[*]}\" -eq 0 ]"; then
+    if sub::array_is_empty "${2}"; then
       eval "${1}=()"
     else
       eval "${1}=(\"\${${2}[@]}\")"
     fi
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+sub::array_values() {
+  if [ "$#" -eq 1 ]; then
+    local __array_values_values=()
+    func::array_values __array_values_values "${1}"
+    sub::implode __array_values_values
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -269,8 +296,7 @@ func::count() {
   if [ "$#" -eq 2 ]; then
     func::strcpy "${1}" "#${2}[*]"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -278,8 +304,7 @@ sub::count() {
   if [ "$#" -eq 1 ]; then
     eval "sub::println \"\${#${1}[*]}\""
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -295,22 +320,23 @@ sub::count() {
 #     // 2. Stream form.
 #     void stream::sort() < input > output
 func::sort() {
-  local __sort_name="${1}"
-  eval "local __sort_size=\"\${#${__sort_name}[*]}\""
-  if [ "${__sort_size}" -lt 2 ]; then
-    return
+  if [ "$#" -eq 1 ]; then
+    local __sort_name="${1}"
+    if eval "[ \"\${#${__sort_name}[*]}\" -lt 2 ]"; then return; fi
+    local __sort_values=()
+    func::array_values __sort_values "${__sort_name}"
+    __func::quick_sort
+    func::array_values "${__sort_name}" __sort_values
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
-  eval "local __sort_values=(\"\${${__sort_name}[@]}\")"
-  __func::quick_sort
-  eval "${__sort_name}=(\"\${__sort_values[@]}\")"
 }
 
 stream::sort() {
   if [ "$#" -eq 0 ]; then
     stream::array_map ARRAY func::sort
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -331,15 +357,9 @@ __func::quick_sort() {
   func::sort values1
   func::sort values3
   __sort_values=()
-  if [ "${#values1[*]}" -ne 0 ]; then
-    __sort_values+=("${values1[@]}")
-  fi
-  if [ "${#values2[*]}" -ne 0 ]; then
-    __sort_values+=("${values2[@]}")
-  fi
-  if [ "${#values3[*]}" -ne 0 ]; then
-    __sort_values+=("${values3[@]}")
-  fi
+  if ! sub::array_is_empty values1; then __sort_values+=("${values1[@]}"); fi
+  if ! sub::array_is_empty values2; then __sort_values+=("${values2[@]}"); fi
+  if ! sub::array_is_empty values3; then __sort_values+=("${values3[@]}"); fi
 }
 
 # fgets -- Gets a line from STDIN.
@@ -355,40 +375,36 @@ __func::quick_sort() {
 #     bool sub::fgets() > line
 func::fgets() {
   if [ "$#" -eq 1 ]; then
-    local __fgets_variable="$1"
     local __fgets_buffer=''
     local __fgets_line=''
 
-    func::let "${__fgets_variable}" ''
+    func::let "${1}" ''
+    # Check if EOF.
     if ! IFS= read -r -n 1 -d '' __fgets_buffer; then
       return 1
     fi
     __fgets_line+="${__fgets_buffer}"
     if [ "${__fgets_buffer}" = $'\n' ]; then
-      func::strcpy "${__fgets_variable}" __fgets_buffer
+      func::strcpy "${1}" __fgets_buffer
       return
     fi
     if IFS= read -r -d $'\n' __fgets_buffer; then
       __fgets_buffer+=$'\n'
     fi
     __fgets_line+="${__fgets_buffer}"
-    func::strcpy "${__fgets_variable}" __fgets_line
+    func::strcpy "${1}" __fgets_line
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
 sub::fgets() {
   if [ "$#" -eq 0 ]; then
     local variable=''
-    if ! func::fgets variable; then
-      return 1
-    fi
+    if ! func::fgets variable; then return 1; fi
     sub::print "${variable}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -421,24 +437,17 @@ sub::fgets() {
 #         stream::file_get_contents  # => helloworld
 func::file_get_contents() {
   if [ "$#" -eq 2 ]; then
-    local __file_get_contents_variable="$1"
-    local __file_get_contents_filename="$2"
-
-    IFS= read -r -d '' "${__file_get_contents_variable}" \
-        < "${__file_get_contents_filename}" || true
+    IFS= read -r -d '' "${1}" < "${2}" || true
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
 sub::file_get_contents() {
   if [ "$#" -eq 1 ]; then
-    local __file_get_contents_filename="$1"
-    cat < "${__file_get_contents_filename}"
+    cat < "${1}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -446,8 +455,7 @@ stream::file_get_contents() {
   if [ "$#" -eq 0 ]; then
     stream::array_map COMMAND cat
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -460,20 +468,15 @@ stream::file_get_contents() {
 #     void func::readarray() < input
 func::readarray() {
   if [ "$#" -eq 0 ]; then
-    local line=''
     NEWLINE=''
     LINE=''
     if ! func::readline; then
       LINE=()
       return 1
     fi
-    local ifs="${IFS}"
-    ifs="${ifs//'['/\[}"
-    ifs="${ifs//']'/\]}"
-    func::greg_split LINE "[${ifs}]" "${LINE}"
+    func::array LINE "${LINE}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -503,8 +506,7 @@ func::readline() {
       LINE="${line}"
     fi
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -519,12 +521,10 @@ func::readline() {
 #     void sub::tmpfile() > path
 func::tmpfile() {
   if [ "$#" -eq 1 ]; then
-    local __tmpfile_variable="$1"
-    func::let "${__tmpfile_variable}" \
+    func::let "${1}" \
         "${TMPDIR}/tmpfile.${RANDOM}.${RANDOM}.${RANDOM}.${RANDOM}.${RANDOM}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -534,95 +534,105 @@ sub::tmpfile() {
     func::tmpfile tmpfile
     sub::println "${tmpfile}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
-# func::greg_match -- Checks if a string matches a GREG pattern.
+# greg_match -- Checks if a string matches a GREG pattern.
 #
 # greg_match checks if a string matches a GREG pattern.
 #
 # Usage:
-#     // 1. Function form.
-#     void func::greg_match(string pattern, string subject)
-func::greg_match() {
+#     // 1. Command form.
+#     bool sub::greg_match(string pattern, string subject)
+sub::greg_match() {
   if ! shopt extglob > /dev/null; then
     shopt -s extglob
-    local result=0
-    func::greg_match "$@" || result="$?"
+    local __greg_match_result=0
+    sub::greg_match "$@" || __greg_match_result="$?"
     shopt -u extglob
-    return "${result}"
-  fi
-
-  if [ "$#" -eq 2 ]; then
-    local __greg_match_pattern="${1}"
-    local __greg_match_subject="${2}"
-
-    if [[ "${__greg_match_subject}" = ${__greg_match_pattern} ]]; then
-      return 0
-    else
-      return 1
-    fi
+    return "${__greg_match_result}"
+  elif [ "$#" -eq 2 ]; then
+    [[ "${2}" = ${1} ]] || return 1
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
-# func::greg_replace -- Replace a GREG pattern with a string.
+# greg_replace -- Replace a GREG pattern with a string.
 #
 # greg_replace replaces substrings matching a pattern with a string.
 #
 # Usage:
+#     // 1. Function form.
 #     void func::greg_replace(string* subject, string pattern, string replace)
+#     // 2. Command form.
+#     void sub::greg_replace(
+#         string subject, string pattern, string replace) > output
 func::greg_replace() {
   if ! shopt extglob >/dev/null; then
+    local __greg_replace_status=0
     shopt -s extglob
     func::greg_replace "$@"
     shopt -u extglob
-    return "$?"
-  fi
-
-  if [ "$#" -eq 3 ]; then
-    local __greg_replace_subject_variable="${1}"
-    local __greg_replace_search="${2}"
-    local __greg_replace_replace="${3}"
-
-    eval "${__greg_replace_subject_variable}=\"\${${__greg_replace_subject_variable}//\${__greg_replace_search}/\${__greg_replace_replace}}\""
+  elif [ "$#" -eq 3 ]; then
+    eval "${1}=\"\${${1}//\${2}/\${3}}\""
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
-# func::greg_split -- Splits a string with a GREG pattern.
+sub::greg_replace() {
+  if [ "$#" -eq 3 ]; then
+    local __greg_replace_subject="${1}"
+    func::greg_replace __greg_replace_subject "${2}" "${3}"
+    sub::println "${__greg_replace_subject}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# greg_split -- Splits a string with a GREG pattern.
 #
 # greg_split splits a string with a GREG pattern.
 #
 # Usage:
-#     void func::greg_split(string* variable, string pattern, string value)
+#     // 1. Function form.
+#     void func::greg_split(string[]* variable, string pattern, string value)
+#     // 2. Command form.
+#     void sub::greg_split(string pattern, string value)
+#
+# Caveat:
+#   greg_split does not support \x02 for value.
 func::greg_split() {
   if [ "$#" -eq 3 ]; then
-    local __greg_split_variable="$1"
-    local __greg_split_pattern="$2"
-    local __greg_split_value="$3"
-
-    func::greg_replace __greg_split_value "${__greg_split_pattern}" $'\x02'
-    func::explode "${__greg_split_variable}" $'\x02' "${__greg_split_value}"
+    local __greg_split_value="${3}"
+    func::greg_replace __greg_split_value "${2}" $'\x02'
+    func::explode "${1}" $'\x02' "${__greg_split_value}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
-# func::getchildpids -- Gets child process IDs.
+sub::greg_split() {
+  if [ "$#" -eq 2 ]; then
+    local __greg_split_variable=()
+    func::greg_split __greg_split_variable "${1}" "${2}"
+    sub::implode __greg_split_variable
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# getchildpids -- Gets child process IDs.
 #
 # Usage:
+#     // 1. Function form.
 #     void func::getchildpids(int[]* variable)
+#     // 2. Command form.
+#     void sub::getchildpids() > output
 func::getchildpids() {
   if [ "$#" -eq 1 ]; then
-    local __getchildpids_variable="$1"
     local __getchildpids_mypid=''
     func::getmypid __getchildpids_mypid
     local __getchildpids_pid='' __getchildpids_ppid=''
@@ -633,108 +643,137 @@ func::getchildpids() {
         __getchildpids_result+=("${__getchildpids_pid}")
       fi
     done < <(ps -o ppid,pid)
-    if [ "${#__getchildpids_result[*]}" -eq 0 ]; then
-      eval "${__getchildpids_variable}=()"
-    else
-      eval "${__getchildpids_variable}=(\"\${__getchildpids_result[@]}\")"
-    fi
+    func::array_values "${1}" __getchildpids_result
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
-# func::getmypid -- Gets the current process ID.
+sub::getchildpids() {
+  if [ "$#" -eq 0 ]; then
+    local __getchildpids_variable=()
+    func::getchildpids __getchildpids_variable
+    sub::implode __getchildpids_variable
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# getmypid -- Gets the current process ID.
 #
 # Usage:
-#     void func::pid(int* variable)
+#     // 1. Function form.
+#     void func::getmypid(int* variable)
+#     // 2. Command form.
+#     void sub::getmypid() > output
 func::getmypid() {
   if [ "$#" -eq 1 ]; then
-    local __getmypid_variable="$1"
-    if func::isset BASHPID; then
-      func::let "${__getmypid_variable}" "${BASHPID}"
+    if sub::isset BASHPID; then
+      func::let "${1}" "${BASHPID}"
     else
       local __getmypid_pid_file=''
       func::tmpfile __getmypid_pid_file
       "${SHELL}" -c 'echo "${PPID}"' > "${__getmypid_pid_file}"
-      read -r -d $'\n' "${__getmypid_variable}" < "${__getmypid_pid_file}"
+      read -r -d $'\n' "${1}" < "${__getmypid_pid_file}"
     fi
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
-# func::rand -- Generates a random integer.
+sub::getmypid() {
+  if [ "$#" -eq 0 ]; then
+    local __getmypid_variable
+    func::getmypid __getmypid_variable
+    sub::println "${__getmypid_variable}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# rand -- Generates a random integer.
 #
-# Generates a random integer.
+# rand generates a random integer.
 #
 # Usage:
-#     // a. Function form.
-#     void func::rand(int* variable)
-#     // b. Function form with a range.
+#     // 1. Function form.
 #     void func::rand(int* variable, int minimum, int maximum)
+#     void func::rand(int* variable, int maximum)
+#     void func::rand(int* variable)
+#     // 2. Command form.
+#     void sub::rand(int minimum, int maximum) > output
+#     void sub::rand(int maximum) > output
+#     void sub::rand() > output
 func::rand() {
   if [ "$#" -eq 3 ]; then
-    local __rand_variable="$1"
-    local __rand_minimum="$2"
-    local __rand_maximum="$3"
-    local __rand_range=0 __rand_value=0
-    if (( __rand_minimum > __rand_maximum )); then
-      LOG FATAL "minimum must be larger than maximum:" \
-                "minimum=${__rand_minimum}, maximum=${__rand_maximum}"
-    fi
-    ((
-      __rand_value = RANDOM ^ (RANDOM << 8) ^
-                     (RANDOM << 16) ^ (RANDOM << 24) ^
-                     (RANDOM << 32) ^ (RANDOM << 40) ^
-                     (RANDOM << 48) ^ (RANDOM << 56),
-      __rand_range = __rand_maximum - __rand_minimum + 1,
-      __rand_value = __rand_minimum +
-          ( __rand_value % __rand_range + __rand_range ) % __rand_range
-    )) || true
-    func::let "${__rand_variable}" "${__rand_value}"
+    local __rand_value=0
+    __func::rand "${2}" "${3}"
+    func::let "${1}" "${__rand_value}"
+  elif [ "$#" -eq 2 ]; then
+    func::rand "${1}" 0 "${2}"
   elif [ "$#" -eq 1 ]; then
-    func::rand "$1" 0 2147483647
-    return
+    func::rand "${1}" 2147483647
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
-# func::atexit -- Registers a function on shutdown.
+sub::rand() {
+  if [ "$#" -le 2 ]; then
+    local __rand_variable=0
+    func::rand __rand_variable "$@"
+    sub::println "${__rand_variable}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+__func::rand() {
+  local min="${1}" max="${2}" range=0
+  if [ "${min}" -eq "${max}" ]; then
+    __rand_value="${min}"
+    return
+  elif [ "${min}" -gt "${max}" ]; then
+    local min="${max}" max="${min}"
+  fi
+  (( __rand_value = RANDOM ^ (RANDOM << 8) ^ (RANDOM << 16) ^ (RANDOM << 24) ^
+         (RANDOM << 32) ^ (RANDOM << 40) ^ (RANDOM << 48) ^ (RANDOM << 56),
+     range = max - min + 1,
+     __rand_value = min + (__rand_value % range + range) % range )) || true
+}
+
+# atexit -- Registers a function on shutdown.
 #
 # atexit registers a function to be excuted on shutdown.
 #
 # Usage:
-#     void func::atexit(string command)
-func::atexit() {
+#     // 1. Command form.
+#     void sub::atexit(string command)
+sub::atexit() {
   if [ "$#" -eq 1 ]; then
-    echo "$1" >> "${__IMOSH_CORE_TMPDIR}/atexit.sh"
+    sub::println "${1}" >> "${__IMOSH_CORE_TMPDIR}/atexit.sh"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
 # exit, die -- Kills the current script.
 #
-# func::exit kills all the subprocesses of the current program.  If an integer
-# argument is given, func::exit exits with the status.  Otherwise, func::exit
-# shows the given message and exits with status 0.  func::die shows a stack
-# trace and delegates arguments to func::exit.
+# sub::exit kills all the subprocesses of the current program.  If an integer
+# argument is given, sub::exit exits with the status.  Otherwise, sub::exit
+# shows the given message and exits with status 0.  sub::die shows a stack
+# trace and delegates arguments to sub::exit.
 #
 # Usage:
-#     // 1-a. Function form with a message.
-#     void func::exit(string message)
-#     // 1-b. Function form with a status.
-#     void func::exit(int status = 0)
-#     // 1-c. Function form with a message.
-#     void func::die(string message)
-#     // 1-d. Function form with a status.
-#     void func::die(int status = 0)
-func::exit() {
+#     // 1-a. Command form with a message.
+#     void sub::exit(string message)
+#     // 1-b. Command form with a status.
+#     void sub::exit(int status = 0)
+#     // 1-c. Command form with a message.
+#     void sub::die(string message)
+#     // 1-d. Command form with a status.
+#     void sub::die(int status = 0)
+sub::exit() {
   if [ "$#" -eq 1 ]; then
     local status=0
     if [[ "$1" =~ ^[0-9]+$ ]]; then
@@ -746,85 +785,97 @@ func::exit() {
     fi
     imosh::exit "${status}"
   elif [ "$#" -eq 0 ]; then
-    func::exit 0
+    sub::exit 0
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
-func::die() {
+sub::die() {
   imosh::stack_trace "*** imosh::die stack trace: ***"
-  func::exit "$@"
+  sub::exit "$@"
 }
 
-# func::throttle -- Throttles by the number of child processes.
+# throttle -- Throttles by the number of child processes.
 #
 # throttle waits that the number of the child processes is less than a limit.
 # Firstly, throttle waits for 0.1 second, and the n-th retry (n < 10) waits for
 # n * 0.1 seconds.  The n-th retry (n >= 10) waits for 1 second.
 #
 # Usage:
-#     void func::throttle(int limit)
-func::throttle() {
+#     void sub::throttle(int limit)
+sub::throttle() {
   if [ "$#" -eq 1 ]; then
-    local __throttle_limit="$1"
-    local __throttle_pids=()
-    local __throttle_sleep=0
+    local pids=()
+    local sleep=0
 
     while :; do
-      func::getchildpids __throttle_pids
-      if [ "${#__throttle_pids[*]}" -lt "${__throttle_limit}" ]; then
+      func::getchildpids pids
+      if [ "${#pids[*]}" -lt "${1}" ]; then
         break
       fi
-      if (( __throttle_sleep += 1, __throttle_sleep < 10 )); then
-        sleep "0.${__throttle_sleep}"
+      if (( sleep += 1, sleep < 10 )); then
+        sleep "0.${sleep}"
       else
         sleep 1
       fi
     done
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
-# func::addslashes -- Quotes a string with backslahses.
+# addslashes -- Quotes a string with backslahses.
 #
 # Quotes string with backslashes. Single quote, double quote and backslash in
 # subject are escaped.
 #
 # Usage:
+#     // 1. Function form.
 #     void func::addslashes(string* subject)
 func::addslashes() {
-  func::str_replace "${1}" '\' '\\'
-  func::str_replace "${1}" "'" "\\'"
-  func::str_replace "${1}" '"' '\"'
+  if [ "$#" -eq 1 ]; then
+    func::str_replace "${1}" '\' '\\'
+    func::str_replace "${1}" "'" "\\'"
+    func::str_replace "${1}" '"' '\"'
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
 }
 
-# func::bin2hex -- Converts a binary string into hexadecimal representation.
+# bin2hex -- Converts a binary string into hexadecimal representation.
 #
 # Converts binary data into hexadecimal representation.
 #
 # Usage:
+#     // 1. Function form.
 #     void func::bin2hex(string* hexadecimal_output, string binary_input)
-#     void func::bin2hex(string binary_input) > hexadecimal_output
-#     void func::bin2hex() < binary_input > hexadecimal_output
+#     // 2. Command form.
+#     void sub::bin2hex(string binary_input) > hexadecimal_output
+#     // 3. Stream form.
+#     void stream::bin2hex() < binary_input > hexadecimal_output
 func::bin2hex() {
+  if [ "$#" -eq 2 ]; then
+    func::let "${1}" "$(sub::print "${2}" | stream::bin2hex)"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+sub::bin2hex() {
+  if [ "$#" -eq 1 ]; then
+    stream::bin2hex <<<"${1}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+stream::bin2hex() {
   if [ "$#" -eq 0 ]; then
     od -An -tx1 | tr -d ' \n'
-    return
-  elif [ "$#" -eq 1 ]; then
-    func::bin2hex <<<"$1"
-    return
-  elif [ "$#" -ne 2 ]; then
-    LOG FATAL "func::bin2hex requires two arguments, but $# arguments."
-    return 1
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
-  local __bin2hex_destination="$1"
-  local __bin2hex_data="$2"
-
-  eval "${__bin2hex_destination}=\"\$(sub::print \"${__bin2hex_data}\" | func::bin2hex)\""
 }
 
 # escapeshellarg -- Escapes a variable as a shell argument.
@@ -832,55 +883,84 @@ func::bin2hex() {
 # escapeshellarg escapes variable's content so as to use it as a shell argument.
 #
 # Usage:
+#     // 1. Function form.
 #     void func::escapeshellarg(string* variable)
 func::escapeshellarg() {
-  local __escapeshellarg_variable="$1"
-  local __escapeshellarg_search="'"
-  local __escapeshellarg_replace="'\\''"
-
-  eval "${__escapeshellarg_variable}=\"'\${${__escapeshellarg_variable}//\${__escapeshellarg_search}/\${__escapeshellarg_replace}}'\""
+  if [ "$#" -eq 1 ]; then
+    local __escapeshellarg_value=''
+    func::strcpy __escapeshellarg_value "${1}"
+    func::str_replace __escapeshellarg_value "'" "'\\''"
+    func::let "${1}" "'${__escapeshellarg_value}'"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
 }
 
-# func::explode -- Splits a string by a substring.
+# explode -- Splits a string by a substring.
 #
 # Splits a string by string.
 #
 # Usage:
+#     // 1. Function form.
 #     void func::explode(string* variable, string delimiter, string value)
 func::explode() {
-  local __explode_variable="${1}"
-  local __explode_delimiter="${2}"
-  local __explode_value="${3}"
-  local __explode_result=()
-
-  if [ "${__explode_delimiter}" != $'\x02' ]; then
-    func::str_replace __explode_value "${__explode_delimiter}" $'\x02'
+  if [ "$#" -eq 3 ]; then
+    local __explode_value="${3}"
+    if [ "${2}" != $'\x02' ]; then
+      func::str_replace __explode_value "${2}" $'\x02'
+    fi
+    local __explode_result=()
+    local __explode_term=''
+    while IFS= read -r -d $'\x02' __explode_term; do
+      __explode_result+=("${__explode_term}")
+    done <<<"${__explode_value}"$'\x02'
+    func::array_values "${1}" __explode_result
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
-  while IFS='' read -r -d $'\x02' __explode_term; do
-    __explode_result+=("${__explode_term}")
-  done <<<"${__explode_value}"$'\x02'
-  eval "${__explode_variable}=(\"\${__explode_result[@]}\")"
 }
 
-# func::hex2bin -- Decodes a hexadecimally encoded binary string.
+# hex2bin -- Decodes a hexadecimally encoded binary string.
 #
 # Decodes a hexadecimally encoded binary string.
 #
 # Usage:
+#     // 1-a. Function form.
 #     void func::hex2bin(string* output, string input)
+#     // 1-b. Function form.
 #     void func::hex2bin(string* variable)
-#     void func::hex2bin() < input > output
+#     // 2. Command form.
+#     void sub::hex2bin(string input) > output
+#     // 3. Stream form.
+#     void stream::hex2bin() < input > output
 func::hex2bin() {
+  if [ "$#" -eq 2 ]; then
+    local __hex2bin_result=''
+    __func::hex2bin <<<"${2}"
+    func::let "${1}" "${__hex2bin_result}"
+  elif [ "$#" -eq 1 ]; then
+    local __hex2bin_data=''
+    func::strcpy __hex2bin_data "${1}"
+    func::hex2bin "${1}" "${__hex2bin_data}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+sub::hex2bin() {
+  if [ "$#" -eq 1 ]; then
+    stream::hex2bin <<<"${1}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+stream::hex2bin() {
   if [ "$#" -eq 0 ]; then
     local __hex2bin_variable=''
     __func::hex2bin
-  elif [ "$#" -eq 2 ]; then
-    local __hex2bin_variable="$1" __hex2bin_data="$2" __hex2bin_result=''
-    __func::hex2bin <<<"${__hex2bin_data}"
-    func::let "${__hex2bin_variable}" "${__hex2bin_result}"
-  elif [ "$#" -eq 1 ]; then
-    local __hex2bin_variable="$1" __hex2bin_result=''
-    eval "func::hex2bin \"\${__hex2bin_variable}\" \"\${${__hex2bin_variable}}\""
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -892,7 +972,7 @@ __func::hex2bin() {
       *) continue;;
     esac
     if [ "${#__hex2bin_buffer}" -eq 2 ]; then
-      if [ "${__hex2bin_variable}" = '' ]; then
+      if ! sub::isset __hex2bin_result; then
         printf "\\x${__hex2bin_buffer}"
       else
         eval "__hex2bin_result+=\$'\\x${__hex2bin_buffer}'"
@@ -902,7 +982,7 @@ __func::hex2bin() {
   done
 }
 
-# func::implode -- Joins array elements with a string.
+# implode -- Joins array elements with a string.
 #
 # func::implode joins `pieces` with `glue`.
 # *Stream form* uses the IFS environment variable as an input separator and
@@ -912,106 +992,163 @@ __func::hex2bin() {
 #     // 1. Function form.
 #     void func::implode(string* variable, string glue, string[]* pieces)
 #     // 2. Command form.
-#     void func::implode(string glue, string[]* pieces) > result
+#     void sub::implode(string glue, string[]* pieces) > result
+#     void sub::implode(string[]* pieces) > result
 #     // 3. Stream form.
-#     void func::implode(string glue) < input > output
+#     void stream::implode(string glue) < input > output
 #
-# Alias:
-#   func::join is an alias of func::implode.
+# Aliases:
+#   func::join, sub::join and stream::join are aliases of func::implode,
+#   sub::implode and stream::implode respectively.
 func::implode() {
   # 1. Function form.
   if [ "$#" -eq 3 ]; then
-    local __implode_variable="${1}"
-    local __implode_glue="${2}"
     local __implode_pieces=()
-    eval "local __implode_pieces=(\"\${${3}[@]}\")"
-
-    local __implode_size="${#__implode_pieces[@]}"
+    func::array_values __implode_pieces "${3}"
+    local __implode_size="${#__implode_pieces[*]}"
     local __implode_i=0
     local __implode_result=''
     while (( __implode_i < __implode_size )); do
       if (( __implode_i != 0 )); then
-        __implode_result+="${__implode_glue}"
+        __implode_result+="${2}"
       fi
       __implode_result+="${__implode_pieces[${__implode_i}]}"
       (( __implode_i += 1 )) || true
     done
-    func::let "${__implode_variable}" "${__implode_result}"
-  # 2. Command form
+    func::let "${1}" "${__implode_result}"
   elif [ "$#" -eq 2 ]; then
-    local __implode_output=''
-    # 1. Function form.
-    func::implode __implode_output "$1" "$2"
-    sub::println "${__implode_output}"
-    return
-  # 3. Stream form.
+    LOG ERROR 'This form is deprecated.'
+    sub::implode "$@"
   elif [ "$#" -eq 1 ]; then
-    local __implode_line=''
-    while read -r __implode_line; do
-      local pieces=(${__implode_line})
-      # 2. Command form.
-      func::implode "$1" pieces
-    done
-    return
-  # Argument mismatch.
+    LOG ERROR 'This form is deprecated.'
+    stream::implode "$@"
   else
-    LOG ERROR "The number of arguments does not match func::implode: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+sub::implode() {
+  if [ "$#" -eq 2 ]; then
+    local __implode_output=''
+    func::implode __implode_output "${1}" "${2}"
+    sub::println "${__implode_output}"
+  elif [ "$#" -eq 1 ]; then
+    sub::implode "${IFS:0:1}" "${1}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+stream::implode() {
+  if [ "$#" -eq 1 ]; then
+    local LINE=()
+    while func::readarray; do
+      sub::implode "${1}" LINE
+    done
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
 func::join() { func::implode "$@"; }
+sub::join() { sub::implode "$@"; }
+stream::join() { stream::implode "$@"; }
 
-# func::ltrim -- Strips whitespace(s) from the beginning of a string.
+# ltrim -- Strips whitespace(s) from the beginning of a string.
 #
 # Strips whitespace (or other characters) from the beginning of a string.
 #
 # Usage:
+#     // 1-a. Function form.
 #     void func::ltrim(string* variable)
+#     // 1-b. Function form.
+#     void func::ltrim(string* variable, string input)
 func::ltrim() {
   if [ "$#" -eq 1 ]; then
-    local __ltrim_variable="$1"
-    eval "${__ltrim_variable}=\"\${${__ltrim_variable}#\"\${${__ltrim_variable}%%[![:space:]]*}\"}\""
+    eval "${1}=\"\${${1}#\"\${${1}%%[![:space:]]*}\"}\""
   elif [ "$#" -eq 2 ]; then
-    local __ltrim_output="$1"
-    local __ltrim_input="$2"
-    func::let "${__ltrim_output}" "${__ltrim_input}"
-    func::ltrim "${__ltrim_output}"
+    func::let "${1}" "${2}"
+    func::ltrim "${1}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
-# func::md5 -- Calculates a MD5 hash.
+# md5 -- Calculates a MD5 hash.
 #
 # Usage:
-#     void func::md5() < input > hash
-#     void func::md5(string data) > hash
+#     // 1. Function form.
 #     void func::md5(string* variable, string data)
+#     // 2. Command form.
+#     void sub::md5(string data, bool binary = false) > hash
+#     // 3. Stream form.
+#     void stream::md5(bool binary = false) < input > hash
 func::md5() {
-  if [ "$#" -eq 0 ]; then
-    openssl md5 -binary | func::bin2hex
-  elif [ "$#" -eq 1 ]; then
-    sub::print "${1}" | func::md5
-  elif [ "$#" -eq 2 ]; then
-    local __md5_variable="$1"
-    local __md5_data="$2"
-    eval "${__md5_variable}=\"\$(func::md5 \"\${__md5_data}\")\""
+  if [ "$#" -eq 2 ]; then
+    local __md5_file=''
+    func::tmpfile __md5_file
+    sub::md5 "${2}" 0 > "${__md5_file}"
+    func::file_get_contents "${1}" "${__md5_file}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
-# func::ord -- Gets a character's ASCII code.
+sub::md5() {
+  if [ "$#" -eq 2 ]; then
+    sub::print "${1}" | stream::md5 "${2}"
+  elif [ "$#" -eq 1 ]; then
+    sub::md5 "$@" 0
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+stream::md5() {
+  if [ "$#" -eq 1 ]; then
+    if [ "${1}" -eq 0 ]; then
+      stream::md5 1 | stream::bin2hex
+    else
+      openssl md5 -binary
+    fi
+  elif [ "$#" -eq 0 ]; then
+    stream::md5 0
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# ord -- Gets a character's ASCII code.
 #
 # Sets ASCII value of character to variable.
 #
 # Usage:
-#     func::ord(string* variable, string character)
+#     // 1-a. Function form.
+#     void func::ord(string* variable, string character)
+#     // 1-b. Function form.
+#     void func::ord(string* variable)
+#     // 2. Command form.
+#     void sub::ord(string character) > output
 func::ord() {
-  local __ord_variable="$1"
-  local __ord_character="$2"
-  local __ord_result="$(printf '%d' \'"${__ord_character}")"
-  eval "${__ord_variable}=\"\${__ord_result}\""
+  if [ "$#" -eq 2 ]; then
+    func::let "${1}" "$(printf '%d' \'"${2}")"
+  elif [ "$#" -eq 1 ]; then
+    local __ord_value=''
+    func::strcpy __ord_value "${2}"
+    func::ord "${1}" "${__ord_value}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+sub::ord() {
+  if [ "$#" -eq 1 ]; then
+    local __ord_variable=''
+    func::ord __ord_variable "${1}"
+    func::println "${__ord_variable}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
 }
 
 # print -- Prints a message.
@@ -1025,12 +1162,14 @@ func::ord() {
 #     // 1. Command form.
 #     void sub::print(string message...) > output
 func::print() {
+  LOG ERROR 'This form is deprecated.'
   printf "%s" "$*"
 }
 
 sub::print() {
   IFS=' ' eval 'printf "%s" "$*"'
 }
+
 # println -- Prints a message with a new line.
 #
 # Print message to the standard output with a new line.  While "echo" consumes
@@ -1042,6 +1181,7 @@ sub::print() {
 #     // 1. Command form.
 #     void sub::println(string message...) > output
 func::println() {
+  LOG ERROR 'This form is deprecated.'
   printf "%s\n" "$*"
 }
 
@@ -1049,31 +1189,27 @@ sub::println() {
   IFS=' ' eval 'printf "%s\n" "$*"'
 }
 
-# func::rtrim -- Strips whitespace(s) from the end of a string.
+# rtrim -- Strips whitespace(s) from the end of a string.
 #
 # Strips whitespace (or other characters) from the end of a string.
 #
 # Usage:
-#     // 1. Function form.
+#     // 1-a. Function form.
 #     void func::rtrim(string* output, string input)
-#     // 2. Inplace form.
+#     // 1-b. Function form.
 #     void func::rtrim(string* variable)
-#     // 3. Command form.
+#     // 2. Command form.
 #     void sub::rtrim(string value) > output
-#     // 4. Stream form.
+#     // 3. Stream form.
 #     void stream::rtrim() < input > output
 func::rtrim() {
   if [ "$#" -eq 1 ]; then
-    local __rtrim_variable="$1"
-    eval "${__rtrim_variable}=\"\${${__rtrim_variable}%\"\${${__rtrim_variable}##*[![:space:]]}\"}\""
+    eval "${1}=\"\${${1}%\"\${${1}##*[![:space:]]}\"}\""
   elif [ "$#" -eq 2 ]; then
-    local __rtrim_output="$1"
-    local __rtrim_input="$2"
-    func::let "${__rtrim_output}" "${__rtrim_input}"
-    func::rtrim "${__rtrim_output}"
+    func::let "${1}" "${2}"
+    func::rtrim "${1}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -1083,8 +1219,7 @@ sub::rtrim() {
     func::rtrim __rtrim_value
     sub::println "${__rtrim_value}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -1096,39 +1231,74 @@ stream::rtrim() {
       sub::print "${LINE}${NEWLINE}"
     done
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
-# func::str_replace -- Replaces a substring with another substring.
+# str_replace -- Replaces a substring with another substring.
 #
 # Replace search with replace in *subject.
 #
 # Usage:
+#     // 1. Function form.
 #     void func::str_replace(string* subject, string search, string replace)
+#     // 2. Command form.
+#     void sub::str_replace(
+#         string input, string search, string replace) > output
+#     // 3. Stream form.
+#     void stream::str_replace(string search, string replace) < input > output
 func::str_replace() {
-  if [ "$#" -ne 3 ]; then
-    LOG FATAL 'func::str_replace takes exactly 3 arguments.'
+  if [ "$#" -eq 3 ]; then
+    eval "${1}=\"\${${1}//\"\${2}\"/\${3}}\""
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
-  local __str_replace_subject_variable="${1}"
-  local __str_replace_search="${2}"
-  local __str_replace_replace="${3}"
-
-  eval "${__str_replace_subject_variable}=\"\${${__str_replace_subject_variable}//\"\${__str_replace_search}\"/\${__str_replace_replace}}\""
 }
 
-# func::strcpy -- Copies a string from a variable to another variable.
+sub::str_replace() {
+  if [ "$#" -eq 3 ]; then
+    local __str_replace_value="${1}"
+    func::str_replace __str_replace_value "${2}" "${3}"
+    sub::println "${__str_replace_value}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+stream::str_replace() {
+  if [ "$#" -eq 2 ]; then
+    local __str_replace_search="${1}"
+    local __str_replace_replace="${2}"
+    func::str_replace __str_replace_search '\' '\\'
+    func::str_replace __str_replace_search '/' '\/'
+    func::str_replace __str_replace_search '.' '\.'
+    func::str_replace __str_replace_search '*' '\*'
+    func::str_replace __str_replace_search '^' '\^'
+    func::str_replace __str_replace_search '$' '\$'
+    func::str_replace __str_replace_search '[' '\['
+    func::str_replace __str_replace_search ']' '\]'
+    func::str_replace __str_replace_replace '\' '\\'
+    func::str_replace __str_replace_replace '/' '\/'
+    func::str_replace __str_replace_replace '&' '\&'
+    sed -e "s/${__str_replace_search}/${__str_replace_replace}/g"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# strcpy -- Copies a string from a variable to another variable.
 #
 # Assigns the content of a variable specified as source into destination.
 #
 # Usage:
+#     // 1. Function form.
 #     void func::strcpy(string* destination, string *source)
 func::strcpy() {
-  local __strcpy_destination="$1"
-  local __strcpy_source="$2"
-
-  eval "${__strcpy_destination}=\"\${${__strcpy_source}}\""
+  if [ "$#" -eq 2 ]; then
+    eval "${1}=\"\${${2}}\""
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
 }
 
 # strtolower -- Makes a string lowercase.
@@ -1144,7 +1314,7 @@ func::strcpy() {
 #     void stream::strtolower() < input > output
 func::strtolower() {
   if [ "$#" -eq 1 ]; then
-    local __strtolower_variable="$1"
+    local __strtolower_variable="${1}"
     local __strtolower_value=''
     func::strcpy __strtolower_value "${__strtolower_variable}"
     # This is faster than tr for short strings.
@@ -1177,19 +1347,17 @@ func::strtolower() {
     __strtolower_value="${__strtolower_value//Z/z}"
     func::let "${__strtolower_variable}" "${__strtolower_value}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
 sub::strtolower() {
   if [ "$#" -eq 1 ]; then
-    local value="$1"
+    local value="${1}"
     func::strtolower value
     sub::println "${value}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -1197,8 +1365,7 @@ stream::strtolower() {
   if [ "$#" -eq 0 ]; then
     tr '[A-Z]' '[a-z]'
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -1215,7 +1382,8 @@ stream::strtolower() {
 #     void stream::strtoupper() < input > output
 func::strtoupper() {
   if [ "$#" -eq 1 ]; then
-    local __strtoupper_variable="$1"
+    local __strtoupper_variable="${1}"
+    local __strtoupper_value=''
     func::strcpy __strtoupper_value "${__strtoupper_variable}"
     # This is faster than tr for short strings.
     # TODO(imos): Use ${variable^^} instead once Mac OSX supports BASH 4.
@@ -1247,19 +1415,17 @@ func::strtoupper() {
     __strtoupper_value="${__strtoupper_value//z/Z}"
     func::let "${__strtoupper_variable}" "${__strtoupper_value}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
 sub::strtoupper() {
   if [ "$#" -eq 1 ]; then
-    local value="$1"
+    local value="${1}"
     func::strtoupper value
     sub::println "${value}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -1267,170 +1433,266 @@ stream::strtoupper() {
   if [ "$#" -eq 0 ]; then
     tr '[a-z]' '[A-Z]'
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
-# func::trim -- Strips whitespaces from both sides.
+# trim -- Strips whitespaces from both sides.
 #
 # trim strips whitespaces (or other characters) from the beginning and end of a
 # string.
 #
 # Usage:
-#     // 1. Function format.
+#     // 1-a. Function format.
 #     void func::trim(string* output, string input)
-#     // 2. Inplace format.
+#     // 1-b. Function format.
 #     void func::trim(string* variable)
 func::trim() {
   if [ "$#" -eq 1 ]; then
-    local __trim_variable="$1"
-    func::rtrim "${__trim_variable}"
-    func::ltrim "${__trim_variable}"
+    func::rtrim "${1}"
+    func::ltrim "${1}"
   elif [ "$#" -eq 2 ]; then
-    local __trim_output="$1"
-    local __trim_input="$2"
-    func::let "${__trim_output}" "${__trim_input}"
-    func::trim "${__trim_output}"
+    func::let "${1}" "${2}"
+    func::trim "${1}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
-# func::boolval -- Casts a variable as a boolean value.
+# boolval -- Casts a variable as a boolean value.
 #
 # Casts variable as a boolean value.  If it fails, returns 1.
 #
 # Usage:
 #     bool func::boolval(string* variable)
 func::boolval() {
-  local __boolval_variable="$1"
-  eval "local __boolval_value=\"\${${__boolval_variable}}\""
-
-  func::trim __boolval_value
-  if [ "${__boolval_value}" = '' ]; then
-    __boolval_value=0
-  elif [[ "${__boolval_value}" =~ ^T|t|[Tt]rue$ ]]; then
-    __boolval_value=1
-  elif [[ "${__boolval_value}" =~ ^F|f|[Ff]alse$ ]]; then
-    __boolval_value=0
-  elif func::intval __boolval_value; then
-    if (( __boolval_value )); then
-      __boolval_value=1
+  if [ "$#" -eq 2 ]; then
+    func::let "${1}" 0
+    local __boolval_value="${2}"
+    func::trim __boolval_value
+    if [ "${__boolval_value}" = '' ] || \
+       [[ "${__boolval_value}" =~ ^F|f|[Ff]alse$ ]]; then
+      return
+    elif [[ "${__boolval_value}" =~ ^T|t|[Tt]rue$ ]]; then
+      func::let "${1}" 1
+    else
+      func::intval __boolval_value || return "$?"
+      if (( __boolval_value != 0 )); then
+        func::let "${1}" 1
+      fi
     fi
+  elif [ "$#" -eq 1 ]; then
+    eval "func::boolval \"\${1}\" \"\${${1}}\"" || return "$?"
   else
-    func::let "${__boolval_variable}" 0
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
-  func::let "${__boolval_variable}" "${__boolval_value}"
 }
 
-# func::cast -- Casts a variable.
+sub::boolval() {
+  if [ "$#" -eq 1 ]; then
+    local __boolval_sub_value="${1}"
+    func::booval __boolval_sub_value || return "$?"
+    sub::println "${__boolval_sub_value}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# cast -- Casts a variable.
 #
 # Casts variable into a specified type.
 #
 # Usage:
+#     // 1. Function form.
 #     bool func::cast(variant* variable, string type)
+#     // 2. Function form. (Dies if conversion fails.)
+#     void func::cast_or_die(variant* variable, string type)
 func::cast() {
-  local __cast_variable="$1"
-  local __cast_type="$2"
-
-  case "${__cast_type}" in
-    int)     if ! func::intval "${__cast_variable}"; then return 1; fi;;
-    float)   if ! func::floatval "${__cast_variable}"; then return 1; fi;;
-    string)  if ! func::strval "${__cast_variable}"; then return 1; fi;;
-    bool)    if ! func::boolval "${__cast_variable}"; then return 1; fi;;
-    variant) return 0;;
-    *)       LOG FATAL "Unknown type: ${__cast_type}";;
-  esac
-}
-
-func::cast_or_die() {
-  if ! func::cast "$@"; then
-    IFS=' ' eval 'LOG FATAL "Type mismatch: $*"'
+  if [ "$#" -eq 2 ]; then
+    case "${2}" in
+      'MULTI'*)
+        local __cast_values=()
+        local __cast_element_type="${2:5}"
+        func::array_values __cast_values "${1}"
+        if [ "${#__cast_values[*]}" -ne 0 ]; then
+          local __cast_index=0
+          for __cast_index in "${!__cast_values[@]}"; do
+            local __cast_value="${__cast_values[${__cast_index}]}"
+            func::cast __cast_value "${__cast_element_type}" || return "$?"
+            __cast_values["${__cast_index}"]="${__cast_value}"
+          done
+        fi
+        func::array_values "${1}" __cast_values
+        ;;
+      'INT')     func::intval "${1}" || return "$?";;
+      'FLOAT')   func::floatval "${1}" || return "$?";;
+      'STRING')  func::strval "${1}" || return "$?";;
+      'BOOL')    func::boolval "${1}" || return "$?";;
+      'VARIANT') return 0;;
+      *)       LOG FATAL "Unknown type: ${2}";;
+    esac
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
-# func::floatval -- Casts a variable as a float value.
+func::cast_or_die() {
+  if ! func::cast "${@}"; then
+    IFS=' ' eval 'LOG FATAL "Type mismatch: ${*}"'
+  fi
+}
+
+# floatval -- Casts a variable as a float value.
 #
 # Casts variable into float type.  If it fails, returns 1.
 #
 # Usage:
+#     // 1-a. Function form.
+#     bool func::floatval(string* output, string input)
+#     // 1-b. Inplace function form.
 #     bool func::floatval(string* variable)
+#     // 2. Command form.
+#     bool sub::floatval(string input) > output
 func::floatval() {
-  local __floatval_variable="$1"
-
-  local __floatval_value
-  eval "__floatval_value=\"\${${__floatval_variable}}\""
-  if [[ "${__floatval_value}" =~ ^[[:space:]]*(-?[0-9]+(\.[0-9]+)?) ]]; then
-    func::let "${__floatval_variable}" "${BASH_REMATCH[1]}"
+  if [ "$#" -eq 2 ]; then
+    if [[ ! "${2}" =~ ^[[:space:]]*(-?[0-9]+(\.[0-9]+)?) ]]; then
+      return 1
+    fi
+    func::let "${1}" "${BASH_REMATCH[1]}"
+  elif [ "$#" -eq 1 ]; then
+    eval "func::floatval \"\${1}\" \"\${${1}}\"" || return "$?"
   else
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
-# func::intval -- Casts a variable as an integer value.
+sub::floatval() {
+  if [ "$#" -eq 1 ]; then
+    local __floatval_value="${1}"
+    func::floatval __floatval_value || return "$?"
+    sub::println "${__floatval_value}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# intval -- Casts a variable as an integer value.
 #
 # Casts variable into integer type.  If it fails, returns 1.
 #
 # Usage:
+#     // 1-a. Function from.
+#     bool func::intval(string* output, string input)
+#     // 1-b. Inplace function form.
 #     bool func::intval(string* variable)
+#     // 2. Command form.
+#     bool sub::intval(string input) > output
 func::intval() {
-  local __intval_variable="$1"
-
-  local __intval_value
-  eval "__intval_value=\"\${${__intval_variable}}\""
-  if [[ "${__intval_value}" =~ ^[[:space:]]*(-?[0-9]+) ]]; then
-    func::let "${__intval_variable}" "${BASH_REMATCH[1]}"
+  if [ "$#" -eq 2 ]; then
+    if [[ ! "${2}" =~ ^[[:space:]]*(-?[0-9]+) ]]; then
+      return 1
+    fi
+    func::let "${1}" "${BASH_REMATCH[1]}"
+  elif [ "$#" -eq 1 ]; then
+    eval "func::intval \"\${1}\" \"\${${1}}\"" || return "$?"
   else
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
-# func::isset -- Checks if a variable exists.
+sub::intval() {
+  if [ "$#" -eq 1 ]; then
+    local __intval_value="${1}"
+    func::intval __intval_value || return "$?"
+    sub::println "${__intval_value}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# isset -- Checks if a variable exists.
 #
 # Returns true iff variable exists.
 #
 # Usage:
+#     // 1. Function form.
+#     void func::isset(bool* result, variant* variable)
+#     // 2. Command form.
 #     bool func::isset(variant* variable)
 #
 # CAVEATS:
 #   func::isset returns true for uninitialized variables in BASH 3, and returns
 #   false for them in BASH 4.
 func::isset() {
-  local __isset_variable="$1"
-
-  eval "local __isset_state=\"\${${__isset_variable}+set}\""
-  if [ "${__isset_state}" = 'set' ]; then
-    return 0
+  if [ "$#" -eq 2 ]; then
+    eval "local __isset_state=\"\${${2}+set}\""
+    if [ "${__isset_state}" = 'set' ]; then
+      func::let "${1}" 1
+    else
+      func::let "${1}" 0
+    fi
+  elif [ "$#" -eq 1 ]; then
+    LOG ERROR 'This form is deprecated.'
+    sub::isset "$@" || return "$?"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
-  return 1
 }
 
-# func::let -- Assigns a value into a variable.
+sub::isset() {
+  if [ "$#" -eq 1 ]; then
+    local __isset_return=0
+    func::isset __isset_return "${1}"
+    (( __isset_return )) || return 1
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# let -- Assigns a value into a variable.
 #
 # Assigns value into *destination.
 #
 # Usage:
+#     // 1. Function form.
 #     func::let(string* destination, string value)
 func::let() {
-  local __let_destination="$1"
-  local __let_value="$2"
-
-  eval "${__let_destination}=\"\${__let_value}\""
+  if [ "$#" -eq 2 ]; then
+    eval "${1}=\"\${2}\""
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
 }
 
-# func::strval -- Casts a variable as a string value.
+# strval -- Casts a variable as a string value.
 #
 # Casts variable into string type.
 #
 # Usage:
+#     // 1-a. Function from.
+#     void func::strval(string* output, string input)
+#     // 1-b. Inplace function form.
 #     void func::strval(string* variable)
+#     // 2. Command form.
+#     bool sub::strval(string input) > output
 func::strval() {
-  local __strval_variable="$1"
+  if [ "$#" -eq 2 ]; then
+    func::let "${1}" "${2}"
+  elif [ "$#" -eq 1 ]; then
+    func::strcpy "${1}" "${1}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
 
-  eval "${__strval_variable}=\"\${${__strval_variable}}\""
+sub::strval() {
+  if [ "$#" -eq 1 ]; then
+    local __strval_value="${1}"
+    func::strval __strval_value || return "$?"
+    sub::println "${__strval_value}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
 }
 
 CHECK() {
@@ -1486,7 +1748,7 @@ LOG() {
   datetime="${datetime/.N/.000000}"
   datetime="${datetime:0:20}"
   local pid
-  if func::isset __IMOSH_LOG_PID; then
+  if sub::isset __IMOSH_LOG_PID; then
     pid="${__IMOSH_LOG_PID}"
   else
     func::getmypid pid
@@ -1499,7 +1761,7 @@ LOG() {
       "${file}:${BASH_LINENO[0]}]"
       "$@")
   IFS=' ' eval 'message="${message[*]}"'
-  if ! func::isset FLAGS_stacktrace_threshold || \
+  if ! sub::isset FLAGS_stacktrace_threshold || \
      [ "${FLAGS_stacktrace_threshold}" = '' ]; then
     FLAGS_stacktrace_threshold='ERROR'
   fi
@@ -1509,11 +1771,11 @@ LOG() {
     message+="$(imosh::stack_trace "*** LOG ${level} stack trace: ***" 2>&1)"
   fi
   local logtostderr=0
-  if func::isset FLAGS_logtostderr; then
+  if sub::isset FLAGS_logtostderr; then
     logtostderr="${FLAGS_logtostderr}"
   fi
   local alsologtostderr=0
-  if func::isset FLAGS_alsologtostderr; then
+  if sub::isset FLAGS_alsologtostderr; then
     alsologtostderr="${FLAGS_alsologtostderr}"
   fi
   case "${level}" in
@@ -1550,7 +1812,7 @@ LOG() {
         echo "${message}" >&103
         echo "${message}" >&104
       fi
-      func::exit 1
+      sub::exit 1
       ;;
   esac
 }
@@ -1618,22 +1880,22 @@ imosh::internal::parse_args() {
     arg_value="${arg:${#arg_name}}"
     if [ "${arg_value:0:1}" != '=' ]; then
       if [ "${arg_name:0:2}" = 'no' ]; then
-        if func::isset "${upper_class_name}S_${arg_name:2}"; then
+        if sub::isset "${upper_class_name}S_${arg_name:2}"; then
           if [ "${class_name}" != 'flag' ] || \
-             [ "$(imosh::internal::flag_type "${arg_name:2}")" = 'bool' ]; then
+             [ "$(imosh::internal::flag_type "${arg_name:2}")" = 'BOOL' ]; then
             IMOSH_ARGS+=("${upper_class_name}S_${arg_name:2}=0")
             continue
           fi
         fi
       fi
-      if func::isset "${upper_class_name}S_${arg_name}"; then
+      if sub::isset "${upper_class_name}S_${arg_name}"; then
         if [ "${class_name}" != 'flag' ] ||
-           [ "$(imosh::internal::flag_type "${arg_name}")" = 'bool' ]; then
+           [ "$(imosh::internal::flag_type "${arg_name}")" = 'BOOL' ]; then
           IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=1")
           continue
         fi
       fi
-      if ! func::isset "${upper_class_name}S_${arg_name}"; then
+      if ! sub::isset "${upper_class_name}S_${arg_name}"; then
         LOG FATAL "no such bool ${class_name} is defined:" \
                   "(${upper_class_name}S_)${arg_name}"
       fi
@@ -1644,14 +1906,27 @@ imosh::internal::parse_args() {
       shift
     fi
     arg_value="${arg_value:1}"
-    if func::isset "${upper_class_name}S_${arg_name}"; then
+    if sub::isset "${upper_class_name}S_${arg_name}"; then
       if [ "${class_name}" = 'flag' ]; then
         local original_value="${arg_value}"
+        local type="$(imosh::internal::flag_type "${arg_name}")"
+        if [ "${type:0:5}" = 'MULTI' ]; then
+          # TODO(imos): Support delimiter.
+          func::explode arg_value ',' "${arg_value}"
+        fi
         CHECK \
             --message="${upper_class_name}S_${arg_name} is invalid: ${arg_value}" \
             func::cast arg_value "$(imosh::internal::flag_type "${arg_name}")"
+        if [ "${type:0:5}" = 'MULTI' ]; then
+          # Set values here.  FLAGS_* are global variables, and this does not
+          # cause scope issues.
+          func::array_values "${upper_class_name}S_${arg_name}" arg_value
+        else
+          IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value}")
+        fi
+      else
+        IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value}")
       fi
-      IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value}")
       continue
     fi
     LOG FATAL "no such ${class_name} is defined:" \
@@ -1754,32 +2029,40 @@ imosh::internal::define_flag() {
   fi
   local name="$1"; shift
   local default_value="$1"; shift
+  local original_default_value="${default_value}"
   local description="$*"
   local group="${ARGS_group}"
   func::strtoupper group
 
   # Change the default value based on its corresponding environment variable.
-  if func::isset "IMOSH_FLAGS_${name}"; then
+  if sub::isset "IMOSH_FLAGS_${name}"; then
     func::strcpy default_value "IMOSH_FLAGS_${name}"
   fi
+  if [ "${type:0:5}" = 'MULTI' ]; then
+    func::explode default_value ',' "${default_value}"
+  fi
   CHECK \
-      --message="${name}'s default value is invalid: ${default_value}." \
+      --message="${name}'s default value is invalid: ${original_default_value}." \
       func::cast default_value "${type}"
-  if func::isset "__IMOSH_FLAGS_TYPE_${name}"; then
+  if sub::isset "__IMOSH_FLAGS_TYPE_${name}"; then
     LOG FATAL "already defined flag: ${name}"
   fi
-  func::strcpy "FLAGS_${name}" 'default_value'
+  if [ "${type:0:5}" = 'MULTI' ]; then
+    func::array_values "FLAGS_${name}" 'default_value'
+  else
+    func::strcpy "FLAGS_${name}" 'default_value'
+  fi
   func::strcpy "__IMOSH_FLAGS_TYPE_${name}" 'type'
   if [ "${ARGS_alias}" != '' ]; then
     imosh::internal::define_flag "${type}" --alias_flag \
-        "${ARGS_alias}" "${default_value}" "${description}"
+        "${ARGS_alias}" "${original_default_value}" "${description}"
     __IMOSH_FLAGS_ALIASES+=("${name}:${ARGS_alias}")
   fi
   if (( ! ARGS_alias_flag )); then
     local escaped_default_value=''
     case "${type}" in
-      int) escaped_default_value="${default_value}";;
-      bool)
+      'INT') escaped_default_value="${default_value}";;
+      'BOOL')
         if (( default_value )); then
           escaped_default_value='true'
         else
@@ -1787,7 +2070,7 @@ imosh::internal::define_flag() {
         fi
         ;;
       *)
-        escaped_default_value="${default_value}"
+        escaped_default_value="${original_default_value}"
         func::escapeshellarg escaped_default_value
         ;;
     esac
@@ -1801,13 +2084,18 @@ imosh::internal::define_flag() {
   fi
 }
 
-DEFINE_string() { imosh::internal::define_flag string "$@"; }
-DEFINE_int() { imosh::internal::define_flag int "$@"; }
-DEFINE_bool() { imosh::internal::define_flag bool "$@"; }
-DEFINE_double() { imosh::internal::define_flag double "$@"; }
+DEFINE_string() { imosh::internal::define_flag STRING "$@"; }
+DEFINE_int() { imosh::internal::define_flag INT "$@"; }
+DEFINE_bool() { imosh::internal::define_flag BOOL "$@"; }
+DEFINE_double() { imosh::internal::define_flag DOUBLE "$@"; }
+DEFINE_multistring() { imosh::internal::define_flag MULTISTRING "$@"; }
+DEFINE_multiint() { imosh::internal::define_flag MULTIINT "$@"; }
+DEFINE_multibool() { imosh::internal::define_flag MULTIBOOL "$@"; }
+DEFINE_multidouble() { imosh::internal::define_flag MULTIDOUBLE "$@"; }
+DEFINE_list() { DEFINE_multistring "$@"; }
 
 imosh::internal::get_main_script() {
-  local depth="${#BASH_SOURCE[@]}"
+  local depth="${#BASH_SOURCE[*]}"
   local main_script="${BASH_SOURCE[$((depth-1))]}"
   echo "${main_script}"
 }
@@ -1851,7 +2139,7 @@ imosh::internal::flag_groups() {
   if (( main_group_exists )); then
     echo 'main'
   fi
-  if [ "${#groups[@]}" -ne 0 -a "${FLAGS_helpfull}" -ne 0 ]; then
+  if [ "${#groups[*]}" -ne 0 -a "${FLAGS_helpfull}" -ne 0 ]; then
     func::array_unique groups
     for group in "${groups[@]}"; do
       echo "${group}"
@@ -1956,13 +2244,13 @@ imosh::internal::init() {
     eval "${IMOSH_ARGS[@]}"
   fi
   imosh::internal::init_log
-  if [ "${#__IMOSH_FLAGS_ALIASES[@]}" -ne 0 ]; then
+  if [ "${#__IMOSH_FLAGS_ALIASES[*]}" -ne 0 ]; then
     for alias in "${__IMOSH_FLAGS_ALIASES[@]}"; do
       eval "FLAGS_${alias%%:*}=\"\${FLAGS_${alias#*:}}\""
       unset "FLAGS_${alias#*:}"
     done
   fi
-  if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
+  if [ "${#IMOSH_ARGS[*]}" -ne 0 ]; then
     eval "${IMOSH_ARGS[@]}"
   fi
   if (( FLAGS_help || FLAGS_helpfull )) ||
@@ -1993,7 +2281,7 @@ imosh::stack_trace() {
   local ARGS_skip_imosh=0
   eval "${IMOSH_PARSE_ARGUMENTS}"
 
-  local max_depth="${#BASH_LINENO[@]}"
+  local max_depth="${#BASH_LINENO[*]}"
   local i=0
   if [ "$*" = '' ]; then
     echo 'imosh::stack_trace is called' >&2
@@ -2027,7 +2315,7 @@ __imosh::mktemp() {
   mkdir "${__IMOSH_CORE_TMPDIR}"
   local tmpdir="${TMPDIR}"
   func::escapeshellarg tmpdir
-  func::atexit "rm -rf ${tmpdir}"
+  sub::atexit "rm -rf ${tmpdir}"
 
   # For backward compatibility.
   export IMOSH_TMPDIR="${TMPDIR}"
@@ -2093,7 +2381,7 @@ __imosh::show_usage() {
         first_line=0
         continue
       fi
-      if func::greg_match '*:' "${line}"; then
+      if sub::greg_match '*:' "${line}"; then
         local title="${line%:}"
         func::strtoupper title
         case "${ARGS_format}" in
@@ -2129,7 +2417,7 @@ __imosh::show_usage() {
         continue
       fi
 
-      if func::greg_match '*( )-*' "${line}"; then
+      if sub::greg_match '*( )-*' "${line}"; then
         func::ltrim line
         if [ "${line:0:2}" = '- ' ]; then
           line="${line:2}"
@@ -2141,8 +2429,8 @@ __imosh::show_usage() {
         esac
         local item_first_line=1
         while IFS= read -r line; do
-          if func::greg_match '*( )-*' "${line}" || \
-             func::greg_match '*([[:space:]])' "${line}"; then
+          if sub::greg_match '*( )-*' "${line}" || \
+             sub::greg_match '*([[:space:]])' "${line}"; then
             break
           fi
           func::ltrim line
@@ -2323,17 +2611,23 @@ readonly IMOSH_COLOR_WHITE=$'\033[0;37m'
 readonly IMOSH_PARSE_ARGUMENTS='
     local IMOSH_ARGV IMOSH_ARGS
     imosh::internal::parse_args arg "$@"
-    if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
+    if [ "${#IMOSH_ARGS[*]}" -ne 0 ]; then
       readonly "${IMOSH_ARGS[@]}"
     fi
-    if [ "${#IMOSH_ARGV[@]}" -ne 0 ]; then
+    if [ "${#IMOSH_ARGV[*]}" -ne 0 ]; then
       set -- "${IMOSH_ARGV[@]}"
+    else
+      set --
     fi'
+
+readonly IMOSH_WRONG_NUMBER_OF_ARGUMENTS='
+    LOG ERROR "Wrong number of arguments: $#"
+    return 1'
 
 readonly IMOSH_INIT='
     set -e -u
     imosh::internal::init "$@"
-    if [ "${#IMOSH_ARGV[@]}" -ne 0 ]; then
+    if [ "${#IMOSH_ARGV[*]}" -ne 0 ]; then
       set -- "${IMOSH_ARGV[@]}"
     else
       set --
@@ -2348,7 +2642,7 @@ readonly IMOSH_ROOT_PID="$$"
 # Variable not to output stack trace multiple times when exiting.
 __IMOSH_STACK_TRACED=0
 
-if ! func::isset UNAME; then
+if ! sub::isset UNAME; then
   UNAME="$(uname)"
 fi
 
@@ -2359,8 +2653,9 @@ __IMOSH_LOG_PREFIX="${__IMOSH_PROGRAM_NAME}.${__IMOSH_HOSTNAME}.${__IMOSH_USER}"
 __IMOSH_LOG_SUFFIX="$(date +'%Y%m%d.%H%M%S').$$"
 
 __imosh::error_handler() {
+  local exit_code="$?"
   __IMOSH_STACK_TRACED=1
-  imosh::stack_trace "error status: $?"
+  imosh::stack_trace "error status: ${exit_code}"
 }
 
 trap '__imosh::error_handler' ERR
@@ -2448,6 +2743,4 @@ DEFINE_string --group=imosh 'help_format' '' \
     'Help format to output.'
 
 __IMOSH_IS_LOADED=1
-
-LOG INFO 'imosh is ready.'
 

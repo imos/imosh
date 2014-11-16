@@ -3,11 +3,15 @@
 # escapeshellarg escapes variable's content so as to use it as a shell argument.
 #
 # Usage:
+#     // 1. Function form.
 #     void func::escapeshellarg(string* variable)
 func::escapeshellarg() {
-  local __escapeshellarg_variable="$1"
-  local __escapeshellarg_search="'"
-  local __escapeshellarg_replace="'\\''"
-
-  eval "${__escapeshellarg_variable}=\"'\${${__escapeshellarg_variable}//\${__escapeshellarg_search}/\${__escapeshellarg_replace}}'\""
+  if [ "$#" -eq 1 ]; then
+    local __escapeshellarg_value=''
+    func::strcpy __escapeshellarg_value "${1}"
+    func::str_replace __escapeshellarg_value "'" "'\\''"
+    func::let "${1}" "'${__escapeshellarg_value}'"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
 }

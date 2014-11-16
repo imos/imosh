@@ -1,10 +1,12 @@
-# func::getchildpids -- Gets child process IDs.
+# getchildpids -- Gets child process IDs.
 #
 # Usage:
+#     // 1. Function form.
 #     void func::getchildpids(int[]* variable)
+#     // 2. Command form.
+#     void sub::getchildpids() > output
 func::getchildpids() {
   if [ "$#" -eq 1 ]; then
-    local __getchildpids_variable="$1"
     local __getchildpids_mypid=''
     func::getmypid __getchildpids_mypid
     local __getchildpids_pid='' __getchildpids_ppid=''
@@ -15,13 +17,18 @@ func::getchildpids() {
         __getchildpids_result+=("${__getchildpids_pid}")
       fi
     done < <(ps -o ppid,pid)
-    if [ "${#__getchildpids_result[*]}" -eq 0 ]; then
-      eval "${__getchildpids_variable}=()"
-    else
-      eval "${__getchildpids_variable}=(\"\${__getchildpids_result[@]}\")"
-    fi
+    func::array_values "${1}" __getchildpids_result
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+sub::getchildpids() {
+  if [ "$#" -eq 0 ]; then
+    local __getchildpids_variable=()
+    func::getchildpids __getchildpids_variable
+    sub::implode __getchildpids_variable
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }

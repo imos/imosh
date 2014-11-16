@@ -1,25 +1,43 @@
-# func::cast -- Casts a variable.
+# cast -- Casts a variable.
 #
 # Casts variable into a specified type.
 #
 # Usage:
+#     // 1. Function form.
 #     bool func::cast(variant* variable, string type)
+#     // 2. Function form. (Dies if conversion fails.)
+#     void func::cast_or_die(variant* variable, string type)
 func::cast() {
-  local __cast_variable="$1"
-  local __cast_type="$2"
-
-  case "${__cast_type}" in
-    int)     if ! func::intval "${__cast_variable}"; then return 1; fi;;
-    float)   if ! func::floatval "${__cast_variable}"; then return 1; fi;;
-    string)  if ! func::strval "${__cast_variable}"; then return 1; fi;;
-    bool)    if ! func::boolval "${__cast_variable}"; then return 1; fi;;
-    variant) return 0;;
-    *)       LOG FATAL "Unknown type: ${__cast_type}";;
-  esac
+  if [ "$#" -eq 2 ]; then
+    case "${2}" in
+      'MULTI'*)
+        local __cast_values=()
+        local __cast_element_type="${2:5}"
+        func::array_values __cast_values "${1}"
+        if [ "${#__cast_values[*]}" -ne 0 ]; then
+          local __cast_index=0
+          for __cast_index in "${!__cast_values[@]}"; do
+            local __cast_value="${__cast_values[${__cast_index}]}"
+            func::cast __cast_value "${__cast_element_type}" || return "$?"
+            __cast_values["${__cast_index}"]="${__cast_value}"
+          done
+        fi
+        func::array_values "${1}" __cast_values
+        ;;
+      'INT')     func::intval "${1}" || return "$?";;
+      'FLOAT')   func::floatval "${1}" || return "$?";;
+      'STRING')  func::strval "${1}" || return "$?";;
+      'BOOL')    func::boolval "${1}" || return "$?";;
+      'VARIANT') return 0;;
+      *)       LOG FATAL "Unknown type: ${2}";;
+    esac
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
 }
 
 func::cast_or_die() {
-  if ! func::cast "$@"; then
-    IFS=' ' eval 'LOG FATAL "Type mismatch: $*"'
+  if ! func::cast "${@}"; then
+    IFS=' ' eval 'LOG FATAL "Type mismatch: ${*}"'
   fi
 }

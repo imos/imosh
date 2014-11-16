@@ -22,32 +22,40 @@ imosh::internal::define_flag() {
   fi
   local name="$1"; shift
   local default_value="$1"; shift
+  local original_default_value="${default_value}"
   local description="$*"
   local group="${ARGS_group}"
   func::strtoupper group
 
   # Change the default value based on its corresponding environment variable.
-  if func::isset "IMOSH_FLAGS_${name}"; then
+  if sub::isset "IMOSH_FLAGS_${name}"; then
     func::strcpy default_value "IMOSH_FLAGS_${name}"
   fi
+  if [ "${type:0:5}" = 'MULTI' ]; then
+    func::explode default_value ',' "${default_value}"
+  fi
   CHECK \
-      --message="${name}'s default value is invalid: ${default_value}." \
+      --message="${name}'s default value is invalid: ${original_default_value}." \
       func::cast default_value "${type}"
-  if func::isset "__IMOSH_FLAGS_TYPE_${name}"; then
+  if sub::isset "__IMOSH_FLAGS_TYPE_${name}"; then
     LOG FATAL "already defined flag: ${name}"
   fi
-  func::strcpy "FLAGS_${name}" 'default_value'
+  if [ "${type:0:5}" = 'MULTI' ]; then
+    func::array_values "FLAGS_${name}" 'default_value'
+  else
+    func::strcpy "FLAGS_${name}" 'default_value'
+  fi
   func::strcpy "__IMOSH_FLAGS_TYPE_${name}" 'type'
   if [ "${ARGS_alias}" != '' ]; then
     imosh::internal::define_flag "${type}" --alias_flag \
-        "${ARGS_alias}" "${default_value}" "${description}"
+        "${ARGS_alias}" "${original_default_value}" "${description}"
     __IMOSH_FLAGS_ALIASES+=("${name}:${ARGS_alias}")
   fi
   if (( ! ARGS_alias_flag )); then
     local escaped_default_value=''
     case "${type}" in
-      int) escaped_default_value="${default_value}";;
-      bool)
+      'INT') escaped_default_value="${default_value}";;
+      'BOOL')
         if (( default_value )); then
           escaped_default_value='true'
         else
@@ -55,7 +63,7 @@ imosh::internal::define_flag() {
         fi
         ;;
       *)
-        escaped_default_value="${default_value}"
+        escaped_default_value="${original_default_value}"
         func::escapeshellarg escaped_default_value
         ;;
     esac
@@ -69,13 +77,18 @@ imosh::internal::define_flag() {
   fi
 }
 
-DEFINE_string() { imosh::internal::define_flag string "$@"; }
-DEFINE_int() { imosh::internal::define_flag int "$@"; }
-DEFINE_bool() { imosh::internal::define_flag bool "$@"; }
-DEFINE_double() { imosh::internal::define_flag double "$@"; }
+DEFINE_string() { imosh::internal::define_flag STRING "$@"; }
+DEFINE_int() { imosh::internal::define_flag INT "$@"; }
+DEFINE_bool() { imosh::internal::define_flag BOOL "$@"; }
+DEFINE_double() { imosh::internal::define_flag DOUBLE "$@"; }
+DEFINE_multistring() { imosh::internal::define_flag MULTISTRING "$@"; }
+DEFINE_multiint() { imosh::internal::define_flag MULTIINT "$@"; }
+DEFINE_multibool() { imosh::internal::define_flag MULTIBOOL "$@"; }
+DEFINE_multidouble() { imosh::internal::define_flag MULTIDOUBLE "$@"; }
+DEFINE_list() { DEFINE_multistring "$@"; }
 
 imosh::internal::get_main_script() {
-  local depth="${#BASH_SOURCE[@]}"
+  local depth="${#BASH_SOURCE[*]}"
   local main_script="${BASH_SOURCE[$((depth-1))]}"
   echo "${main_script}"
 }
@@ -119,7 +132,7 @@ imosh::internal::flag_groups() {
   if (( main_group_exists )); then
     echo 'main'
   fi
-  if [ "${#groups[@]}" -ne 0 -a "${FLAGS_helpfull}" -ne 0 ]; then
+  if [ "${#groups[*]}" -ne 0 -a "${FLAGS_helpfull}" -ne 0 ]; then
     func::array_unique groups
     for group in "${groups[@]}"; do
       echo "${group}"
@@ -224,13 +237,13 @@ imosh::internal::init() {
     eval "${IMOSH_ARGS[@]}"
   fi
   imosh::internal::init_log
-  if [ "${#__IMOSH_FLAGS_ALIASES[@]}" -ne 0 ]; then
+  if [ "${#__IMOSH_FLAGS_ALIASES[*]}" -ne 0 ]; then
     for alias in "${__IMOSH_FLAGS_ALIASES[@]}"; do
       eval "FLAGS_${alias%%:*}=\"\${FLAGS_${alias#*:}}\""
       unset "FLAGS_${alias#*:}"
     done
   fi
-  if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
+  if [ "${#IMOSH_ARGS[*]}" -ne 0 ]; then
     eval "${IMOSH_ARGS[@]}"
   fi
   if (( FLAGS_help || FLAGS_helpfull )) ||

@@ -25,3 +25,7 @@ test: concat
 	bash -c shopt
 	@if ! bash test/main.sh test/*_test.sh test/*/*_test.sh; then exit 1; fi
 .PHONY: test
+
+benchmark: concat
+	@time bash -c "for i in {1..10}; do bash -c '. ./imosh'; done"
+.PHONY: benchmark

@@ -41,14 +41,10 @@
 #         # => aBCbd\nBCdBCb
 func::array_map() {
   if [ "$#" -ge 3 ]; then
-    # Return if there are no elements in the variable.
-    if eval "[ \"\${#${1}[*]}\" -eq 0 ]"; then
-      return
-    fi
-
-    local __array_map_variable="$1"; shift
-    local __array_map_type="$1"; shift
-    local __array_map_callback="$1"; shift
+    if sub::array_is_empty "${1}"; then return; fi
+    local __array_map_variable="${1}"; shift
+    local __array_map_type="${1}"; shift
+    local __array_map_callback="${1}"; shift
 
     local __array_map_keys=()
     local __array_map_key=''
@@ -73,16 +69,14 @@ func::array_map() {
                        "${__array_map_variable}[${__array_map_key}]"
           "${__array_map_callback}" \
               "${__array_map_variable}[${__array_map_key}]" \
-              "${__array_map_value}" \
-              "$@"
+              "${__array_map_value}" "$@"
         done
         ;;
       'INPLACE')
         local __array_map_value=''
         for __array_map_key in "${__array_map_keys[@]}"; do
           "${__array_map_callback}" \
-              "${__array_map_variable}[${__array_map_key}]" \
-              "$@"
+              "${__array_map_variable}[${__array_map_key}]" "$@"
         done
         ;;
       'COMMAND')
@@ -93,8 +87,7 @@ func::array_map() {
           func::strcpy __array_map_value \
                        "${__array_map_variable}[${__array_map_key}]"
           "${__array_map_callback}" \
-              "${__array_map_value}" \
-              "$@" > "${__array_map_tmpfile}"
+              "${__array_map_value}" "$@" > "${__array_map_tmpfile}"
           func::file_get_contents \
               "${__array_map_variable}[${__array_map_key}]" \
               "${__array_map_tmpfile}"
@@ -106,14 +99,13 @@ func::array_map() {
         ;;
     esac
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
 stream::array_map() {
   if [ "$#" -ge 2 ]; then
-    local __array_map_type="$1"
+    local __array_map_type="${1}"
     local LINE='' NEWLINE=''
     while func::readline; do
       local __array_map_line=("${LINE}")
@@ -125,7 +117,6 @@ stream::array_map() {
       fi
     done
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }

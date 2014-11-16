@@ -8,6 +8,8 @@ DEFINE_bool 'show_argv' false 'Output extra argv.'
 DEFINE_string 'string' 'default' 'String flag.'
 DEFINE_int 'int' 100 'Integer flag.'
 DEFINE_bool 'bool' false 'Boolean flag.'
+DEFINE_multiint 'multiint' 1,10,100 'Multiple integers flag.'
+DEFINE_list 'list' 'a,b,c' 'Multiple strings flag.'
 
 eval "${IMOSH_INIT}"
 
@@ -19,4 +21,15 @@ fi
 if [ "${FLAGS_flag}" == '' ]; then
   LOG FATAL "flag must be specified"
 fi
-eval "echo -n 'FLAGS_${FLAGS_flag}='\"\${FLAGS_${FLAGS_flag}}\""
+if [ "${FLAGS_flag:0:5}" = 'multi' ]; then
+  func::array_values values "FLAGS_${FLAGS_flag}"
+  if [ "${#values[*]}" -ne 0 ]; then
+    for value in "${values[@]}"; do
+      sub::println "${value}"
+    done
+  else
+    sub::println 'EMPTY'
+  fi
+else
+  eval "echo -n 'FLAGS_${FLAGS_flag}='\"\${FLAGS_${FLAGS_flag}}\""
+fi

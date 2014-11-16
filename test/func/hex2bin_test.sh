@@ -10,8 +10,8 @@ test::func_hex2bin() {
   func::hex2bin variable
   EXPECT_EQ 'hoge' "${variable}"
 
-  # void func::hex2bin() < input > output
-  EXPECT_EQ 'hoge' "$(echo '686f6765' | func::hex2bin)"
+  # void stream::hex2bin() < input > output
+  EXPECT_EQ 'hoge' "$(echo '686f6765' | stream::hex2bin)"
 
   # Japanese characters.
   variable='e697a5e69cace8aa9e'

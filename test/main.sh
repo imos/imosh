@@ -17,7 +17,7 @@ if [ "$#" -gt '1' ]; then
   i=0
   for file in "$@"; do
     format_i="$(printf '%05d' "${i}")"
-    func::throttle 4
+    sub::throttle 4
     bash test/main.sh "${file}" \
         >"${IMOSH_TMPDIR}/test_index_${format_i}.stdout" \
         2>"${IMOSH_TMPDIR}/test_index_${format_i}.stderr" &

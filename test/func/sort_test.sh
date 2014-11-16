@@ -32,12 +32,12 @@ test::func_sort() {
   expected+=$'\x09 \x0a \x0b \x0c \x0d \x0e \x0f \x10 '
   expected+=$'\x11 \x12 \x13 \x14 \x15 \x16 \x17 \x18 '
   expected+=$'\x19 \x1a \x1b \x1c \x1d \x1e \x1f \x20'
-  EXPECT_EQ "$(func::bin2hex "${expected}")" \
-            "$(func::bin2hex "$(func::implode ' ' values)")"
+  EXPECT_EQ "$(sub::bin2hex "${expected}")" \
+            "$(sub::bin2hex "$(sub::implode ' ' values)")"
 
   IFS= EXPECT_TRUE func::sort values
-  EXPECT_EQ "$(func::bin2hex "${expected}")" \
-            "$(func::bin2hex "$(func::implode ' ' values)")"
+  EXPECT_EQ "$(sub::bin2hex "${expected}")" \
+            "$(sub::bin2hex "$(sub::implode ' ' values)")"
 }
 
 test::stream_sort() {

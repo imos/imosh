@@ -10,7 +10,7 @@ __imosh::mktemp() {
   mkdir "${__IMOSH_CORE_TMPDIR}"
   local tmpdir="${TMPDIR}"
   func::escapeshellarg tmpdir
-  func::atexit "rm -rf ${tmpdir}"
+  sub::atexit "rm -rf ${tmpdir}"
 
   # For backward compatibility.
   export IMOSH_TMPDIR="${TMPDIR}"

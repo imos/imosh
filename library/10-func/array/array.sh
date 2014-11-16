@@ -8,11 +8,10 @@
 func::array() {
   if [ "$#" -eq 2 ]; then
     local __array_ifs="${IFS}"
-    __array_ifs="${__array_ifs//'['/\[}"
-    __array_ifs="${__array_ifs//']'/\]}"
+    func::str_replace __array_ifs '[' '\['
+    func::str_replace __array_ifs ']' '\]'
     func::greg_split "${1}" "[${__array_ifs}]" "${2}"
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }

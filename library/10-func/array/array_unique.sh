@@ -19,29 +19,28 @@
 #
 #     echo c,b,a,b | IFS=, stream::array_unique  # => a,b,c
 func::array_unique() {
-  local __array_unique_variable="${1}"
-  if eval "[ \"\${#${__array_unique_variable}[*]}\" -eq 0 ]"; then
-    return
+  if [ "$#" -eq 1 ]; then
+    if sub::array_is_empty "${1}"; then return; fi
+    local __array_unique_values=()
+    func::array_values __array_unique_values "${1}"
+    func::sort __array_unique_values
+    local __array_unique_i="${#__array_unique_values[*]}"
+    while (( __array_unique_i -= 1 )); do
+      if [ "${__array_unique_values[$(( __array_unique_i - 1 ))]}" = \
+           "${__array_unique_values[${__array_unique_i}]}" ]; then
+        unset "__array_unique_values[${__array_unique_i}]"
+      fi
+    done
+    func::array_values "${1}" __array_unique_values
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
-  eval "local __array_unique_values=(\"\${${__array_unique_variable}[@]}\")"
-  func::sort __array_unique_values
-  local __array_unique_i=0
-  local __array_unique_size="${#__array_unique_values[*]}"
-  local __array_unique_result=("${__array_unique_values[0]}")
-  while (( __array_unique_i += 1, __array_unique_i < __array_unique_size )); do
-    if [ "${__array_unique_values[$(( __array_unique_i - 1 ))]}" != \
-         "${__array_unique_values[${__array_unique_i}]}" ]; then
-      __array_unique_result+=("${__array_unique_values[${__array_unique_i}]}")
-    fi
-  done
-  eval "${__array_unique_variable}=(\"\${__array_unique_result[@]}\")"
 }
 
 stream::array_unique() {
   if [ "$#" -eq 0 ]; then
     stream::array_map ARRAY func::array_unique
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }

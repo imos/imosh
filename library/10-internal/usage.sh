@@ -58,7 +58,7 @@ __imosh::show_usage() {
         first_line=0
         continue
       fi
-      if func::greg_match '*:' "${line}"; then
+      if sub::greg_match '*:' "${line}"; then
         local title="${line%:}"
         func::strtoupper title
         case "${ARGS_format}" in
@@ -94,7 +94,7 @@ __imosh::show_usage() {
         continue
       fi
 
-      if func::greg_match '*( )-*' "${line}"; then
+      if sub::greg_match '*( )-*' "${line}"; then
         func::ltrim line
         if [ "${line:0:2}" = '- ' ]; then
           line="${line:2}"
@@ -106,8 +106,8 @@ __imosh::show_usage() {
         esac
         local item_first_line=1
         while IFS= read -r line; do
-          if func::greg_match '*( )-*' "${line}" || \
-             func::greg_match '*([[:space:]])' "${line}"; then
+          if sub::greg_match '*( )-*' "${line}" || \
+             sub::greg_match '*([[:space:]])' "${line}"; then
             break
           fi
           func::ltrim line
