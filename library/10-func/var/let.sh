@@ -3,6 +3,7 @@
 # Assigns value into *destination.
 #
 # Usage:
+#     // 1. Function form.
 #     func::let(string* destination, string value)
 func::let() {
   if [ "$#" -eq 2 ]; then

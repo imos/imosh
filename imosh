@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-16 23:10:47 +0900 (e6b075e)'
+IMOSH_VERSION='2014-11-16 23:24:55 +0900 (a5f0c20)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -1487,40 +1487,39 @@ func::boolval() {
   func::let "${__boolval_variable}" "${__boolval_value}"
 }
 
-# func::cast -- Casts a variable.
+# cast -- Casts a variable.
 #
 # Casts variable into a specified type.
 #
 # Usage:
 #     bool func::cast(variant* variable, string type)
 func::cast() {
-  local __cast_variable="${1}"
-  local __cast_type="${2}"
-
-  case "${__cast_type}" in
-    multi*)
-      local __cast_values=()
-      local __cast_element_type="${__cast_type:5}"
-      func::array_values __cast_values "${__cast_variable}"
-      if [ "${#__cast_values[*]}" -ne 0 ]; then
-        local __cast_index=0
-        for __cast_index in "${!__cast_values[@]}"; do
-          local __cast_value="${__cast_values[${__cast_index}]}"
-          if ! func::cast __cast_value "${__cast_element_type}"; then
-            return 1
-          fi
-          __cast_values["${__cast_index}"]="${__cast_value}"
-        done
-      fi
-      func::array_values "${__cast_variable}" __cast_values
-      ;;
-    int)     if ! func::intval "${__cast_variable}"; then return 1; fi;;
-    float)   if ! func::floatval "${__cast_variable}"; then return 1; fi;;
-    string)  if ! func::strval "${__cast_variable}"; then return 1; fi;;
-    bool)    if ! func::boolval "${__cast_variable}"; then return 1; fi;;
-    variant) return 0;;
-    *)       LOG FATAL "Unknown type: ${__cast_type}";;
-  esac
+  if [ "$#" -eq 2 ]; then
+    case "${2}" in
+      multi*)
+        local __cast_values=()
+        local __cast_element_type="${2:5}"
+        func::array_values __cast_values "${1}"
+        if [ "${#__cast_values[*]}" -ne 0 ]; then
+          local __cast_index=0
+          for __cast_index in "${!__cast_values[@]}"; do
+            local __cast_value="${__cast_values[${__cast_index}]}"
+            func::cast __cast_value "${__cast_element_type}" || return "$?"
+            __cast_values["${__cast_index}"]="${__cast_value}"
+          done
+        fi
+        func::array_values "${1}" __cast_values
+        ;;
+      int)     func::intval "${1}" || return "$?";;
+      float)   func::floatval "${1}" || return "$?";;
+      string)  func::strval "${1}" || return "$?";;
+      bool)    func::boolval "${1}" || return "$?";;
+      variant) return 0;;
+      *)       LOG FATAL "Unknown type: ${2}";;
+    esac
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
 }
 
 func::cast_or_die() {
@@ -1529,21 +1528,37 @@ func::cast_or_die() {
   fi
 }
 
-# func::floatval -- Casts a variable as a float value.
+# floatval -- Casts a variable as a float value.
 #
 # Casts variable into float type.  If it fails, returns 1.
 #
 # Usage:
+#     // 1-a. Function form.
+#     bool func::floatval(string* output, string input)
+#     // 1-b. Inplace function form.
 #     bool func::floatval(string* variable)
+#     // 2. Command form.
+#     bool sub::floatval(string input) > output
 func::floatval() {
-  local __floatval_variable="$1"
-
-  local __floatval_value
-  eval "__floatval_value=\"\${${__floatval_variable}}\""
-  if [[ "${__floatval_value}" =~ ^[[:space:]]*(-?[0-9]+(\.[0-9]+)?) ]]; then
-    func::let "${__floatval_variable}" "${BASH_REMATCH[1]}"
+  if [ "$#" -eq 2 ]; then
+    if [[ ! "${2}" =~ ^[[:space:]]*(-?[0-9]+(\.[0-9]+)?) ]]; then
+      return 1
+    fi
+    func::let "${1}" "${BASH_REMATCH[1]}"
+  elif [ "$#" -eq 1 ]; then
+    eval "func::floatval \"\${1}\" \"\${${1}}\"" || return "$?"
   else
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+sub::floatval() {
+  if [ "$#" -eq 1 ]; then
+    local __floatval_value="${1}"
+    func::floatval __floatval_value || return "$?"
+    sub::println "${__floatval_value}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -1625,6 +1640,7 @@ sub::isset() {
 # Assigns value into *destination.
 #
 # Usage:
+#     // 1. Function form.
 #     func::let(string* destination, string value)
 func::let() {
   if [ "$#" -eq 2 ]; then

@@ -1,5 +1,5 @@
-# func::cast
-func::cast -- Casts a variable.
+# cast
+cast -- Casts a variable.
 
 Casts variable into a specified type.
 
