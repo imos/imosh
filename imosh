@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-16 23:59:51 +0900 (6c9dc0b)'
+IMOSH_VERSION='2014-11-17 00:21:24 +0900 (9ab4e05)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -1459,7 +1459,7 @@ func::trim() {
   fi
 }
 
-# func::boolval -- Casts a variable as a boolean value.
+# boolval -- Casts a variable as a boolean value.
 #
 # Casts variable as a boolean value.  If it fails, returns 1.
 #

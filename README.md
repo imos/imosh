@@ -194,7 +194,7 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 
 ## Variable handling
 
-* [func::boolval](doc/var/boolval.sh.md) -- Casts a variable as a boolean value.
+* [boolval](doc/var/boolval.sh.md) -- Casts a variable as a boolean value.
 * [cast](doc/var/cast.sh.md) -- Casts a variable.
 * [floatval](doc/var/floatval.sh.md) -- Casts a variable as a float value.
 * [intval](doc/var/intval.sh.md) -- Casts a variable as an integer value.
