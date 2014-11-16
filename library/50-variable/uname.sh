@@ -1,3 +1,3 @@
-if ! func::isset UNAME; then
+if ! sub::isset UNAME; then
   UNAME="$(uname)"
 fi

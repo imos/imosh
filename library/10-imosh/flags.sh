@@ -28,7 +28,7 @@ imosh::internal::define_flag() {
   func::strtoupper group
 
   # Change the default value based on its corresponding environment variable.
-  if func::isset "IMOSH_FLAGS_${name}"; then
+  if sub::isset "IMOSH_FLAGS_${name}"; then
     func::strcpy default_value "IMOSH_FLAGS_${name}"
   fi
   if [ "${type:0:5}" = 'multi' ]; then
@@ -37,7 +37,7 @@ imosh::internal::define_flag() {
   CHECK \
       --message="${name}'s default value is invalid: ${original_default_value}." \
       func::cast default_value "${type}"
-  if func::isset "__IMOSH_FLAGS_TYPE_${name}"; then
+  if sub::isset "__IMOSH_FLAGS_TYPE_${name}"; then
     LOG FATAL "already defined flag: ${name}"
   fi
   if [ "${type:0:5}" = 'multi' ]; then

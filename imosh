@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-14 02:58:12 +0900 (7d2fc9b)'
+IMOSH_VERSION='2014-11-14 03:31:38 +0900 (2e0244e)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -668,7 +668,7 @@ sub::getchildpids() {
 #     void sub::getmypid() > output
 func::getmypid() {
   if [ "$#" -eq 1 ]; then
-    if func::isset BASHPID; then
+    if sub::isset BASHPID; then
       func::let "${1}" "${BASHPID}"
     else
       local __getmypid_pid_file=''
@@ -972,7 +972,7 @@ __func::hex2bin() {
       *) continue;;
     esac
     if [ "${#__hex2bin_buffer}" -eq 2 ]; then
-      if ! func::isset __hex2bin_result; then
+      if ! sub::isset __hex2bin_result; then
         printf "\\x${__hex2bin_buffer}"
       else
         eval "__hex2bin_result+=\$'\\x${__hex2bin_buffer}'"
@@ -1565,7 +1565,7 @@ func::intval() {
   fi
 }
 
-# func::isset -- Checks if a variable exists.
+# isset -- Checks if a variable exists.
 #
 # Returns true iff variable exists.
 #
@@ -1576,38 +1576,59 @@ func::intval() {
 #   func::isset returns true for uninitialized variables in BASH 3, and returns
 #   false for them in BASH 4.
 func::isset() {
-  local __isset_variable="$1"
-
-  eval "local __isset_state=\"\${${__isset_variable}+set}\""
-  if [ "${__isset_state}" = 'set' ]; then
-    return 0
+  if [ "$#" -eq 2 ]; then
+    eval "local __isset_state=\"\${${2}+set}\""
+    if [ "${__isset_state}" = 'set' ]; then
+      func::let "${1}" 1
+    else
+      func::let "${1}" 0
+    fi
+  elif [ "$#" -eq 1 ]; then
+    LOG ERROR 'This form is deprecated.'
+    local __isset_return=0
+    func::isset __isset_return "${1}"
+    (( __isset_return )) || return 1
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
-  return 1
 }
 
-# func::let -- Assigns a value into a variable.
+sub::isset() {
+  if [ "$#" -eq 1 ]; then
+    local __isset_return=0
+    func::isset __isset_return "${1}"
+    (( __isset_return )) || return 1
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# let -- Assigns a value into a variable.
 #
 # Assigns value into *destination.
 #
 # Usage:
 #     func::let(string* destination, string value)
 func::let() {
-  local __let_destination="$1"
-  local __let_value="$2"
-
-  eval "${__let_destination}=\"\${__let_value}\""
+  if [ "$#" -eq 2 ]; then
+    eval "${1}=\"\${2}\""
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
 }
 
-# func::strval -- Casts a variable as a string value.
+# strval -- Casts a variable as a string value.
 #
 # Casts variable into string type.
 #
 # Usage:
 #     void func::strval(string* variable)
 func::strval() {
-  local __strval_variable="$1"
-
-  eval "${__strval_variable}=\"\${${__strval_variable}}\""
+  if [ "$#" -eq 1 ]; then
+    eval "${1}=\"\${${1}}\""
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
 }
 
 CHECK() {
@@ -1663,7 +1684,7 @@ LOG() {
   datetime="${datetime/.N/.000000}"
   datetime="${datetime:0:20}"
   local pid
-  if func::isset __IMOSH_LOG_PID; then
+  if sub::isset __IMOSH_LOG_PID; then
     pid="${__IMOSH_LOG_PID}"
   else
     func::getmypid pid
@@ -1676,7 +1697,7 @@ LOG() {
       "${file}:${BASH_LINENO[0]}]"
       "$@")
   IFS=' ' eval 'message="${message[*]}"'
-  if ! func::isset FLAGS_stacktrace_threshold || \
+  if ! sub::isset FLAGS_stacktrace_threshold || \
      [ "${FLAGS_stacktrace_threshold}" = '' ]; then
     FLAGS_stacktrace_threshold='ERROR'
   fi
@@ -1686,11 +1707,11 @@ LOG() {
     message+="$(imosh::stack_trace "*** LOG ${level} stack trace: ***" 2>&1)"
   fi
   local logtostderr=0
-  if func::isset FLAGS_logtostderr; then
+  if sub::isset FLAGS_logtostderr; then
     logtostderr="${FLAGS_logtostderr}"
   fi
   local alsologtostderr=0
-  if func::isset FLAGS_alsologtostderr; then
+  if sub::isset FLAGS_alsologtostderr; then
     alsologtostderr="${FLAGS_alsologtostderr}"
   fi
   case "${level}" in
@@ -1795,7 +1816,7 @@ imosh::internal::parse_args() {
     arg_value="${arg:${#arg_name}}"
     if [ "${arg_value:0:1}" != '=' ]; then
       if [ "${arg_name:0:2}" = 'no' ]; then
-        if func::isset "${upper_class_name}S_${arg_name:2}"; then
+        if sub::isset "${upper_class_name}S_${arg_name:2}"; then
           if [ "${class_name}" != 'flag' ] || \
              [ "$(imosh::internal::flag_type "${arg_name:2}")" = 'bool' ]; then
             IMOSH_ARGS+=("${upper_class_name}S_${arg_name:2}=0")
@@ -1803,14 +1824,14 @@ imosh::internal::parse_args() {
           fi
         fi
       fi
-      if func::isset "${upper_class_name}S_${arg_name}"; then
+      if sub::isset "${upper_class_name}S_${arg_name}"; then
         if [ "${class_name}" != 'flag' ] ||
            [ "$(imosh::internal::flag_type "${arg_name}")" = 'bool' ]; then
           IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=1")
           continue
         fi
       fi
-      if ! func::isset "${upper_class_name}S_${arg_name}"; then
+      if ! sub::isset "${upper_class_name}S_${arg_name}"; then
         LOG FATAL "no such bool ${class_name} is defined:" \
                   "(${upper_class_name}S_)${arg_name}"
       fi
@@ -1821,7 +1842,7 @@ imosh::internal::parse_args() {
       shift
     fi
     arg_value="${arg_value:1}"
-    if func::isset "${upper_class_name}S_${arg_name}"; then
+    if sub::isset "${upper_class_name}S_${arg_name}"; then
       if [ "${class_name}" = 'flag' ]; then
         local original_value="${arg_value}"
         local type="$(imosh::internal::flag_type "${arg_name}")"
@@ -1950,7 +1971,7 @@ imosh::internal::define_flag() {
   func::strtoupper group
 
   # Change the default value based on its corresponding environment variable.
-  if func::isset "IMOSH_FLAGS_${name}"; then
+  if sub::isset "IMOSH_FLAGS_${name}"; then
     func::strcpy default_value "IMOSH_FLAGS_${name}"
   fi
   if [ "${type:0:5}" = 'multi' ]; then
@@ -1959,7 +1980,7 @@ imosh::internal::define_flag() {
   CHECK \
       --message="${name}'s default value is invalid: ${original_default_value}." \
       func::cast default_value "${type}"
-  if func::isset "__IMOSH_FLAGS_TYPE_${name}"; then
+  if sub::isset "__IMOSH_FLAGS_TYPE_${name}"; then
     LOG FATAL "already defined flag: ${name}"
   fi
   if [ "${type:0:5}" = 'multi' ]; then
@@ -2557,7 +2578,7 @@ readonly IMOSH_ROOT_PID="$$"
 # Variable not to output stack trace multiple times when exiting.
 __IMOSH_STACK_TRACED=0
 
-if ! func::isset UNAME; then
+if ! sub::isset UNAME; then
   UNAME="$(uname)"
 fi
 

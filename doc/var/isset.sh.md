@@ -1,5 +1,5 @@
-# func::isset
-func::isset -- Checks if a variable exists.
+# isset
+isset -- Checks if a variable exists.
 
 Returns true iff variable exists.
 

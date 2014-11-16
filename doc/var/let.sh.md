@@ -1,5 +1,5 @@
-# func::let
-func::let -- Assigns a value into a variable.
+# let
+let -- Assigns a value into a variable.
 
 Assigns value into *destination.
 

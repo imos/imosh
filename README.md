@@ -198,7 +198,7 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 * [func::cast](doc/var/cast.sh.md) -- Casts a variable.
 * [func::floatval](doc/var/floatval.sh.md) -- Casts a variable as a float value.
 * [func::intval](doc/var/intval.sh.md) -- Casts a variable as an integer value.
-* [func::isset](doc/var/isset.sh.md) -- Checks if a variable exists.
-* [func::let](doc/var/let.sh.md) -- Assigns a value into a variable.
-* [func::strval](doc/var/strval.sh.md) -- Casts a variable as a string value.
+* [isset](doc/var/isset.sh.md) -- Checks if a variable exists.
+* [let](doc/var/let.sh.md) -- Assigns a value into a variable.
+* [strval](doc/var/strval.sh.md) -- Casts a variable as a string value.
 

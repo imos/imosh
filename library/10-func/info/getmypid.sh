@@ -7,7 +7,7 @@
 #     void sub::getmypid() > output
 func::getmypid() {
   if [ "$#" -eq 1 ]; then
-    if func::isset BASHPID; then
+    if sub::isset BASHPID; then
       func::let "${1}" "${BASHPID}"
     else
       local __getmypid_pid_file=''

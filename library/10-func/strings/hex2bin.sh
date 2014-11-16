@@ -50,7 +50,7 @@ __func::hex2bin() {
       *) continue;;
     esac
     if [ "${#__hex2bin_buffer}" -eq 2 ]; then
-      if ! func::isset __hex2bin_result; then
+      if ! sub::isset __hex2bin_result; then
         printf "\\x${__hex2bin_buffer}"
       else
         eval "__hex2bin_result+=\$'\\x${__hex2bin_buffer}'"

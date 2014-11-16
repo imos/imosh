@@ -33,7 +33,7 @@ imosh::internal::parse_args() {
     arg_value="${arg:${#arg_name}}"
     if [ "${arg_value:0:1}" != '=' ]; then
       if [ "${arg_name:0:2}" = 'no' ]; then
-        if func::isset "${upper_class_name}S_${arg_name:2}"; then
+        if sub::isset "${upper_class_name}S_${arg_name:2}"; then
           if [ "${class_name}" != 'flag' ] || \
              [ "$(imosh::internal::flag_type "${arg_name:2}")" = 'bool' ]; then
             IMOSH_ARGS+=("${upper_class_name}S_${arg_name:2}=0")
@@ -41,14 +41,14 @@ imosh::internal::parse_args() {
           fi
         fi
       fi
-      if func::isset "${upper_class_name}S_${arg_name}"; then
+      if sub::isset "${upper_class_name}S_${arg_name}"; then
         if [ "${class_name}" != 'flag' ] ||
            [ "$(imosh::internal::flag_type "${arg_name}")" = 'bool' ]; then
           IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=1")
           continue
         fi
       fi
-      if ! func::isset "${upper_class_name}S_${arg_name}"; then
+      if ! sub::isset "${upper_class_name}S_${arg_name}"; then
         LOG FATAL "no such bool ${class_name} is defined:" \
                   "(${upper_class_name}S_)${arg_name}"
       fi
@@ -59,7 +59,7 @@ imosh::internal::parse_args() {
       shift
     fi
     arg_value="${arg_value:1}"
-    if func::isset "${upper_class_name}S_${arg_name}"; then
+    if sub::isset "${upper_class_name}S_${arg_name}"; then
       if [ "${class_name}" = 'flag' ]; then
         local original_value="${arg_value}"
         local type="$(imosh::internal::flag_type "${arg_name}")"
