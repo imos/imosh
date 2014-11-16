@@ -17,6 +17,7 @@ concat:
 	@chmod +x imosh
 	@chmod +x tool/update-readme.sh
 	@./tool/update-readme.sh
+	@./tool/print-flag-variables.sh > library/80-flags/50-variables.sh
 .PHONY: concat
 
 test: concat
