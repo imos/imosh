@@ -190,6 +190,7 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 * [strcpy](doc/strings/strcpy.sh.md) -- Copies a string from a variable to another variable.
 * [strtolower](doc/strings/strtolower.sh.md) -- Makes a string lowercase.
 * [strtoupper](doc/strings/strtoupper.sh.md) -- Makes a string uppercase.
+* [substr](doc/strings/substr.sh.md) -- Returns a substring.
 * [trim](doc/strings/trim.sh.md) -- Strips whitespaces from both sides.
 
 ## Variable handling
