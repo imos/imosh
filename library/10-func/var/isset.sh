@@ -3,6 +3,9 @@
 # Returns true iff variable exists.
 #
 # Usage:
+#     // 1. Function form.
+#     void func::isset(bool* result, variant* variable)
+#     // 2. Command form.
 #     bool func::isset(variant* variable)
 #
 # CAVEATS:
@@ -18,9 +21,7 @@ func::isset() {
     fi
   elif [ "$#" -eq 1 ]; then
     LOG ERROR 'This form is deprecated.'
-    local __isset_return=0
-    func::isset __isset_return "${1}"
-    (( __isset_return )) || return 1
+    sub::isset "$@" || return "$?"
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi

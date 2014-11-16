@@ -5,6 +5,9 @@ Returns true iff variable exists.
 
 ## Usage
 ```sh
+// 1. Function form.
+void func::isset(bool* result, variant* variable)
+// 2. Command form.
 bool func::isset(variant* variable)
 ```
 

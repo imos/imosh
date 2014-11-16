@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-16 17:54:47 +0900 (185a89d)'
+IMOSH_VERSION='2014-11-16 23:10:47 +0900 (e6b075e)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -1560,13 +1560,12 @@ func::floatval() {
 #     bool sub::intval(string input) > output
 func::intval() {
   if [ "$#" -eq 2 ]; then
-    # local BASH_REMATCH=()
     if [[ ! "${2}" =~ ^[[:space:]]*(-?[0-9]+) ]]; then
       return 1
     fi
     func::let "${1}" "${BASH_REMATCH[1]}"
   elif [ "$#" -eq 1 ]; then
-    eval "func::intval \"\${1}\" \"\${${1}}\"" || return 1
+    eval "func::intval \"\${1}\" \"\${${1}}\"" || return "$?"
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
@@ -1575,7 +1574,7 @@ func::intval() {
 sub::intval() {
   if [ "$#" -eq 1 ]; then
     local __intval_value="${1}"
-    func::intval __intval_value || return 1
+    func::intval __intval_value || return "$?"
     sub::println "${__intval_value}"
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
@@ -1587,6 +1586,9 @@ sub::intval() {
 # Returns true iff variable exists.
 #
 # Usage:
+#     // 1. Function form.
+#     void func::isset(bool* result, variant* variable)
+#     // 2. Command form.
 #     bool func::isset(variant* variable)
 #
 # CAVEATS:
@@ -1602,9 +1604,7 @@ func::isset() {
     fi
   elif [ "$#" -eq 1 ]; then
     LOG ERROR 'This form is deprecated.'
-    local __isset_return=0
-    func::isset __isset_return "${1}"
-    (( __isset_return )) || return 1
+    sub::isset "$@" || return "$?"
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
@@ -1639,10 +1639,27 @@ func::let() {
 # Casts variable into string type.
 #
 # Usage:
+#     // 1-a. Function from.
+#     void func::strval(string* output, string input)
+#     // 1-b. Inplace function form.
 #     void func::strval(string* variable)
+#     // 2. Command form.
+#     bool sub::strval(string input) > output
 func::strval() {
+  if [ "$#" -eq 2 ]; then
+    func::let "${1}" "${2}"
+  elif [ "$#" -eq 1 ]; then
+    func::strcpy "${1}" "${1}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+sub::strval() {
   if [ "$#" -eq 1 ]; then
-    eval "${1}=\"\${${1}}\""
+    local __strval_value="${1}"
+    func::strval __strval_value || return "$?"
+    sub::println "${__strval_value}"
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
