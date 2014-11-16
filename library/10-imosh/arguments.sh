@@ -35,7 +35,7 @@ imosh::internal::parse_args() {
       if [ "${arg_name:0:2}" = 'no' ]; then
         if sub::isset "${upper_class_name}S_${arg_name:2}"; then
           if [ "${class_name}" != 'flag' ] || \
-             [ "$(imosh::internal::flag_type "${arg_name:2}")" = 'bool' ]; then
+             [ "$(imosh::internal::flag_type "${arg_name:2}")" = 'BOOL' ]; then
             IMOSH_ARGS+=("${upper_class_name}S_${arg_name:2}=0")
             continue
           fi
@@ -43,7 +43,7 @@ imosh::internal::parse_args() {
       fi
       if sub::isset "${upper_class_name}S_${arg_name}"; then
         if [ "${class_name}" != 'flag' ] ||
-           [ "$(imosh::internal::flag_type "${arg_name}")" = 'bool' ]; then
+           [ "$(imosh::internal::flag_type "${arg_name}")" = 'BOOL' ]; then
           IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=1")
           continue
         fi
@@ -63,14 +63,14 @@ imosh::internal::parse_args() {
       if [ "${class_name}" = 'flag' ]; then
         local original_value="${arg_value}"
         local type="$(imosh::internal::flag_type "${arg_name}")"
-        if [ "${type:0:5}" = 'multi' ]; then
+        if [ "${type:0:5}" = 'MULTI' ]; then
           # TODO(imos): Support delimiter.
           func::explode arg_value ',' "${arg_value}"
         fi
         CHECK \
             --message="${upper_class_name}S_${arg_name} is invalid: ${arg_value}" \
             func::cast arg_value "$(imosh::internal::flag_type "${arg_name}")"
-        if [ "${type:0:5}" = 'multi' ]; then
+        if [ "${type:0:5}" = 'MULTI' ]; then
           # Set values here.  FLAGS_* are global variables, and this does not
           # cause scope issues.
           func::array_values "${upper_class_name}S_${arg_name}" arg_value

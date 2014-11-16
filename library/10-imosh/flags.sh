@@ -31,7 +31,7 @@ imosh::internal::define_flag() {
   if sub::isset "IMOSH_FLAGS_${name}"; then
     func::strcpy default_value "IMOSH_FLAGS_${name}"
   fi
-  if [ "${type:0:5}" = 'multi' ]; then
+  if [ "${type:0:5}" = 'MULTI' ]; then
     func::explode default_value ',' "${default_value}"
   fi
   CHECK \
@@ -40,7 +40,7 @@ imosh::internal::define_flag() {
   if sub::isset "__IMOSH_FLAGS_TYPE_${name}"; then
     LOG FATAL "already defined flag: ${name}"
   fi
-  if [ "${type:0:5}" = 'multi' ]; then
+  if [ "${type:0:5}" = 'MULTI' ]; then
     func::array_values "FLAGS_${name}" 'default_value'
   else
     func::strcpy "FLAGS_${name}" 'default_value'
@@ -54,8 +54,8 @@ imosh::internal::define_flag() {
   if (( ! ARGS_alias_flag )); then
     local escaped_default_value=''
     case "${type}" in
-      int) escaped_default_value="${default_value}";;
-      bool)
+      'INT') escaped_default_value="${default_value}";;
+      'BOOL')
         if (( default_value )); then
           escaped_default_value='true'
         else
@@ -77,14 +77,14 @@ imosh::internal::define_flag() {
   fi
 }
 
-DEFINE_string() { imosh::internal::define_flag string "$@"; }
-DEFINE_int() { imosh::internal::define_flag int "$@"; }
-DEFINE_bool() { imosh::internal::define_flag bool "$@"; }
-DEFINE_double() { imosh::internal::define_flag double "$@"; }
-DEFINE_multistring() { imosh::internal::define_flag multistring "$@"; }
-DEFINE_multiint() { imosh::internal::define_flag multiint "$@"; }
-DEFINE_multibool() { imosh::internal::define_flag multibool "$@"; }
-DEFINE_multidouble() { imosh::internal::define_flag multidouble "$@"; }
+DEFINE_string() { imosh::internal::define_flag STRING "$@"; }
+DEFINE_int() { imosh::internal::define_flag INT "$@"; }
+DEFINE_bool() { imosh::internal::define_flag BOOL "$@"; }
+DEFINE_double() { imosh::internal::define_flag DOUBLE "$@"; }
+DEFINE_multistring() { imosh::internal::define_flag MULTISTRING "$@"; }
+DEFINE_multiint() { imosh::internal::define_flag MULTIINT "$@"; }
+DEFINE_multibool() { imosh::internal::define_flag MULTIBOOL "$@"; }
+DEFINE_multidouble() { imosh::internal::define_flag MULTIDOUBLE "$@"; }
 DEFINE_list() { DEFINE_multistring "$@"; }
 
 imosh::internal::get_main_script() {

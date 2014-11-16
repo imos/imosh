@@ -3,11 +3,14 @@
 # Casts variable into a specified type.
 #
 # Usage:
+#     // 1. Function form.
 #     bool func::cast(variant* variable, string type)
+#     // 2. Function form. (Dies if conversion fails.)
+#     void func::cast_or_die(variant* variable, string type)
 func::cast() {
   if [ "$#" -eq 2 ]; then
     case "${2}" in
-      multi*)
+      'MULTI'*)
         local __cast_values=()
         local __cast_element_type="${2:5}"
         func::array_values __cast_values "${1}"
@@ -21,11 +24,11 @@ func::cast() {
         fi
         func::array_values "${1}" __cast_values
         ;;
-      int)     func::intval "${1}" || return "$?";;
-      float)   func::floatval "${1}" || return "$?";;
-      string)  func::strval "${1}" || return "$?";;
-      bool)    func::boolval "${1}" || return "$?";;
-      variant) return 0;;
+      'INT')     func::intval "${1}" || return "$?";;
+      'FLOAT')   func::floatval "${1}" || return "$?";;
+      'STRING')  func::strval "${1}" || return "$?";;
+      'BOOL')    func::boolval "${1}" || return "$?";;
+      'VARIANT') return 0;;
       *)       LOG FATAL "Unknown type: ${2}";;
     esac
   else
