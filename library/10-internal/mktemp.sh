@@ -1,17 +1,17 @@
 __imosh::mktemp() {
   TMPDIR="${TMPDIR:-/tmp}"
   TMPDIR="${TMPDIR%/}"
-  export TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/imosh.XXXXXX")"
-  if [ "${TMPDIR}" = '' -o "${TMPDIR}" = '/' ]; then
-    LOG FATAL 'failed to create a temporary directory.'
+  local suffix=''
+  func::rand suffix 0 99999999
+  func::substr suffix "00000000${suffix}" -8
+  export TMPDIR="${TMPDIR}/imosh.${suffix}"
+  if ! mkdir -p "${TMPDIR}"; then
+    LOG FATAL "Failed to create a temporary directory: ${TMPDIR}"
   fi
+  export IMOSH_TMPDIR="${TMPDIR}"
 
   export __IMOSH_CORE_TMPDIR="${TMPDIR}/.imosh"
-  mkdir "${__IMOSH_CORE_TMPDIR}"
-  local tmpdir="${TMPDIR}"
-  func::escapeshellarg tmpdir
-  sub::atexit "rm -rf ${tmpdir}"
-
-  # For backward compatibility.
-  export IMOSH_TMPDIR="${TMPDIR}"
+  if ! mkdir "${__IMOSH_CORE_TMPDIR}"; then
+    LOG FATAL "Failed to create a temporary directory: ${__IMOSH_CORE_TMPDIR}"
+  fi
 }

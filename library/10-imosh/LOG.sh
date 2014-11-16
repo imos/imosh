@@ -93,20 +93,16 @@ LOG() {
 }
 
 imosh::internal::log_file() {
-  local severity="${1}"
-  local path=''
-  if [ "${FLAGS_log_dir}" == '' ]; then
-    return
-  fi
-  path+="${FLAGS_log_dir}/"
-  path+="${__IMOSH_LOG_PREFIX}.${severity}.${__IMOSH_LOG_SUFFIX}"
-  sub::print "${path}"
+  sub::println \
+      "${FLAGS_log_dir}/${__IMOSH_LOG_PREFIX}.${1}.${__IMOSH_LOG_SUFFIX}"
 }
 
 imosh::internal::init_log() {
   # Close descriptors for logs beforehand for BASH3's bug.
   exec 101>&- 102>&- 103>&- 104>&-
   if [ "${FLAGS_log_dir}" != '' -a -w "${FLAGS_log_dir}" ]; then
+    __IMOSH_LOG_PREFIX="${0##*/}.$(hostname -s).$(whoami)"
+    __IMOSH_LOG_SUFFIX="$(date +'%Y%m%d.%H%M%S').$$"
     exec 101>"$(imosh::internal::log_file INFO)"
     exec 102>"$(imosh::internal::log_file WARNING)"
     exec 103>"$(imosh::internal::log_file ERROR)"

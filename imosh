@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-17 01:33:31 +0900 (3ca1d32)'
+IMOSH_VERSION='2014-11-17 02:54:42 +0900 (1402664)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -1862,20 +1862,16 @@ LOG() {
 }
 
 imosh::internal::log_file() {
-  local severity="${1}"
-  local path=''
-  if [ "${FLAGS_log_dir}" == '' ]; then
-    return
-  fi
-  path+="${FLAGS_log_dir}/"
-  path+="${__IMOSH_LOG_PREFIX}.${severity}.${__IMOSH_LOG_SUFFIX}"
-  sub::print "${path}"
+  sub::println \
+      "${FLAGS_log_dir}/${__IMOSH_LOG_PREFIX}.${1}.${__IMOSH_LOG_SUFFIX}"
 }
 
 imosh::internal::init_log() {
   # Close descriptors for logs beforehand for BASH3's bug.
   exec 101>&- 102>&- 103>&- 104>&-
   if [ "${FLAGS_log_dir}" != '' -a -w "${FLAGS_log_dir}" ]; then
+    __IMOSH_LOG_PREFIX="${0##*/}.$(hostname -s).$(whoami)"
+    __IMOSH_LOG_SUFFIX="$(date +'%Y%m%d.%H%M%S').$$"
     exec 101>"$(imosh::internal::log_file INFO)"
     exec 102>"$(imosh::internal::log_file WARNING)"
     exec 103>"$(imosh::internal::log_file ERROR)"
@@ -2350,19 +2346,19 @@ imosh::stack_trace() {
 __imosh::mktemp() {
   TMPDIR="${TMPDIR:-/tmp}"
   TMPDIR="${TMPDIR%/}"
-  export TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/imosh.XXXXXX")"
-  if [ "${TMPDIR}" = '' -o "${TMPDIR}" = '/' ]; then
-    LOG FATAL 'failed to create a temporary directory.'
+  local suffix=''
+  func::rand suffix 0 99999999
+  func::substr suffix "00000000${suffix}" -8
+  export TMPDIR="${TMPDIR}/imosh.${suffix}"
+  if ! mkdir -p "${TMPDIR}"; then
+    LOG FATAL "Failed to create a temporary directory: ${TMPDIR}"
   fi
+  export IMOSH_TMPDIR="${TMPDIR}"
 
   export __IMOSH_CORE_TMPDIR="${TMPDIR}/.imosh"
-  mkdir "${__IMOSH_CORE_TMPDIR}"
-  local tmpdir="${TMPDIR}"
-  func::escapeshellarg tmpdir
-  sub::atexit "rm -rf ${tmpdir}"
-
-  # For backward compatibility.
-  export IMOSH_TMPDIR="${TMPDIR}"
+  if ! mkdir "${__IMOSH_CORE_TMPDIR}"; then
+    LOG FATAL "Failed to create a temporary directory: ${__IMOSH_CORE_TMPDIR}"
+  fi
 }
 
 # __imosh::get_usage
@@ -2690,12 +2686,6 @@ if ! sub::isset UNAME; then
   UNAME="$(uname)"
 fi
 
-__IMOSH_PROGRAM_NAME="${0##*/}"
-__IMOSH_HOSTNAME="$(hostname -s)"
-__IMOSH_USER="$(whoami)"
-__IMOSH_LOG_PREFIX="${__IMOSH_PROGRAM_NAME}.${__IMOSH_HOSTNAME}.${__IMOSH_USER}"
-__IMOSH_LOG_SUFFIX="$(date +'%Y%m%d.%H%M%S').$$"
-
 __imosh::error_handler() {
   local exit_code="$?"
   __IMOSH_STACK_TRACED=1
@@ -2704,36 +2694,53 @@ __imosh::error_handler() {
 
 trap '__imosh::error_handler' ERR
 
-__imosh::exit_handler() {
-  local exit_code="$?"
-  if (( exit_code && ! __IMOSH_STACK_TRACED )); then
-    imosh::stack_trace "error status: ${exit_code}"
-  fi
-
-  local pid=''
-  func::getmypid pid
-  if [ "${pid}" != "${IMOSH_ROOT_PID}" ]; then
-    LOG INFO 'finalizing a child process...'
-    return
-  fi
-
-  LOG INFO 'finalizing...'
-
+__imosh::exit_handler::atexit() {
+  # Stop checking exit statuses because this is inside exit_handler, and it is
+  # impossible to output a stacktrace for an irregular exit status.
   set +e
   if [ -f "${__IMOSH_CORE_TMPDIR}/atexit.sh" ]; then
     source "${__IMOSH_CORE_TMPDIR}/atexit.sh"
   fi
-  rm -rf "${__IMOSH_CORE_TMPDIR}"
+}
+
+__imosh::exit_handler() {
+  local exit_code="$?"
+
+  # Revert the EXIT trap to prevent an infinite loop.
+  trap - EXIT
+
+  # Output a stacktrace if the script does not output a stacktrace for the
+  # error.  (signal_handler may output a stacktrace before calling this.)
+  if (( exit_code && ! __IMOSH_STACK_TRACED )); then
+    imosh::stack_trace "Error status: ${exit_code}"
+  fi
+
+  # Check the current process is not the root process so as not to remove the
+  # root process's temporary directory.
+  local pid=''
+  func::getmypid pid
+  if [ "${pid}" != "${IMOSH_ROOT_PID}" ]; then
+    LOG INFO 'Finalizing a child process...'
+    return
+  fi
+
+  __imosh::exit_handler::atexit &
+  if ! wait "$!"; then
+    LOG ERROR 'Failed to run atexit entirely.'
+  fi
+  rm -R -f "${IMOSH_TMPDIR}"
 
   # Close log pipes and remove unused log files.
   exec 101>&- 102>&- 103>&- 104>&-
-  local severity=''
-  for severity in INFO WARNING ERROR FATAL; do
-    local path="$(imosh::internal::log_file "${severity}")"
-    if [ "${path}" != '' -a ! -s "${path}" ]; then
-      rm "${path}"
-    fi
-  done
+  if sub::isset __IMOSH_LOG_PREFIX; then
+    local severity=''
+    for severity in INFO WARNING ERROR FATAL; do
+      local path="$(imosh::internal::log_file "${severity}")"
+      if [ "${path}" != '' -a ! -s "${path}" ]; then
+        rm "${path}"
+      fi
+    done
+  fi
 }
 
 trap '__imosh::exit_handler' EXIT
