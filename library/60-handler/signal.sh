@@ -1,16 +1,16 @@
 __imosh::signal_handler() {
   local signal="$1"
   trap - "${signal}"
-  local PID=''
-  func::getmypid PID
-  if [ "${PID}" = "${IMOSH_ROOT_PID}" ]; then
-    __sub::exit "${IMOSH_ROOT_PID}"
+  local pid=''
+  func::getmypid pid
+  if [ "${pid}" = "${IMOSH_ROOT_PID}" ]; then
+    __sub::exit "${pid}" "${pid}"
     if [ -f "${__IMOSH_CORE_TMPDIR}/EXIT" ]; then
       exit "$(cat "${__IMOSH_CORE_TMPDIR}/EXIT")"
     fi
   fi
-  LOG ERROR "$(imosh::stack_trace "terminated by signal: ${signal}" 2>&1)"
-  kill -s "${signal}" "${PID}"
+  LOG ERROR "$(imosh::stack_trace "Terminated by signal: ${signal}" 2>&1)"
+  kill -s "${signal}" "${pid}"
 }
 
 if ! shopt login_shell >/dev/null; then

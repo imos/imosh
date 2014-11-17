@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-18 01:50:30 +0900 (b7e86a9)'
+IMOSH_VERSION='2014-11-18 01:55:23 +0900 (a79d035)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -2718,16 +2718,16 @@ trap '__imosh::exit_handler' EXIT
 __imosh::signal_handler() {
   local signal="$1"
   trap - "${signal}"
-  local PID=''
-  func::getmypid PID
-  if [ "${PID}" = "${IMOSH_ROOT_PID}" ]; then
-    __sub::exit "${IMOSH_ROOT_PID}"
+  local pid=''
+  func::getmypid pid
+  if [ "${pid}" = "${IMOSH_ROOT_PID}" ]; then
+    __sub::exit "${pid}" "${pid}"
     if [ -f "${__IMOSH_CORE_TMPDIR}/EXIT" ]; then
       exit "$(cat "${__IMOSH_CORE_TMPDIR}/EXIT")"
     fi
   fi
-  LOG ERROR "$(imosh::stack_trace "terminated by signal: ${signal}" 2>&1)"
-  kill -s "${signal}" "${PID}"
+  LOG ERROR "$(imosh::stack_trace "Terminated by signal: ${signal}" 2>&1)"
+  kill -s "${signal}" "${pid}"
 }
 
 if ! shopt login_shell >/dev/null; then
