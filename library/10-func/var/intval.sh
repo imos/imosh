@@ -17,7 +17,7 @@ func::intval() {
     fi
     func::let "${1}" "${BASH_REMATCH[1]}"
   elif [ "$#" -eq 1 ]; then
-    eval "func::intval \"\${1}\" \"\${${1}}\"" || return "$?"
+    eval "func::intval \"\${1}\" \"\${${1}}\" || return \"\$?\""
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi

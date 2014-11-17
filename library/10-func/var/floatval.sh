@@ -16,7 +16,7 @@ func::floatval() {
     fi
     func::let "${1}" "${BASH_REMATCH[1]}"
   elif [ "$#" -eq 1 ]; then
-    eval "func::floatval \"\${1}\" \"\${${1}}\"" || return "$?"
+    eval "func::floatval \"\${1}\" \"\${${1}}\" || return \"\$?\""
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi

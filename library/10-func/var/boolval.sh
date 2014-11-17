@@ -21,7 +21,7 @@ func::boolval() {
       fi
     fi
   elif [ "$#" -eq 1 ]; then
-    eval "func::boolval \"\${1}\" \"\${${1}}\"" || return "$?"
+    eval "func::boolval \"\${1}\" \"\${${1}}\" || return \"\$?\""
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi

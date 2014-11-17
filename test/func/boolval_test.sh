@@ -17,7 +17,7 @@ test::func_boolval() {
   EXPECT_TRUE func::boolval variable
   EXPECT_EQ 0 "${variable}"
 
-  variable=hoge
+  variable='hoge'
   EXPECT_FALSE func::boolval variable
   EXPECT_EQ 0 "${variable}"
 }
