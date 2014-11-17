@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-18 01:36:02 +0900 (ac3481d)'
+IMOSH_VERSION='2014-11-18 01:41:10 +0900 (bb5f9b2)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -783,7 +783,18 @@ sub::exit() {
       func::rtrim message
       sub::println "${message}"
     fi
-    imosh::exit "${status}"
+    sub::print "${status}" > "${__IMOSH_CORE_TMPDIR}/status"
+    # First, kill all the childs of the current process so that no child
+    # processes spawn new processes.
+    __sub::exit
+    # Then, try to kill other processes under the root process except this
+    # process.
+    __sub::exit "${IMOSH_ROOT_PID}"
+    # Send a TERM signal to the root process.
+    kill -TERM "${IMOSH_ROOT_PID}" 2> '/dev/null' || true
+    # If this is the root process, following commands will not be executed.
+    # Exit immediately if this is the root process.
+    exit "${status}"
   elif [ "$#" -eq 0 ]; then
     sub::exit 0
   else
@@ -804,7 +815,6 @@ sub::die() {
 #     void __sub::exit::kill(int pid = $$, int caller_pid = $$)
 __sub::exit() {
   if [ "$#" -eq 2 ]; then
-    LOG INFO "killing ${1}..."
     if [ "${1}" != "${2}" -a "${1}" != "${IMOSH_ROOT_PID}" ]; then
       kill -STOP "${1}" 2>/dev/null || true
     fi
@@ -2012,35 +2022,6 @@ imosh::internal::parse_args() {
   done
 }
 
-# imosh::exit
-#
-# Usage:
-#   void imosh::exit(int status = 0)
-#
-# imosh::exit kills all the subprocesses of the root process with the status.
-imosh::exit() {
-  if [ "$#" -eq 0 ]; then
-    set -- 0
-  fi
-  if [ "$#" -eq 1 ]; then
-    local status="$1"
-    echo "${status}" >"${__IMOSH_CORE_TMPDIR}/status"
-
-    # First, kill all the childs of the current process so that no child
-    # processes spawn new processes.
-    __sub::exit
-    # Then, try to kill other processes under the root process except this
-    # process.
-    __sub::exit "${IMOSH_ROOT_PID}"
-    # Send a TERM signal to the root process.
-    kill -TERM "${IMOSH_ROOT_PID}" 2>/dev/null || true
-    # Exit immediately.
-    exit "${status}"
-  else
-    LOG FATAL "Wrong number of aruments: $#"
-  fi
-}
-
 # __IMOSH_FLAGS_TYPE_<flag name>=<flag type>
 # __IMOSH_FLAGS_DESCRIPTION_<flag name>=<description>
 # __IMOSH_FLAGS_ALIASES=(from:to ...)
@@ -2739,8 +2720,7 @@ __imosh::signal_handler() {
   trap - "${signal}"
   local PID=''
   func::getmypid PID
-  if [ "${PID}" == "${IMOSH_ROOT_PID}" ]; then
-    LOG INFO 'killing child processes.'
+  if [ "${PID}" = "${IMOSH_ROOT_PID}" ]; then
     __sub::exit "${IMOSH_ROOT_PID}"
     if [ -f "${__IMOSH_CORE_TMPDIR}/status" ]; then
       exit "$(cat "${__IMOSH_CORE_TMPDIR}/status")"

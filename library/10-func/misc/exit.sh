@@ -24,7 +24,18 @@ sub::exit() {
       func::rtrim message
       sub::println "${message}"
     fi
-    imosh::exit "${status}"
+    sub::print "${status}" > "${__IMOSH_CORE_TMPDIR}/status"
+    # First, kill all the childs of the current process so that no child
+    # processes spawn new processes.
+    __sub::exit
+    # Then, try to kill other processes under the root process except this
+    # process.
+    __sub::exit "${IMOSH_ROOT_PID}"
+    # Send a TERM signal to the root process.
+    kill -TERM "${IMOSH_ROOT_PID}" 2> '/dev/null' || true
+    # If this is the root process, following commands will not be executed.
+    # Exit immediately if this is the root process.
+    exit "${status}"
   elif [ "$#" -eq 0 ]; then
     sub::exit 0
   else
@@ -45,7 +56,6 @@ sub::die() {
 #     void __sub::exit::kill(int pid = $$, int caller_pid = $$)
 __sub::exit() {
   if [ "$#" -eq 2 ]; then
-    LOG INFO "killing ${1}..."
     if [ "${1}" != "${2}" -a "${1}" != "${IMOSH_ROOT_PID}" ]; then
       kill -STOP "${1}" 2>/dev/null || true
     fi

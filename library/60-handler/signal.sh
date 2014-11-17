@@ -3,8 +3,7 @@ __imosh::signal_handler() {
   trap - "${signal}"
   local PID=''
   func::getmypid PID
-  if [ "${PID}" == "${IMOSH_ROOT_PID}" ]; then
-    LOG INFO 'killing child processes.'
+  if [ "${PID}" = "${IMOSH_ROOT_PID}" ]; then
     __sub::exit "${IMOSH_ROOT_PID}"
     if [ -f "${__IMOSH_CORE_TMPDIR}/status" ]; then
       exit "$(cat "${__IMOSH_CORE_TMPDIR}/status")"
