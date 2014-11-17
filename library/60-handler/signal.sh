@@ -5,7 +5,7 @@ __imosh::signal_handler() {
   func::getmypid PID
   if [ "${PID}" == "${IMOSH_ROOT_PID}" ]; then
     LOG INFO 'killing child processes.'
-    __imosh::kill "${IMOSH_ROOT_PID}"
+    __sub::exit "${IMOSH_ROOT_PID}"
     if [ -f "${__IMOSH_CORE_TMPDIR}/status" ]; then
       exit "$(cat "${__IMOSH_CORE_TMPDIR}/status")"
     fi

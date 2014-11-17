@@ -55,7 +55,7 @@ __sub::exit() {
     func::tmpfile tmpfile
     ps -o ppid,pid > "${tmpfile}"
     while IFS=$' \t\n' read -r ppid pid; do
-      if [ "${ppid}" != "${1}" ]; then
+      if [ "${ppid}" = "${1}" ]; then
         __sub::exit "${pid}" "${2}"
       fi
     done < "${tmpfile}"
