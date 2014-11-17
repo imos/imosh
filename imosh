@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-18 01:41:10 +0900 (bb5f9b2)'
+IMOSH_VERSION='2014-11-18 01:50:30 +0900 (b7e86a9)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -776,14 +776,14 @@ sub::atexit() {
 sub::exit() {
   if [ "$#" -eq 1 ]; then
     local status=0
-    if [[ "$1" =~ ^[0-9]+$ ]]; then
-      status="$1"
+    if [[ "${1}" =~ ^[0-9]+$ ]]; then
+      status="${1}"
     else
-      local message="$1"
+      local message="${1}"
       func::rtrim message
       sub::println "${message}"
     fi
-    sub::print "${status}" > "${__IMOSH_CORE_TMPDIR}/status"
+    sub::print "${status}" > "${__IMOSH_CORE_TMPDIR}/EXIT"
     # First, kill all the childs of the current process so that no child
     # processes spawn new processes.
     __sub::exit
@@ -2722,8 +2722,8 @@ __imosh::signal_handler() {
   func::getmypid PID
   if [ "${PID}" = "${IMOSH_ROOT_PID}" ]; then
     __sub::exit "${IMOSH_ROOT_PID}"
-    if [ -f "${__IMOSH_CORE_TMPDIR}/status" ]; then
-      exit "$(cat "${__IMOSH_CORE_TMPDIR}/status")"
+    if [ -f "${__IMOSH_CORE_TMPDIR}/EXIT" ]; then
+      exit "$(cat "${__IMOSH_CORE_TMPDIR}/EXIT")"
     fi
   fi
   LOG ERROR "$(imosh::stack_trace "terminated by signal: ${signal}" 2>&1)"

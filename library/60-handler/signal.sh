@@ -5,8 +5,8 @@ __imosh::signal_handler() {
   func::getmypid PID
   if [ "${PID}" = "${IMOSH_ROOT_PID}" ]; then
     __sub::exit "${IMOSH_ROOT_PID}"
-    if [ -f "${__IMOSH_CORE_TMPDIR}/status" ]; then
-      exit "$(cat "${__IMOSH_CORE_TMPDIR}/status")"
+    if [ -f "${__IMOSH_CORE_TMPDIR}/EXIT" ]; then
+      exit "$(cat "${__IMOSH_CORE_TMPDIR}/EXIT")"
     fi
   fi
   LOG ERROR "$(imosh::stack_trace "terminated by signal: ${signal}" 2>&1)"

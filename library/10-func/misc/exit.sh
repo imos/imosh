@@ -17,14 +17,14 @@
 sub::exit() {
   if [ "$#" -eq 1 ]; then
     local status=0
-    if [[ "$1" =~ ^[0-9]+$ ]]; then
-      status="$1"
+    if [[ "${1}" =~ ^[0-9]+$ ]]; then
+      status="${1}"
     else
-      local message="$1"
+      local message="${1}"
       func::rtrim message
       sub::println "${message}"
     fi
-    sub::print "${status}" > "${__IMOSH_CORE_TMPDIR}/status"
+    sub::print "${status}" > "${__IMOSH_CORE_TMPDIR}/EXIT"
     # First, kill all the childs of the current process so that no child
     # processes spawn new processes.
     __sub::exit
