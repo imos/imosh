@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-18 01:55:23 +0900 (a79d035)'
+IMOSH_VERSION='2014-11-18 02:07:09 +0900 (8c57909)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
