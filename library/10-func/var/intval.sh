@@ -12,6 +12,7 @@
 func::intval() {
   if [ "$#" -eq 2 ]; then
     if [[ ! "${2}" =~ ^[[:space:]]*(-?[0-9]+) ]]; then
+      func::let "${1}" 0
       return 1
     fi
     func::let "${1}" "${BASH_REMATCH[1]}"
