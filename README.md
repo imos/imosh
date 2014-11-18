@@ -162,6 +162,10 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 * [getchildpids](doc/info/getchildpids.sh.md) -- Gets child process IDs.
 * [getmypid](doc/info/getmypid.sh.md) -- Gets the current process ID.
 
+## Logging Functions
+
+* [LOG - Logging Functions](doc/logging/LOG.sh.md)
+
 ## Mathematical Functions
 
 * [rand](doc/math/rand.sh.md) -- Generates a random integer.

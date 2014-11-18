@@ -34,17 +34,8 @@ __imosh::exit_handler() {
   fi
   rm -R -f "${IMOSH_TMPDIR}"
 
-  # Close log pipes and remove unused log files.
+  # Close log pipes.
   exec 101>&- 102>&- 103>&- 104>&-
-  if sub::isset __IMOSH_LOG_PREFIX; then
-    local severity=''
-    for severity in INFO WARNING ERROR FATAL; do
-      local path="$(imosh::internal::log_file "${severity}")"
-      if [ "${path}" != '' -a ! -s "${path}" ]; then
-        rm "${path}"
-      fi
-    done
-  fi
 }
 
 trap '__imosh::exit_handler' EXIT

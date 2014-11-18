@@ -236,7 +236,7 @@ imosh::internal::init() {
   if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
     eval "${IMOSH_ARGS[@]}"
   fi
-  imosh::internal::init_log
+  imosh::logging::init
   if [ "${#__IMOSH_FLAGS_ALIASES[*]}" -ne 0 ]; then
     for alias in "${__IMOSH_FLAGS_ALIASES[@]}"; do
       eval "FLAGS_${alias%%:*}=\"\${FLAGS_${alias#*:}}\""
