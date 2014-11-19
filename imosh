@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-20 00:53:30 +0900 (1cb0609)'
+IMOSH_VERSION='2014-11-20 00:58:30 +0900 (ec30893)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -724,7 +724,7 @@ CHECK() {
   fi
 }
 
-# LOG - Logs a message.
+# LOG -- Logs a message.
 #
 # LOG logs a message with a timestamp, the current process ID and a file
 # position.

@@ -1,4 +1,5 @@
-# LOG - Logs a message.
+# LOG
+LOG -- Logs a message.
 
 LOG logs a message with a timestamp, the current process ID and a file
 position.

@@ -165,7 +165,7 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 ## Logging Functions
 
 * [CHECK - checks if a command succeeds.](doc/logging/CHECK.sh.md)
-* [LOG - Logs a message.](doc/logging/LOG.sh.md)
+* [LOG](doc/logging/LOG.sh.md) -- Logs a message.
 
 ## Mathematical Functions
 
