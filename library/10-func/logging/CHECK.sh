@@ -1,3 +1,9 @@
+# CHECK - checks if a command succeeds.
+#
+# CHECK fails with a fatal error if a command fails.
+#
+# Usage:
+#     void CHECK(string command...)
 CHECK() {
   IFS=' ' eval 'local __CHECK_message="Check failure: $*"'
   if [ "$#" -ge 1 ] && [ "${1:0:10}" = '--message=' ]; then
@@ -6,7 +12,7 @@ CHECK() {
   fi
 
   if [ "$#" -ge 1 ]; then
-    local __CHECK_invert="$1"
+    local __CHECK_invert="${1}"
 
     if [ "${__CHECK_invert}" = '!' ]; then
       shift
@@ -21,7 +27,6 @@ CHECK() {
       fi
     fi
   else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
