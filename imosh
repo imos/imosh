@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-19 03:05:09 +0900 (97687cc)'
+IMOSH_VERSION='2014-11-19 03:12:33 +0900 (4f533e0)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -691,7 +691,10 @@ sub::getmypid() {
   fi
 }
 
-# LOG - Logging Functions
+# LOG - Logs a message.
+#
+# LOG logs a message with a timestamp, the current process ID and a file
+# position.
 #
 # Usage:
 #     void LOG(string log_level, string message...)

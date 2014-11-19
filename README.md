@@ -164,7 +164,7 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 
 ## Logging Functions
 
-* [LOG - Logging Functions](doc/logging/LOG.sh.md)
+* [LOG - Logs a message.](doc/logging/LOG.sh.md)
 
 ## Mathematical Functions
 
