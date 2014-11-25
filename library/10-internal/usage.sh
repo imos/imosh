@@ -118,8 +118,9 @@ __imosh::show_usage() {
         done
         no_read=1
         continue
+      else
+        sub::println "${line}"
       fi
-      echo "${line}"
     done <<<"${usage}"
     echo
   else
