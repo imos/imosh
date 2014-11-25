@@ -176,6 +176,7 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 * [atexit](doc/misc/atexit.sh.md) -- Registers a function on shutdown.
 * [exit, die](doc/misc/exit.sh.md) -- Kills the current script.
 * [throttle](doc/misc/throttle.sh.md) -- Throttles by the number of child processes.
+* [usage](doc/misc/usage.sh.md) -- Shows a usage message.
 
 ## Strings
 

@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-26 02:09:07 +0900 (84b8133)'
+IMOSH_VERSION='2014-11-26 02:32:27 +0900 (cfc9ad3)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -1050,6 +1050,112 @@ sub::throttle() {
         sleep 1
       fi
     done
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# usage -- Shows a usage message.
+#
+# usage shows a usage message based on a header comment.  A header comment
+# consists of consecutive comment lines.  Comment lines starting with "#!" are
+# ignored.
+#
+# Usage:
+#     void sub::usage(string file) > output
+#
+# Options:
+# - --format=text
+#       Select one fromat from text/markdown/groff.
+# - --title=true
+#       Treat the first line as title.
+# - --markdown_heading=''
+#       Prepend a string to every heading.
+sub::usage() {
+  local ARGS_format='text' ARGS_title=1 ARGS_markdown_heading=''
+  eval "${IMOSH_PARSE_ARGUMENTS}"
+
+  if [ "$#" -eq 1 ]; then
+    local usage='' line='' first_line="${ARGS_title}" is_buffered=0
+    while IFS= read -r line; do
+      case "${line}" in
+        '#!'*) continue;;
+        '# '*) usage+="${line:2}"$'\n';;
+        '#'*)  usage+="${line:1}"$'\n';;
+        *)     break;;
+      esac
+    done < "${1}"
+    func::trim usage
+    [ "${usage}" != '' ] || return
+    if [ "${ARGS_format}" = 'text' ]; then
+      sub::print "${usage}"$'\n\n'
+      return
+    fi
+    while :; do
+      (( is_buffered )) || IFS= read -r line || break
+      is_buffered=0
+      func::rtrim line
+      # Show title.
+      if (( first_line )); then
+        case "${ARGS_format}" in
+          'groff')    sub::println ".TH ${line} 1";;
+          'markdown') sub::println "${ARGS_markdown_heading} ${line}";;
+        esac
+        first_line=0
+      # Show section title.
+      elif sub::greg_match '*:' "${line}"; then
+        local title="${line%:}"
+        func::strtoupper title
+        case "${ARGS_format}" in
+          'groff')    sub::println ".SH ${title}";;
+          'markdown') sub::println "${ARGS_markdown_heading}# ${line%:}";;
+        esac
+      # Show code.
+      elif [ "${line:0:4}" = '    ' ]; then
+        case "${ARGS_format}" in
+          'groff')    sub::println '.Bd -literal -offset indent';;
+          'markdown') sub::println '```sh';;
+        esac
+        while [ "${line:0:4}" = '    ' ]; do
+          case "${ARGS_format}" in
+            'groff')    sub::println "${line#'    '}";;
+            'markdown') sub::println "${line#'    '}";;
+          esac
+          IFS= read -r line || break
+        done
+        case "${ARGS_format}" in
+          'groff')    sub::println '.Ed';;
+          'markdown') sub::print $'```\n\n';;
+        esac
+        is_buffered=1
+      # Show an item.
+      elif sub::greg_match '*( )- *' "${line}"; then
+        func::ltrim line
+        CHECK [ "${line:0:2}" = '- ' ]
+        line="${line:2}"
+        case "${ARGS_format}" in
+          'groff')    sub::println $'.TP\n'".B ${line}";;
+          'markdown') sub::println "* ${line}";;
+        esac
+        local markdown_indent='    * '
+        while IFS= read -r line; do
+          if sub::greg_match '*( )- *' "${line}" || \
+             sub::greg_match '*([[:space:]])' "${line}"; then
+            break
+          fi
+          func::ltrim line
+          case "${ARGS_format}" in
+            'groff')    sub::println "${line}";;
+            'markdown') sub::println "${markdown_indent}${line}"
+                        markdown_indent='      ';;
+          esac
+        done
+        is_buffered=1
+      else
+        sub::println "${line}"
+      fi
+    done <<<"${usage}"
+    sub::println
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
@@ -2229,7 +2335,7 @@ imosh::internal::group_flags() {
 imosh::internal::man() {
   echo ".TH ${0##*/} 1"; echo
   echo '.SH DESCRIPTION'
-  __imosh::show_usage --format=groff --notitle \
+  sub::usage --format=groff --notitle \
       "$(imosh::internal::get_main_script)"
 
   echo '.SH OPTIONS'
@@ -2249,7 +2355,7 @@ imosh::internal::man() {
 }
 
 imosh::internal::help() {
-  __imosh::show_usage --format=text --notitle \
+  sub::usage --format=text --notitle \
       "$(imosh::internal::get_main_script)"
   echo "OPTIONS:"
   for flag_group in $(imosh::internal::flag_groups); do
@@ -2267,7 +2373,7 @@ imosh::internal::help() {
 }
 
 __imosh::help_markdown() {
-  __imosh::show_usage --format=markdown --notitle \
+  sub::usage --format=markdown --notitle \
       "$(imosh::internal::get_main_script)"
   echo "# Options"
   for flag_group in $(imosh::internal::flag_groups); do
@@ -2355,120 +2461,6 @@ imosh::stack_trace() {
     echo "  at ${function} (${file}:${lineno})" >&2
     (( i += 1 )) || true
   done
-}
-
-# __imosh::get_usage
-#
-# Usage:
-#   void __imosh::get_usage(string file) > output
-__imosh::get_usage() {
-  local file="$1"
-  local line=''
-  while IFS= read -r line; do
-    case "${line}" in
-      '#!'*) continue;;
-      '# '*) echo "${line:2}";;
-      '#'*)  echo "${line:1}";;
-      *)     break;;
-    esac
-  done < "${file}"
-}
-
-# __imosh::show_usage
-#
-# Usage:
-#     bool __imosh::show_usage(string file) > output
-#
-# Options:
-#   --format=text
-#     Select one fromat from text/markdown/groff.
-#   --title=true
-#     Treat the first line as title.
-#   --markdown_heading=''
-#     Prepend a string to every heading.
-__imosh::show_usage() {
-  local ARGS_format=text ARGS_title=1 ARGS_markdown_heading=''
-  eval "${IMOSH_PARSE_ARGUMENTS}"
-
-  if [ "$#" -eq 1 ]; then
-    local file="$1"
-
-    local usage="$(__imosh::get_usage "$1")"
-    [ "${usage}" != '' ] || return
-    if [ "${ARGS_format}" = 'text' ]; then
-      sub::print "${usage}"$'\n\n'
-      return
-    fi
-
-    local line='' first_line="${ARGS_title}" is_buffered=0
-    while :; do
-      (( is_buffered )) || IFS= read -r line || break
-      is_buffered=0
-      func::rtrim line
-      # Show title.
-      if (( first_line )); then
-        case "${ARGS_format}" in
-          'groff')    sub::println ".TH ${line} 1";;
-          'markdown') sub::println "${ARGS_markdown_heading} ${line}";;
-        esac
-        first_line=0
-      # Show section title.
-      elif sub::greg_match '*:' "${line}"; then
-        local title="${line%:}"
-        func::strtoupper title
-        case "${ARGS_format}" in
-          'groff')    sub::println ".SH ${title}";;
-          'markdown') sub::println "${ARGS_markdown_heading}# ${line%:}";;
-        esac
-      # Show code.
-      elif [ "${line:0:4}" = '    ' ]; then
-        case "${ARGS_format}" in
-          'groff')    sub::println '.Bd -literal -offset indent';;
-          'markdown') sub::println '```sh';;
-        esac
-        while [ "${line:0:4}" = '    ' ]; do
-          case "${ARGS_format}" in
-            'groff')    sub::println "${line#'    '}";;
-            'markdown') sub::println "${line#'    '}";;
-          esac
-          IFS= read -r line || break
-        done
-        case "${ARGS_format}" in
-          'groff')    sub::println '.Ed';;
-          'markdown') sub::print $'```\n\n';;
-        esac
-        is_buffered=1
-      # Show an item.
-      elif sub::greg_match '*( )- *' "${line}"; then
-        func::ltrim line
-        CHECK [ "${line:0:2}" = '- ' ]
-        line="${line:2}"
-        case "${ARGS_format}" in
-          'groff')    sub::println $'.TP\n'".B ${line}";;
-          'markdown') sub::println "* ${line}";;
-        esac
-        local markdown_indent='    * '
-        while IFS= read -r line; do
-          if sub::greg_match '*( )- *' "${line}" || \
-             sub::greg_match '*([[:space:]])' "${line}"; then
-            break
-          fi
-          func::ltrim line
-          case "${ARGS_format}" in
-            'groff')    sub::println "${line}";;
-            'markdown') sub::println "${markdown_indent}${line}"
-                        markdown_indent='      ';;
-          esac
-        done
-        is_buffered=1
-      else
-        sub::println "${line}"
-      fi
-    done <<<"${usage}"
-    sub::println
-  else
-    LOG FATAL "Wrong number of arguments: $#"
-  fi
 }
 
 ASSERT() {

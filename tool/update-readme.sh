@@ -80,7 +80,7 @@ process_file() {
     local readme_link="$3"
 
     local usage="$(
-        __imosh::show_usage  --format=markdown --title \
+        sub::usage  --format=markdown --title \
             --markdown_heading='#' "${input_file}")"
     process_usage "${usage}" "${output_file}" "${readme_link}"
   else

@@ -168,7 +168,7 @@ imosh::internal::group_flags() {
 imosh::internal::man() {
   echo ".TH ${0##*/} 1"; echo
   echo '.SH DESCRIPTION'
-  __imosh::show_usage --format=groff --notitle \
+  sub::usage --format=groff --notitle \
       "$(imosh::internal::get_main_script)"
 
   echo '.SH OPTIONS'
@@ -188,7 +188,7 @@ imosh::internal::man() {
 }
 
 imosh::internal::help() {
-  __imosh::show_usage --format=text --notitle \
+  sub::usage --format=text --notitle \
       "$(imosh::internal::get_main_script)"
   echo "OPTIONS:"
   for flag_group in $(imosh::internal::flag_groups); do
@@ -206,7 +206,7 @@ imosh::internal::help() {
 }
 
 __imosh::help_markdown() {
-  __imosh::show_usage --format=markdown --notitle \
+  sub::usage --format=markdown --notitle \
       "$(imosh::internal::get_main_script)"
   echo "# Options"
   for flag_group in $(imosh::internal::flag_groups); do
