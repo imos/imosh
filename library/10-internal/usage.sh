@@ -46,64 +46,59 @@ __imosh::show_usage() {
       (( is_buffered )) || IFS= read -r line || break
       is_buffered=0
       func::rtrim line
+      # Show title.
       if (( first_line )); then
         case "${ARGS_format}" in
-          groff)    echo ".TH ${line} 1";;
-          markdown) echo "${ARGS_markdown_heading} ${line}";;
+          'groff')    sub::println ".TH ${line} 1";;
+          'markdown') sub::println "${ARGS_markdown_heading} ${line}";;
         esac
         first_line=0
+      # Show section title.
       elif sub::greg_match '*:' "${line}"; then
         local title="${line%:}"
         func::strtoupper title
         case "${ARGS_format}" in
-          groff)    echo ".SH ${title}";;
-          markdown) echo "${ARGS_markdown_heading}# ${line%:}";;
+          'groff')    sub::println ".SH ${title}";;
+          'markdown') sub::println "${ARGS_markdown_heading}# ${line%:}";;
         esac
+      # Show code.
       elif [ "${line:0:4}" = '    ' ]; then
         case "${ARGS_format}" in
-          groff)    echo '.Bd -literal -offset indent';;
-          markdown) echo '```sh';;
+          'groff')    sub::println '.Bd -literal -offset indent';;
+          'markdown') sub::println '```sh';;
         esac
         while [ "${line:0:4}" = '    ' ]; do
           case "${ARGS_format}" in
-            groff)    echo "${line#'    '}";;
-            markdown) echo "${line#'    '}";;
+            'groff')    sub::println "${line#'    '}";;
+            'markdown') sub::println "${line#'    '}";;
           esac
           IFS= read -r line || break
         done
         case "${ARGS_format}" in
-          groff)    echo '.Ed';;
-          markdown) echo '```'
-                    echo;;
+          'groff')    sub::println '.Ed';;
+          'markdown') sub::print $'```\n\n';;
         esac
         is_buffered=1
-      elif sub::greg_match '*( )-*' "${line}"; then
+      # Show an item.
+      elif sub::greg_match '*( )- *' "${line}"; then
         func::ltrim line
-        if [ "${line:0:2}" = '- ' ]; then
-          line="${line:2}"
-        fi
+        CHECK [ "${line:0:2}" = '- ' ]
+        line="${line:2}"
         case "${ARGS_format}" in
-          groff)    echo '.TP'
-                    echo ".B ${line}";;
-          markdown) echo "* ${line}";;
+          'groff')    sub::println $'.TP\n'".B ${line}";;
+          'markdown') sub::println "* ${line}";;
         esac
-        local item_first_line=1
+        local markdown_indent='    * '
         while IFS= read -r line; do
-          if sub::greg_match '*( )-*' "${line}" || \
+          if sub::greg_match '*( )- *' "${line}" || \
              sub::greg_match '*([[:space:]])' "${line}"; then
             break
           fi
           func::ltrim line
           case "${ARGS_format}" in
-            groff)    echo "${line}";;
-            markdown)
-              if (( item_first_line )); then
-                echo "    * ${line}"
-                item_first_line=0
-              else
-                echo "      ${line}"
-              fi
-              ;;
+            'groff')    sub::println "${line}";;
+            'markdown') sub::println "${markdown_indent}${line}"
+                        markdown_indent='      ';;
           esac
         done
         is_buffered=1
@@ -111,7 +106,7 @@ __imosh::show_usage() {
         sub::println "${line}"
       fi
     done <<<"${usage}"
-    echo
+    sub::println
   else
     LOG FATAL "Wrong number of arguments: $#"
   fi
