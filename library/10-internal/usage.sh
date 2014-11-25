@@ -36,15 +36,15 @@ __imosh::show_usage() {
 
     local usage="$(__imosh::get_usage "$1")"
     [ "${usage}" != '' ] || return
+    if [ "${ARGS_format}" = 'text' ]; then
+      sub::print "${usage}"$'\n\n'
+      return
+    fi
 
     local line='' first_line="${ARGS_title}" no_read=0
     while :; do
       (( no_read )) || IFS= read -r line || break
       no_read=0
-      if [ "${ARGS_format}" = 'text' ]; then
-        sub::println "${line}"
-        continue
-      fi
       func::rtrim line
       if (( first_line )); then
         case "${ARGS_format}" in
