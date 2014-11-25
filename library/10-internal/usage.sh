@@ -53,8 +53,7 @@ __imosh::show_usage() {
         esac
         first_line=0
         continue
-      fi
-      if sub::greg_match '*:' "${line}"; then
+      elif sub::greg_match '*:' "${line}"; then
         local title="${line%:}"
         func::strtoupper title
         case "${ARGS_format}" in
@@ -62,35 +61,33 @@ __imosh::show_usage() {
           markdown) echo "${ARGS_markdown_heading}# ${line%:}";;
         esac
         continue
-      fi
-
-      local code_mode=0
-      while [ "${line:0:4}" = '    ' ]; do
-        if (( ! code_mode )); then
+      elif [ "${line:0:4}" = '    ' ]; then
+        local code_mode=0
+        while [ "${line:0:4}" = '    ' ]; do
+          if (( ! code_mode )); then
+            case "${ARGS_format}" in
+              groff)    echo '.Bd -literal -offset indent';;
+              markdown) echo '```sh';;
+            esac
+            code_mode=1
+          fi
           case "${ARGS_format}" in
-            groff)    echo '.Bd -literal -offset indent';;
-            markdown) echo '```sh';;
+            groff)    echo "${line#'    '}";;
+            markdown) echo "${line#'    '}";;
           esac
           code_mode=1
+          if ! IFS= read -r line; then break; fi
+        done
+        if (( code_mode )); then
+          case "${ARGS_format}" in
+            groff)    echo '.Ed';;
+            markdown) echo '```'
+                      echo;;
+          esac
+          no_read=1
+          continue
         fi
-        case "${ARGS_format}" in
-          groff)    echo "${line#'    '}";;
-          markdown) echo "${line#'    '}";;
-        esac
-        code_mode=1
-        if ! IFS= read -r line; then break; fi
-      done
-      if (( code_mode )); then
-        case "${ARGS_format}" in
-          groff)    echo '.Ed';;
-          markdown) echo '```'
-                    echo;;
-        esac
-        no_read=1
-        continue
-      fi
-
-      if sub::greg_match '*( )-*' "${line}"; then
+      elif sub::greg_match '*( )-*' "${line}"; then
         func::ltrim line
         if [ "${line:0:2}" = '- ' ]; then
           line="${line:2}"
