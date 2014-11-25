@@ -41,10 +41,10 @@ __imosh::show_usage() {
       return
     fi
 
-    local line='' first_line="${ARGS_title}" no_read=0
+    local line='' first_line="${ARGS_title}" is_buffered=0
     while :; do
-      (( no_read )) || IFS= read -r line || break
-      no_read=0
+      (( is_buffered )) || IFS= read -r line || break
+      is_buffered=0
       func::rtrim line
       if (( first_line )); then
         case "${ARGS_format}" in
@@ -60,31 +60,23 @@ __imosh::show_usage() {
           markdown) echo "${ARGS_markdown_heading}# ${line%:}";;
         esac
       elif [ "${line:0:4}" = '    ' ]; then
-        local code_mode=0
+        case "${ARGS_format}" in
+          groff)    echo '.Bd -literal -offset indent';;
+          markdown) echo '```sh';;
+        esac
         while [ "${line:0:4}" = '    ' ]; do
-          if (( ! code_mode )); then
-            case "${ARGS_format}" in
-              groff)    echo '.Bd -literal -offset indent';;
-              markdown) echo '```sh';;
-            esac
-            code_mode=1
-          fi
           case "${ARGS_format}" in
             groff)    echo "${line#'    '}";;
             markdown) echo "${line#'    '}";;
           esac
-          code_mode=1
-          if ! IFS= read -r line; then break; fi
+          IFS= read -r line || break
         done
-        if (( code_mode )); then
-          case "${ARGS_format}" in
-            groff)    echo '.Ed';;
-            markdown) echo '```'
-                      echo;;
-          esac
-          no_read=1
-          continue
-        fi
+        case "${ARGS_format}" in
+          groff)    echo '.Ed';;
+          markdown) echo '```'
+                    echo;;
+        esac
+        is_buffered=1
       elif sub::greg_match '*( )-*' "${line}"; then
         func::ltrim line
         if [ "${line:0:2}" = '- ' ]; then
@@ -114,7 +106,7 @@ __imosh::show_usage() {
               ;;
           esac
         done
-        no_read=1
+        is_buffered=1
       else
         sub::println "${line}"
       fi
