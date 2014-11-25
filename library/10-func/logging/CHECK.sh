@@ -1,4 +1,4 @@
-# CHECK - checks if a command succeeds.
+# CHECK -- checks if a command succeeds.
 #
 # CHECK fails with a fatal error if a command fails.
 #

@@ -164,7 +164,7 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 
 ## Logging Functions
 
-* [CHECK - checks if a command succeeds.](doc/logging/CHECK.sh.md)
+* [CHECK](doc/logging/CHECK.sh.md) -- checks if a command succeeds.
 * [LOG](doc/logging/LOG.sh.md) -- Logs a message.
 
 ## Mathematical Functions
@@ -198,6 +198,12 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 * [strtoupper](doc/strings/strtoupper.sh.md) -- Makes a string uppercase.
 * [substr](doc/strings/substr.sh.md) -- Returns a substring.
 * [trim](doc/strings/trim.sh.md) -- Strips whitespaces from both sides.
+
+## Testing
+Functions only for testing.
+
+* [ASSERT](doc/testing/ASSERT.sh.md) -- Asserts a command succeeds.
+* [FAILURE](doc/testing/FAILURE.sh.md) -- Declares a test case failed.
 
 ## Variable handling
 

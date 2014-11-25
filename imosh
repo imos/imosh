@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-26 02:32:27 +0900 (cfc9ad3)'
+IMOSH_VERSION='2014-11-26 03:00:15 +0900 (ff9279b)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -691,7 +691,7 @@ sub::getmypid() {
   fi
 }
 
-# CHECK - checks if a command succeeds.
+# CHECK -- checks if a command succeeds.
 #
 # CHECK fails with a fatal error if a command fails.
 #
@@ -1839,6 +1839,33 @@ func::trim() {
   fi
 }
 
+# ASSERT -- Asserts a command succeeds.
+#
+# ASSERT checks if a command returns 0.
+#
+# Usage:
+#     void ASSERT(string args,...)
+ASSERT() {
+  local last_state="${IMOSH_TEST_IS_FAILED}"
+  IMOSH_TEST_IS_FAILED=0
+  "$@"
+  if (( IMOSH_TEST_IS_FAILED )); then
+    exit 1
+  fi
+  IMOSH_TEST_IS_FAILED="${last_state}"
+}
+
+# FAILURE -- Declares a test case failed.
+#
+# FAILURE sets the test case as failed and shows a stack trace.
+#
+# Usage:
+#     void FAILURE()
+FAILURE() {
+  IMOSH_TEST_IS_FAILED=1
+  imosh::stack_trace --skip_imosh '*** Check failure ***'
+}
+
 # boolval -- Casts a variable as a boolean value.
 #
 # Casts variable as a boolean value.  If it fails, returns 1.
@@ -2461,21 +2488,6 @@ imosh::stack_trace() {
     echo "  at ${function} (${file}:${lineno})" >&2
     (( i += 1 )) || true
   done
-}
-
-ASSERT() {
-  local last_state="${IMOSH_TEST_IS_FAILED}"
-  IMOSH_TEST_IS_FAILED=0
-  "$@"
-  if (( IMOSH_TEST_IS_FAILED )); then
-    exit 1
-  fi
-  IMOSH_TEST_IS_FAILED="${last_state}"
-}
-
-FAILURE() {
-  IMOSH_TEST_IS_FAILED=1
-  imosh::stack_trace --skip_imosh '*** Check failure ***'
 }
 
 EXPECT_TRUE() {
