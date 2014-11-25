@@ -52,7 +52,6 @@ __imosh::show_usage() {
           markdown) echo "${ARGS_markdown_heading} ${line}";;
         esac
         first_line=0
-        continue
       elif sub::greg_match '*:' "${line}"; then
         local title="${line%:}"
         func::strtoupper title
@@ -60,7 +59,6 @@ __imosh::show_usage() {
           groff)    echo ".SH ${title}";;
           markdown) echo "${ARGS_markdown_heading}# ${line%:}";;
         esac
-        continue
       elif [ "${line:0:4}" = '    ' ]; then
         local code_mode=0
         while [ "${line:0:4}" = '    ' ]; do
@@ -117,7 +115,6 @@ __imosh::show_usage() {
           esac
         done
         no_read=1
-        continue
       else
         sub::println "${line}"
       fi
