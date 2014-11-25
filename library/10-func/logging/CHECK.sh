@@ -17,12 +17,12 @@ CHECK() {
     if [ "${__CHECK_invert}" = '!' ]; then
       shift
       if "$@"; then
-        IFS=' ' eval 'LOG ERROR "Check failure: ! $*"'
+        LOG ERROR 'Check failure: !' "$@"
         LOG FATAL "${__CHECK_message}"
       fi
     else
       if ! "$@"; then
-        IFS=' ' eval 'LOG ERROR "Check failure: $*"'
+        LOG ERROR 'Check failure:' "$@"
         LOG FATAL "${__CHECK_message}"
       fi
     fi

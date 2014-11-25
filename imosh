@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-26 03:00:15 +0900 (ff9279b)'
+IMOSH_VERSION='2014-11-26 03:37:01 +0900 (2aaa853)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -710,12 +710,12 @@ CHECK() {
     if [ "${__CHECK_invert}" = '!' ]; then
       shift
       if "$@"; then
-        IFS=' ' eval 'LOG ERROR "Check failure: ! $*"'
+        LOG ERROR 'Check failure: !' "$@"
         LOG FATAL "${__CHECK_message}"
       fi
     else
       if ! "$@"; then
-        IFS=' ' eval 'LOG ERROR "Check failure: $*"'
+        LOG ERROR 'Check failure:' "$@"
         LOG FATAL "${__CHECK_message}"
       fi
     fi
