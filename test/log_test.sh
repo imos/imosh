@@ -4,7 +4,7 @@ output_log() {
     FLAGS_logtostderr=0
   fi
   __IMOSH_LOGGING=1
-  __IMOSH_LOG_PID=12345 LOG "$@"
+  __IMOSH_LOG_PID=12345 LOG "$@" 105>/dev/null
 }
 
 test::log::info() {

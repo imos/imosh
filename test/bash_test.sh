@@ -72,3 +72,31 @@ test::empty_array() {
     LOG ERROR 'Failed to expand an empty array.'
   fi
 }
+
+# CAVEATS:
+#   BASH does not reopen a descriptor if its number is not smaller than 10 and
+#   its parent process has already opened the descriptor.
+test::file_descriptor() {
+  local message='' descriptor=0 file=''
+  for descriptor in 3 9 10 100 200; do
+    eval "exec ${descriptor}>&-"
+    func::tmpfile file
+    eval "exec ${descriptor}>\"\${file}\""
+    "${BASH}" 'test/script/fd.sh' --descriptor="${descriptor}"
+    func::file_get_contents message "${file}"
+    if [ "${message}" != '' ]; then
+      # BASH fails if descriptor is not smaller than 10.
+      LOG ERROR "File descriptor #${descriptor} is not reopened."
+    fi
+  done
+  for descriptor in 3 9 10 100 200; do
+    eval "exec ${descriptor}>&-"
+    func::tmpfile file
+    eval "exec ${descriptor}>\"\${file}\""
+    "${BASH}" 'test/script/fd.sh' --descriptor="${descriptor}" --close
+    func::file_get_contents message "${file}"
+    if [ "${message}" != '' ]; then
+      LOG ERROR "File descriptor #${descriptor} is not reopened."
+    fi
+  done
+}

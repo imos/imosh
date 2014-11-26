@@ -1,5 +1,5 @@
 run() {
-  ASSERT_TRUE "$@" 2>/dev/null
+  ASSERT_TRUE "$@" 2>'/dev/null' 105>'/dev/null'
 }
 
 test::ASSERT_TRUE() {
