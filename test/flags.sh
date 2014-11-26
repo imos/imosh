@@ -14,12 +14,12 @@ DEFINE_list 'list' 'a,b,c' 'Multiple strings flag.'
 eval "${IMOSH_INIT}"
 
 if (( FLAGS_show_argv )); then
-  echo "$@";
+  echo "$@"
   exit
 fi
 
 if [ "${FLAGS_flag}" == '' ]; then
-  LOG FATAL "flag must be specified"
+  LOG FATAL '--flag must be specified.'
 fi
 if [ "${FLAGS_flag:0:5}" = 'multi' ]; then
   func::array_values values "FLAGS_${FLAGS_flag}"
@@ -31,5 +31,5 @@ if [ "${FLAGS_flag:0:5}" = 'multi' ]; then
     sub::println 'EMPTY'
   fi
 else
-  eval "echo -n 'FLAGS_${FLAGS_flag}='\"\${FLAGS_${FLAGS_flag}}\""
+  eval "sub::println 'FLAGS_${FLAGS_flag}='\"\${FLAGS_${FLAGS_flag}}\""
 fi

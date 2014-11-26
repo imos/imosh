@@ -42,7 +42,7 @@ test::soh_in_array() {
   func::bin2hex actual "${actual}"
   if [ "${expected}" != "${actual}" ]; then
     # BASH 3 fails.
-    LOG ERROR "soh cannot be treated in array correctly: ${actual}"
+    LOG ERROR "SOH cannot be treated in array correctly: ${actual}"
   fi
 }
 
@@ -69,6 +69,6 @@ test::empty_array() {
 
   if ! EXPECT_ALIVE eval 'variable=("${empty_array[@]}")'; then
     # BASH fails.
-    LOG ERROR 'failed to expand an empty array.'
+    LOG ERROR 'Failed to expand an empty array.'
   fi
 }

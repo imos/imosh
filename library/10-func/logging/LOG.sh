@@ -141,7 +141,7 @@ imosh::logging::init() {
         LOG ERROR "Failed to open files to write logs: ${FLAGS_log_dir}"
       fi
     fi
-    exec 101> '/dev/null' 102> '/dev/null' 103> '/dev/null' 104> '/dev/null'
+    exec 101>'/dev/null' 102>'/dev/null' 103>'/dev/null' 104>'/dev/null'
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi

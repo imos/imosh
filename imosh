@@ -867,7 +867,7 @@ imosh::logging::init() {
         LOG ERROR "Failed to open files to write logs: ${FLAGS_log_dir}"
       fi
     fi
-    exec 101> '/dev/null' 102> '/dev/null' 103> '/dev/null' 104> '/dev/null'
+    exec 101>'/dev/null' 102>'/dev/null' 103>'/dev/null' 104>'/dev/null'
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
@@ -2767,6 +2767,7 @@ exec 101>&- 102>&- 103>&- 104>&-
 # Open descriptors for LOG without calling init_log.
 exec 101>/dev/null 102>/dev/null 103>/dev/null 104>/dev/null
 # Redirect log output to the current STDERR.
+exec 105>&-
 exec 105>&2
 
 # Prepares a temporary directory and sets its path to TMPDIR.
