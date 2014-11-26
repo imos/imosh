@@ -203,6 +203,10 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 Functions only for testing.
 
 * [ASSERT](doc/testing/ASSERT.sh.md) -- Asserts a command succeeds.
+* [ASSERT_FALSE](doc/testing/ASSERT_FALSE.sh.md) -- Expects a command fails.
+* [ASSERT_TRUE](doc/testing/ASSERT_TRUE.sh.md) -- Asserts a command succeeds.
+* [EXPECT_FALSE](doc/testing/EXPECT_FALSE.sh.md) -- Expects a command fails.
+* [EXPECT_TRUE](doc/testing/EXPECT_TRUE.sh.md) -- Expects a command succeeds.
 * [FAILURE](doc/testing/FAILURE.sh.md) -- Declares a test case failed.
 
 ## Variable handling

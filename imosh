@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-26 03:37:01 +0900 (2aaa853)'
+IMOSH_VERSION='2014-11-26 03:45:36 +0900 (2636ef6)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -1855,6 +1855,60 @@ ASSERT() {
   IMOSH_TEST_IS_FAILED="${last_state}"
 }
 
+# ASSERT_FALSE -- Expects a command fails.
+#
+# ASSERT_FALSE expects the command fails (returns a non-zero value).
+#
+# Usage:
+#     void ASSERT_FALSE(string arguments,...)
+ASSERT_FALSE() {
+  ASSERT EXPECT_FALSE "$@"
+}
+
+# ASSERT_TRUE -- Asserts a command succeeds.
+#
+# ASSERT_TRUE asserts the command succeeds (returns 0).
+#
+# Usage:
+#     void ASSERT_TRUE(string arguments,...)
+ASSERT_TRUE() {
+  ASSERT EXPECT_TRUE "$@"
+}
+
+# EXPECT_FALSE -- Expects a command fails.
+#
+# EXPECT_FALSE expects the command fails (returns a non-zero value).
+#
+# Usage:
+#     void EXPECT_FALSE(string arguments,...)
+EXPECT_FALSE() {
+  if "$@"; then
+    sub::println '  Actual: true' >&2
+    sub::println 'Expected: false' >&2
+    LOG ERROR 'EXPECT_FALSE failed:' "$@"
+    FAILURE
+    return
+  fi
+  LOG INFO 'EXPECT_FALSE passes:' "$@"
+}
+
+# EXPECT_TRUE -- Expects a command succeeds.
+#
+# EXPECT_TRUE expects the command succeeds (returns 0).
+#
+# Usage:
+#     void EXPECT_TRUE(string arguments,...)
+EXPECT_TRUE() {
+  if ! "$@"; then
+    sub::println '  Actual: false' >&2
+    sub::println 'Expected: true' >&2
+    LOG ERROR 'EXPECT_TRUE failed:' "$@"
+    FAILURE
+    return
+  fi
+  LOG INFO 'EXPECT_TRUE passes:' "$@"
+}
+
 # FAILURE -- Declares a test case failed.
 #
 # FAILURE sets the test case as failed and shows a stack trace.
@@ -2488,34 +2542,6 @@ imosh::stack_trace() {
     echo "  at ${function} (${file}:${lineno})" >&2
     (( i += 1 )) || true
   done
-}
-
-EXPECT_TRUE() {
-  if ! "$@"; then
-    echo '  Actual: false' >&2
-    echo 'Expected: true' >&2
-    FAILURE
-    return 1
-  fi
-  IFS=' ' eval 'LOG INFO "EXPECT_TRUE passes: $*"'
-}
-
-EXPECT_FALSE() {
-  if "$@"; then
-    echo '  Actual: true' >&2
-    echo 'Expected: false' >&2
-    FAILURE
-    return 1
-  fi
-  IFS=' ' eval 'LOG INFO "EXPECT_FALSE passes: $*"'
-}
-
-ASSERT_TRUE() {
-  ASSERT EXPECT_TRUE "$@"
-}
-
-ASSERT_FALSE() {
-  ASSERT EXPECT_FALSE "$@"
 }
 
 # EXPECT_DEATH, EXPECT_ALIVE, ASSERT_DEATH, ASSERT_ALIVE
