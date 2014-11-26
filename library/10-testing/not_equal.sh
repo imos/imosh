@@ -22,7 +22,7 @@ EXPECT_NE() {
 }
 
 ASSERT_NE() {
-  ASSERT EXPECT_NE "$@"
+  __ASSERT EXPECT_NE "$@"
 }
 
 EXPECT_STRNE() { EXPECT_NE "$@"; }

@@ -22,7 +22,7 @@ EXPECT_EQ() {
 }
 
 ASSERT_EQ() {
-  ASSERT EXPECT_EQ "$@"
+  __ASSERT EXPECT_EQ "$@"
 }
 
 EXPECT_STREQ() { EXPECT_EQ "$@"; }

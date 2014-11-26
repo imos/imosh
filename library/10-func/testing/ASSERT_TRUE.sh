@@ -5,5 +5,5 @@
 # Usage:
 #     void ASSERT_TRUE(string arguments,...)
 ASSERT_TRUE() {
-  ASSERT EXPECT_TRUE "$@"
+  __ASSERT EXPECT_TRUE "$@"
 }

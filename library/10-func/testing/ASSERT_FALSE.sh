@@ -5,5 +5,5 @@
 # Usage:
 #     void ASSERT_FALSE(string arguments,...)
 ASSERT_FALSE() {
-  ASSERT EXPECT_FALSE "$@"
+  __ASSERT EXPECT_FALSE "$@"
 }

@@ -1839,22 +1839,6 @@ func::trim() {
   fi
 }
 
-# ASSERT -- Asserts a command succeeds.
-#
-# ASSERT checks if a command returns 0.
-#
-# Usage:
-#     void ASSERT(string args,...)
-ASSERT() {
-  local last_state="${IMOSH_TEST_IS_FAILED}"
-  IMOSH_TEST_IS_FAILED=0
-  "$@"
-  if (( IMOSH_TEST_IS_FAILED )); then
-    exit 1
-  fi
-  IMOSH_TEST_IS_FAILED="${last_state}"
-}
-
 # ASSERT_FALSE -- Expects a command fails.
 #
 # ASSERT_FALSE expects the command fails (returns a non-zero value).
@@ -1862,7 +1846,7 @@ ASSERT() {
 # Usage:
 #     void ASSERT_FALSE(string arguments,...)
 ASSERT_FALSE() {
-  ASSERT EXPECT_FALSE "$@"
+  __ASSERT EXPECT_FALSE "$@"
 }
 
 # ASSERT_TRUE -- Asserts a command succeeds.
@@ -1872,7 +1856,7 @@ ASSERT_FALSE() {
 # Usage:
 #     void ASSERT_TRUE(string arguments,...)
 ASSERT_TRUE() {
-  ASSERT EXPECT_TRUE "$@"
+  __ASSERT EXPECT_TRUE "$@"
 }
 
 # EXPECT_FALSE -- Expects a command fails.
@@ -1918,6 +1902,16 @@ EXPECT_TRUE() {
 FAILURE() {
   IMOSH_TEST_IS_FAILED=1
   imosh::stack_trace --skip_imosh '*** Check failure ***'
+}
+
+__ASSERT() {
+  local last_state="${IMOSH_TEST_IS_FAILED}"
+  IMOSH_TEST_IS_FAILED=0
+  "$@"
+  if (( IMOSH_TEST_IS_FAILED )); then
+    exit 1
+  fi
+  IMOSH_TEST_IS_FAILED="${last_state}"
 }
 
 # boolval -- Casts a variable as a boolean value.
@@ -2569,8 +2563,8 @@ EXPECT_ALIVE() {
   IFS=' ' eval 'LOG INFO "Command did not die as expected: $*"'
 }
 
-ASSERT_DEATH() { ASSERT EXPECT_DEATH "$@"; }
-ASSERT_ALIVE() { ASSERT EXPECT_ALIVE "$@"; }
+ASSERT_DEATH() { __ASSERT EXPECT_DEATH "$@"; }
+ASSERT_ALIVE() { __ASSERT EXPECT_ALIVE "$@"; }
 
 # EXPECT_EQ, ASSERT_EQ -- Check if two values are equal.
 #
@@ -2596,7 +2590,7 @@ EXPECT_EQ() {
 }
 
 ASSERT_EQ() {
-  ASSERT EXPECT_EQ "$@"
+  __ASSERT EXPECT_EQ "$@"
 }
 
 EXPECT_STREQ() { EXPECT_EQ "$@"; }
@@ -2626,7 +2620,7 @@ EXPECT_NE() {
 }
 
 ASSERT_NE() {
-  ASSERT EXPECT_NE "$@"
+  __ASSERT EXPECT_NE "$@"
 }
 
 EXPECT_STRNE() { EXPECT_NE "$@"; }

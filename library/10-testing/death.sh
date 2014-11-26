@@ -23,5 +23,5 @@ EXPECT_ALIVE() {
   IFS=' ' eval 'LOG INFO "Command did not die as expected: $*"'
 }
 
-ASSERT_DEATH() { ASSERT EXPECT_DEATH "$@"; }
-ASSERT_ALIVE() { ASSERT EXPECT_ALIVE "$@"; }
+ASSERT_DEATH() { __ASSERT EXPECT_DEATH "$@"; }
+ASSERT_ALIVE() { __ASSERT EXPECT_ALIVE "$@"; }
