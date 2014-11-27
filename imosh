@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-27 02:30:31 +0900 (1bd49f0)'
+IMOSH_VERSION='2014-11-28 01:57:39 +0900 (bc9b37a)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -1866,6 +1866,23 @@ ASSERT_FALSE() {
   __ASSERT EXPECT_FALSE "$@"
 }
 
+# ASSERT_NE -- Asserts two arguments are not equal.
+#
+# ASSERT_NE asserts two arguments are not equal.
+#
+# Usage:
+#     void ASSERT_NE(string target, string actual)
+#
+# Alias:
+#   ASSERT_STRNE is an alias of ASSERT_NE.
+ASSERT_NE() {
+  __ASSERT EXPECT_NE "$@"
+}
+
+ASSERT_STRNE() {
+  ASSERT_NE "$@"
+}
+
 # ASSERT_TRUE -- Asserts a command succeeds.
 #
 # ASSERT_TRUE asserts the command succeeds (returns 0).
@@ -1917,6 +1934,32 @@ EXPECT_FALSE() {
     return
   fi
   LOG INFO 'EXPECT_FALSE passes:' "$@"
+}
+
+# EXPECT_NE -- Expects two arguments are not equal.
+#
+# EXPECT_NE expects two arguments are not equal.
+#
+# Usage:
+#     void EXPECT_NE(string target, string actual)
+#
+# Alias:
+#   EXPECT_STRNE is an alias of EXPECT_NE.
+EXPECT_NE() {
+  if [ "$#" -eq 2 ]; then
+    if [ "$1" = "$2" ]; then
+      echo "Actual: $2" >&2
+      echo "Target: $1" >&2
+      FAILURE
+    fi
+    LOG INFO "EXPECT_NE passes: '$1' != '$2'"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+EXPECT_STRNE() {
+  EXPECT_NE "$@"
 }
 
 # EXPECT_TRUE -- Expects a command succeeds.
@@ -2608,36 +2651,6 @@ EXPECT_ALIVE() {
 
 ASSERT_DEATH() { __ASSERT EXPECT_DEATH "$@"; }
 ASSERT_ALIVE() { __ASSERT EXPECT_ALIVE "$@"; }
-
-# EXPECT_NE, ASSERT_NE -- Check if two values are not equal.
-#
-# Usage:
-#   bool EXPECT_NE(string expected, string actual)
-#   void ASSERT_NE(string expected, string actual)
-#
-# Aliases:
-#   EXPECT_STRNE is an alias of EXPECT_NE, and ASSERT_STRNE is an alias of
-#   ASSERT_NE.
-EXPECT_NE() {
-  if [ "$#" -ne 2 ]; then
-    LOG ERROR 'EXPECT_NE requires two arguments.'
-    return 1
-  fi
-  if [ "$1" = "$2" ]; then
-    echo "Actual: $2" >&2
-    echo "Target: $1" >&2
-    FAILURE
-    return 1
-  fi
-  LOG INFO "EXPECT_NE passes: '$1' != '$2'"
-}
-
-ASSERT_NE() {
-  __ASSERT EXPECT_NE "$@"
-}
-
-EXPECT_STRNE() { EXPECT_NE "$@"; }
-ASSERT_STRNE() { ASSERT_NE "$@"; }
 
 # Return if imosh is reloaded.  Operations in 50+ run level may have
 # destructive operations, so they are skipped in reloading.

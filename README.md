@@ -204,9 +204,11 @@ Functions only for testing.
 
 * [ASSERT_EQ](doc/testing/ASSERT_EQ.sh.md) -- Asserts two arguments are equal.
 * [ASSERT_FALSE](doc/testing/ASSERT_FALSE.sh.md) -- Expects a command fails.
+* [ASSERT_NE](doc/testing/ASSERT_NE.sh.md) -- Asserts two arguments are not equal.
 * [ASSERT_TRUE](doc/testing/ASSERT_TRUE.sh.md) -- Asserts a command succeeds.
 * [EXPECT_EQ](doc/testing/EXPECT_EQ.sh.md) -- Expects two arguments are equal.
 * [EXPECT_FALSE](doc/testing/EXPECT_FALSE.sh.md) -- Expects a command fails.
+* [EXPECT_NE](doc/testing/EXPECT_NE.sh.md) -- Expects two arguments are not equal.
 * [EXPECT_TRUE](doc/testing/EXPECT_TRUE.sh.md) -- Expects a command succeeds.
 * [FAILURE](doc/testing/FAILURE.sh.md) -- Declares a test case failed.
 
