@@ -9,7 +9,8 @@ EXPECT_DEATH() {
   "$@" &
   if wait "$!"; then
     IFS=' ' eval 'LOG ERROR "Command did not die unexpectedly: $*"'
-    return 1
+    FAILURE
+    return
   fi
   IFS=' ' eval 'LOG INFO "Command died as expected: $*"'
 }
@@ -18,7 +19,8 @@ EXPECT_ALIVE() {
   "$@" &
   if ! wait "$!"; then
     IFS=' ' eval 'LOG ERROR "Command died unexpectedly: $*"'
-    return 1
+    FAILURE
+    return
   fi
   IFS=' ' eval 'LOG INFO "Command did not die as expected: $*"'
 }

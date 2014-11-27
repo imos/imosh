@@ -26,6 +26,7 @@ test: concat
 	$(BASH) --version
 	env
 	$(BASH) -c shopt
+	-@$(BASH) test/main.sh test/bash_bug.sh
 	@if ! $(BASH) test/main.sh test/*_test.sh test/*/*_test.sh; then exit 1; fi
 .PHONY: test
 
