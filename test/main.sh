@@ -58,7 +58,7 @@ while read line; do
   echo "${IMOSH_COLOR_GREEN}[ RUN      ]${IMOSH_STYLE_DEFAULT} ${function}" >&2
   { time -p {
     export TMPDIR="${IMOSH_TMPDIR}"
-    testing::run "${function}" 2>&3 105>&3 &
+    testing::run "${function}" 2>&3 &
     wait $!
   } } 2>"${IMOSH_TMPDIR}/time" \
       1>"${IMOSH_TMPDIR}/stdout" \
