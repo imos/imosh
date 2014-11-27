@@ -1839,6 +1839,26 @@ func::trim() {
   fi
 }
 
+# ASSERT_ALIVE -- Asserts a command successfully dies.
+#
+# ASSERT_ALIVE asserts that a command dies with a zero return value.
+#
+# Usage:
+#     void ASSERT_ALIVE(string arguments,...)
+ASSERT_ALIVE() {
+  __ASSERT EXPECT_ALIVE "$@"
+}
+
+# ASSERT_DEATH -- Asserts a command unsuccessfully dies.
+#
+# ASSERT_DEATH asserts that a command dies with a non-zero return value.
+#
+# Usage:
+#     void ASSERT_DEATH(string arguments,...)
+ASSERT_DEATH() {
+  __ASSERT EXPECT_DEATH "$@"
+}
+
 # ASSERT_EQ -- Asserts two arguments are equal.
 #
 # ASSERT_EQ asserts two arguments are equal.
@@ -1891,6 +1911,38 @@ ASSERT_STRNE() {
 #     void ASSERT_TRUE(string arguments,...)
 ASSERT_TRUE() {
   __ASSERT EXPECT_TRUE "$@"
+}
+
+# EXPECT_ALIVE -- Expects a command successfully exits.
+#
+# EXPECT_ALIVE expects that a command exits with a zero return value.
+#
+# Usage:
+#     void EXPECT_ALIVE(string arguments,...)
+EXPECT_ALIVE() {
+  "$@" &
+  if ! wait "$!"; then
+    LOG ERROR 'Command died unexpectedly:' "$@"
+    FAILURE
+    return
+  fi
+  LOG INFO 'Command did not die as expected:' "$@"
+}
+
+# EXPECT_DEATH -- Expects a command unsuccessfully dies.
+#
+# EXPECT_DEATH expects that a command dies with a non-zero return value.
+#
+# Usage:
+#     void EXPECT_DEATH(string arguments,...)
+EXPECT_DEATH() {
+  "$@" &
+  if wait "$!"; then
+    LOG ERROR 'Command did not die unexpectedly:' "$@"
+    FAILURE
+    return
+  fi
+  LOG INFO 'Command died as expected:' "$@"
 }
 
 # EXPECT_EQ -- Expects two arguments are equal.
@@ -2623,36 +2675,6 @@ imosh::stack_trace() {
     (( i += 1 )) || true
   done
 }
-
-# EXPECT_DEATH, EXPECT_ALIVE, ASSERT_DEATH, ASSERT_ALIVE
-#
-# Usage:
-#   bool EXPECT_DEATH(string arguments...)
-#   bool EXPECT_ALIVE(string arguments...)
-#   void ASSERT_DEATH(string arguments...)
-#   void ASSERT_ALIVE(string arguments...)
-EXPECT_DEATH() {
-  "$@" &
-  if wait "$!"; then
-    IFS=' ' eval 'LOG ERROR "Command did not die unexpectedly: $*"'
-    FAILURE
-    return
-  fi
-  IFS=' ' eval 'LOG INFO "Command died as expected: $*"'
-}
-
-EXPECT_ALIVE() {
-  "$@" &
-  if ! wait "$!"; then
-    IFS=' ' eval 'LOG ERROR "Command died unexpectedly: $*"'
-    FAILURE
-    return
-  fi
-  IFS=' ' eval 'LOG INFO "Command did not die as expected: $*"'
-}
-
-ASSERT_DEATH() { __ASSERT EXPECT_DEATH "$@"; }
-ASSERT_ALIVE() { __ASSERT EXPECT_ALIVE "$@"; }
 
 # Return if imosh is reloaded.  Operations in 50+ run level may have
 # destructive operations, so they are skipped in reloading.

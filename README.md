@@ -202,10 +202,14 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 ## Testing
 Functions only for testing.
 
+* [ASSERT_ALIVE](doc/testing/ASSERT_ALIVE.sh.md) -- Asserts a command successfully dies.
+* [ASSERT_DEATH](doc/testing/ASSERT_DEATH.sh.md) -- Asserts a command unsuccessfully dies.
 * [ASSERT_EQ](doc/testing/ASSERT_EQ.sh.md) -- Asserts two arguments are equal.
 * [ASSERT_FALSE](doc/testing/ASSERT_FALSE.sh.md) -- Expects a command fails.
 * [ASSERT_NE](doc/testing/ASSERT_NE.sh.md) -- Asserts two arguments are not equal.
 * [ASSERT_TRUE](doc/testing/ASSERT_TRUE.sh.md) -- Asserts a command succeeds.
+* [EXPECT_ALIVE](doc/testing/EXPECT_ALIVE.sh.md) -- Expects a command successfully exits.
+* [EXPECT_DEATH](doc/testing/EXPECT_DEATH.sh.md) -- Expects a command unsuccessfully dies.
 * [EXPECT_EQ](doc/testing/EXPECT_EQ.sh.md) -- Expects two arguments are equal.
 * [EXPECT_FALSE](doc/testing/EXPECT_FALSE.sh.md) -- Expects a command fails.
 * [EXPECT_NE](doc/testing/EXPECT_NE.sh.md) -- Expects two arguments are not equal.
