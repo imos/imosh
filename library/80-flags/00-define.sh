@@ -13,4 +13,6 @@ if sub::isset IMOSH_USE_DEFINE_FLAGS && (( IMOSH_USE_DEFINE_FLAGS )); then
       'Threshold to show stacktrace.'
   DEFINE_string --group=imosh 'help_format' '' \
       'Help format to output.'
+  DEFINE_string --group=imosh 'imosh_test' '' \
+      'Test files to test.'
 else
