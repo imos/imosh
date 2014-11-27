@@ -18,7 +18,6 @@ test::compare_string() {
 # CAVEATS:
 #   BASH 3 has a bug: $'\x01' in array is treated as $'\x01\x01'.
 test::soh_in_array() {
-  local IMOSH_TEST_IS_FAILED=0
   local values=($'\x01')
   local expected='01'
   local actual=''
@@ -33,7 +32,6 @@ test::soh_in_array() {
 #   BASH 4 does not actually prepare a variable while BASH 3 prepares a
 #   variable.
 test::isset() {
-  local IMOSH_TEST_IS_FAILED=0
   local variable
 
   # BASH 4 fails.  local does not prepare a variable.
