@@ -165,6 +165,7 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 ## Logging Functions
 
 * [CHECK](doc/logging/CHECK.sh.md) -- checks if a command succeeds.
+* [DEPRECATED](doc/logging/DEPRECATED.sh.md) -- Declares as deprecated.
 * [LOG](doc/logging/LOG.sh.md) -- Logs a message.
 
 ## Mathematical Functions

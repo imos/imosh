@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-28 02:46:29 +0900 (314a965)'
+IMOSH_VERSION='2014-11-28 03:07:00 +0900 (6663272)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -724,6 +724,20 @@ CHECK() {
   fi
 }
 
+# DEPRECATED -- Declares as deprecated.
+#
+# DEPRECATED displays an error message and a stack trace.
+#
+# Usage:
+#     void DEPRECATED()
+DEPRECATED() {
+  if [ "$#" -eq 0 ]; then
+    LOG ERROR "$(imosh::stack_trace 'This is deprecated.' 2>&1)"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
 # LOG -- Logs a message.
 #
 # LOG logs a message with a timestamp, the current process ID and a file
@@ -1353,10 +1367,10 @@ func::implode() {
     done
     func::let "${1}" "${__implode_result}"
   elif [ "$#" -eq 2 ]; then
-    LOG ERROR 'This form is deprecated.'
+    DEPRECATED
     sub::implode "$@"
   elif [ "$#" -eq 1 ]; then
-    LOG ERROR 'This form is deprecated.'
+    DEPRECATED
     stream::implode "$@"
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
@@ -1498,7 +1512,7 @@ sub::ord() {
 #     // 1. Command form.
 #     void sub::print(string message...) > output
 func::print() {
-  LOG ERROR 'This form is deprecated.'
+  DEPRECATED
   printf "%s" "$*"
 }
 
@@ -1517,7 +1531,7 @@ sub::print() {
 #     // 1. Command form.
 #     void sub::println(string message...) > output
 func::println() {
-  LOG ERROR 'This form is deprecated.'
+  DEPRECATED
   printf "%s\n" "$*"
 }
 
@@ -2226,7 +2240,7 @@ func::isset() {
       func::let "${1}" 0
     fi
   elif [ "$#" -eq 1 ]; then
-    LOG ERROR 'This form is deprecated.'
+    DEPRECATED
     sub::isset "$@" || return "$?"
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
