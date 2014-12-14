@@ -2,7 +2,10 @@ readonly IMOSH_PARSE_ARGUMENTS='
     local IMOSH_ARGV IMOSH_ARGS
     imosh::internal::parse_args arg "$@"
     if [ "${#IMOSH_ARGS[*]}" -ne 0 ]; then
-      readonly "${IMOSH_ARGS[@]}"
+      local __imosh_parse_arguments_arg=""
+      for __imosh_parse_arguments_arg in "${IMOSH_ARGS[@]}"; do
+        eval "local ${__imosh_parse_arguments_arg}"
+      done
     fi
     if [ "${#IMOSH_ARGV[*]}" -ne 0 ]; then
       set -- "${IMOSH_ARGV[@]}"

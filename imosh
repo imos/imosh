@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-28 03:07:00 +0900 (6663272)'
+IMOSH_VERSION='2014-12-05 02:21:44 +0900 (9ffebb3)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -2380,10 +2380,12 @@ imosh::internal::parse_args() {
           # cause scope issues.
           func::array_values "${upper_class_name}S_${arg_name}" arg_value
         else
-          IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value}")
+          func::str_replace arg_value "'" "'\\''"
+          IMOSH_ARGS+=("${upper_class_name}S_${arg_name}='${arg_value}'")
         fi
       else
-        IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value}")
+        func::str_replace arg_value "'" "'\\''"
+        IMOSH_ARGS+=("${upper_class_name}S_${arg_name}='${arg_value}'")
       fi
       continue
     fi
@@ -2627,7 +2629,7 @@ __imosh::help() {
 
 imosh::internal::init() {
   imosh::internal::parse_args flag "$@"
-  if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
+  if [ "${#IMOSH_ARGS[*]}" -ne 0 ]; then
     eval "${IMOSH_ARGS[@]}"
   fi
   imosh::logging::init
@@ -2714,7 +2716,10 @@ readonly IMOSH_PARSE_ARGUMENTS='
     local IMOSH_ARGV IMOSH_ARGS
     imosh::internal::parse_args arg "$@"
     if [ "${#IMOSH_ARGS[*]}" -ne 0 ]; then
-      readonly "${IMOSH_ARGS[@]}"
+      local __imosh_parse_arguments_arg=""
+      for __imosh_parse_arguments_arg in "${IMOSH_ARGS[@]}"; do
+        eval "local ${__imosh_parse_arguments_arg}"
+      done
     fi
     if [ "${#IMOSH_ARGV[*]}" -ne 0 ]; then
       set -- "${IMOSH_ARGV[@]}"

@@ -76,9 +76,13 @@ test::string_flag() {
 
   run_testcase 'FLAGS_string=' --flag=string --string=
   run_testcase 'FLAGS_string=abc' --flag=string --string=abc
+  run_testcase $'FLAGS_string=abc\ndef' --flag=string --string=$'abc\ndef'
+  run_testcase 'FLAGS_string=echo hello' --flag=string --string='echo hello'
 
   run_testcase 'FLAGS_string=' --flag=string --string ''
   run_testcase 'FLAGS_string=abc' --flag=string --string abc
+  run_testcase $'FLAGS_string=abc\ndef' --flag=string --string $'abc\ndef'
+  run_testcase 'FLAGS_string=echo hello' --flag=string --string 'echo hello'
 
   run_testcase 'invalid' --flag=string --string
 

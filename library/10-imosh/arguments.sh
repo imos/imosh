@@ -75,10 +75,12 @@ imosh::internal::parse_args() {
           # cause scope issues.
           func::array_values "${upper_class_name}S_${arg_name}" arg_value
         else
-          IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value}")
+          func::str_replace arg_value "'" "'\\''"
+          IMOSH_ARGS+=("${upper_class_name}S_${arg_name}='${arg_value}'")
         fi
       else
-        IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value}")
+        func::str_replace arg_value "'" "'\\''"
+        IMOSH_ARGS+=("${upper_class_name}S_${arg_name}='${arg_value}'")
       fi
       continue
     fi

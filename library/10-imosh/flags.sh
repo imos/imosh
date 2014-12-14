@@ -233,7 +233,7 @@ __imosh::help() {
 
 imosh::internal::init() {
   imosh::internal::parse_args flag "$@"
-  if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
+  if [ "${#IMOSH_ARGS[*]}" -ne 0 ]; then
     eval "${IMOSH_ARGS[@]}"
   fi
   imosh::logging::init
@@ -243,6 +243,7 @@ imosh::internal::init() {
       unset "FLAGS_${alias#*:}"
     done
   fi
+  # Re-assign flag values so as to support flag aliases.
   if [ "${#IMOSH_ARGS[*]}" -ne 0 ]; then
     eval "${IMOSH_ARGS[@]}"
   fi
