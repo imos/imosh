@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-12-05 02:21:44 +0900 (9ffebb3)'
+IMOSH_VERSION='2014-12-14 10:47:11 +0900 (2112825)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -2317,6 +2317,12 @@ imosh::internal::parse_args() {
     shift
     if [ "${arg:0:1}" != '-' ]; then
       IMOSH_ARGV+=("${arg}")
+      if [ "${upper_class_name}" = 'FLAG' ] &&
+         sub::isset IMOSH_SKIP_EXTRA_OPTIONS &&
+         (( IMOSH_SKIP_EXTRA_OPTIONS )); then
+        IMOSH_ARGV+=("$@")
+        break
+      fi
       continue
     fi
     if [[ "${arg}" =~ ^-[0-9] ]]; then
@@ -2639,6 +2645,7 @@ imosh::internal::init() {
       unset "FLAGS_${alias#*:}"
     done
   fi
+  # Re-assign flag values so as to support flag aliases.
   if [ "${#IMOSH_ARGS[*]}" -ne 0 ]; then
     eval "${IMOSH_ARGS[@]}"
   fi

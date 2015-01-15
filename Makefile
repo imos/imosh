@@ -22,11 +22,19 @@ concat:
 	@./tool/print-flag-variables.sh > library/80-flags/50-variables.sh
 .PHONY: concat
 
-test: concat
+all: info bug test
+
+info:
 	$(BASH) --version
 	env
 	$(BASH) -c shopt
+.PHONY: info
+
+bug:
 	-@$(BASH) test/main.sh test/bash_bug.sh
+.PHONY: bug
+
+test: concat
 	@if ! $(BASH) test/main.sh test/*_test.sh test/*/*_test.sh; then exit 1; fi
 .PHONY: test
 
