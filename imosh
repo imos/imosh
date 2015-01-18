@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-12-14 10:47:11 +0900 (2112825)'
+IMOSH_VERSION='2015-01-16 02:00:16 +0900 (81bcc26)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -1188,6 +1188,89 @@ func::addslashes() {
     func::str_replace "${1}" '\' '\\'
     func::str_replace "${1}" "'" "\\'"
     func::str_replace "${1}" '"' '\"'
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# base64_decode -- Decodes data with MIME base64.
+#
+# Usage:
+#     // 1. Function form.
+#     void func::base64_decode(string* variable, string data)
+#     // 2. Command form.
+#     void sub::base64_decode(string data) > output
+#     // 3. Stream form.
+#     void stream::base64_decode() < input > output
+func::base64_decode() {
+  if [ "$#" -eq 2 ]; then
+    local __base64_decode_file=''
+    func::tmpfile __base64_decode_file
+    sub::print "${2}" | stream::base64_decode >"${__base64_decode_file}"
+    func::file_get_contents "${1}" "${__base64_decode_file}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+sub::base64_decode() {
+  if [ "$#" -eq 1 ]; then
+    sub::print "${1}" | stream::base64_decode
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+stream::base64_decode() {
+  if [ "$#" -eq 0 ]; then
+    local __base64_decode_file=''
+    func::tmpfile __base64_decode_file
+    tr -cd '[:alnum:]/+' >"${__base64_decode_file}"
+    wc -c <"${__base64_decode_file}" >"${__base64_decode_file}.count"
+    local __base64_decode_count=0
+    func::file_get_contents \
+        __base64_decode_count "${__base64_decode_file}.count"
+    local __base64_decode_suffix='===='
+    sub::print "${__base64_decode_suffix:0:$(( 3 - (__base64_decode_count + 3) % 4 ))}" >>"${__base64_decode_file}"
+    base64 --decode -i "${__base64_decode_file}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# base64_encode -- Encodes data with MIME base64.
+#
+# Usage:
+#     // 1. Function form.
+#     void func::base64_encode(string* variable, string data)
+#     // 2. Command form.
+#     void sub::base64_encode(string data) > output
+#     // 3. Stream form.
+#     void stream::base64_encode() < input > output
+func::base64_encode() {
+  if [ "$#" -eq 2 ]; then
+    local __base64_encode_file=''
+    func::tmpfile __base64_encode_file
+    sub::print "${2}" | stream::base64_encode > "${__base64_encode_file}"
+    func::file_get_contents "${1}" "${__base64_encode_file}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+sub::base64_encode() {
+  if [ "$#" -eq 1 ]; then
+    sub::print "${1}" | stream::base64_encode
+    sub::println
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+stream::base64_encode() {
+  if [ "$#" -eq 0 ]; then
+    # Remove newlines for compatibility.
+    openssl enc -e -base64 | tr -cd '[:print:]'
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi

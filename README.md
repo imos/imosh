@@ -182,6 +182,8 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 ## Strings
 
 * [addslashes](doc/strings/addslashes.sh.md) -- Quotes a string with backslahses.
+* [base64_decode](doc/strings/base64_decode.sh.md) -- Decodes data with MIME base64.
+* [base64_encode](doc/strings/base64_encode.sh.md) -- Encodes data with MIME base64.
 * [bin2hex](doc/strings/bin2hex.sh.md) -- Converts a binary string into hexadecimal representation.
 * [escapeshellarg](doc/strings/escapeshellarg.sh.md) -- Escapes a variable as a shell argument.
 * [explode](doc/strings/explode.sh.md) -- Splits a string by a substring.
