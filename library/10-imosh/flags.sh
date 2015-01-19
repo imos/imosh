@@ -132,7 +132,7 @@ imosh::internal::flag_groups() {
   if (( main_group_exists )); then
     echo 'main'
   fi
-  if [ "${#groups[*]}" -ne 0 -a "${FLAGS_helpfull}" -ne 0 ]; then
+  if [ "${#groups[*]}" -ne 0 ]; then
     func::array_unique groups
     for group in "${groups[@]}"; do
       echo "${group}"

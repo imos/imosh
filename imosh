@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2015-01-18 20:08:54 +0900 (29829cd)'
+IMOSH_VERSION='2015-01-20 01:17:31 +0900 (636f815)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -2617,7 +2617,7 @@ imosh::internal::flag_groups() {
   if (( main_group_exists )); then
     echo 'main'
   fi
-  if [ "${#groups[*]}" -ne 0 -a "${FLAGS_helpfull}" -ne 0 ]; then
+  if [ "${#groups[*]}" -ne 0 ]; then
     func::array_unique groups
     for group in "${groups[@]}"; do
       echo "${group}"
