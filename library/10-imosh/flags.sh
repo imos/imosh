@@ -249,6 +249,19 @@ imosh::internal::init() {
   fi
   if (( FLAGS_help || FLAGS_helpfull )) ||
      [ "${FLAGS_help_format}" != '' ]; then
+    imosh::help
+    exit 0
+  fi
+}
+
+# imosh::help -- Shows help message.
+#
+# This shows a help message as --help flag does.
+#
+# Usage:
+#   void imosh::help()
+imosh::help() {
+  if [ "$#" -eq 0 ]; then
     if [ "${FLAGS_help_format}" = '' ]; then
       if [ -t 1 ]; then
         FLAGS_help_format='groff'
@@ -263,6 +276,7 @@ imosh::internal::init() {
     else
       __imosh::help >&2
     fi
-    exit 0
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
