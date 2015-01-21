@@ -1,5 +1,6 @@
 # __IMOSH_FLAGS_TYPE_<flag name>=<flag type>
 # __IMOSH_FLAGS_DESCRIPTION_<flag name>=<description>
+# __IMOSH_FLAGS_GROUP_<flag name>=<group>
 # __IMOSH_FLAGS_ALIASES=(from:to ...)
 
 imosh::internal::flag_type() {
@@ -73,6 +74,9 @@ imosh::internal::define_flag() {
       description+=" (Alias: --${ARGS_alias})"
     fi
     func::let "__IMOSH_FLAGS_DESCRIPTION_${name}" "${description}"
+    if [ "${group}" != 'IMOSH' -a "${group}" != 'MAIN' ]; then
+      func::let "__IMOSH_FLAGS_GROUP_${name}" "${group}"
+    fi
     __IMOSH_FLAGS+=("${group}:${name}")
   fi
 }
