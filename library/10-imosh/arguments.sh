@@ -18,12 +18,6 @@ imosh::internal::parse_args() {
     shift
     if [ "${arg:0:1}" != '-' ]; then
       IMOSH_ARGV+=("${arg}")
-      if [ "${upper_class_name}" = 'FLAG' ] &&
-         sub::isset IMOSH_SKIP_EXTRA_OPTIONS &&
-         (( IMOSH_SKIP_EXTRA_OPTIONS )); then
-        IMOSH_ARGV+=("$@")
-        break
-      fi
       continue
     fi
     if [[ "${arg}" =~ ^-[0-9] ]]; then
