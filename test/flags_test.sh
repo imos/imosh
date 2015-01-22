@@ -97,6 +97,5 @@ test::flags::argv() {
   run_testcase 'foo' --show_argv --bool foo
   run_testcase 'foo' --show_argv foo
   run_testcase 'foo bar' --show_argv foo --bool bar
-  IMOSH_SKIP_EXTRA_OPTIONS=1 \
-      run_testcase 'foo --bool bar' --show_argv foo --bool bar
+  IMOSH_PREDICATE=1 run_testcase 'foo --bool bar' --show_argv foo --bool bar
 }
