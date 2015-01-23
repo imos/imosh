@@ -10,7 +10,7 @@ imosh::internal::parse_args() {
   while [ "$#" != '0' ]; do
     if sub::isset IMOSH_PREDICATE &&
        [ "${upper_class_name}" = 'FLAG' ] &&
-       [ "${#IMOSH_ARGV}" -eq "${IMOSH_PREDICATE}" ]; then
+       [ "${#IMOSH_ARGV[*]}" -eq "${IMOSH_PREDICATE}" ]; then
       IMOSH_ARGV+=("$@")
       break
     fi
