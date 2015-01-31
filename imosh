@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2015-01-31 11:30:30 +0900 (23155f9)'
+IMOSH_VERSION='2015-01-31 11:35:46 +0900 (cb218bc)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -2815,6 +2815,9 @@ imosh::stack_trace() {
     (( i += 1 )) || true
   done
 }
+
+# IMOSH_PREDICATE declares the number of predicates.
+unset IMOSH_PREDICATE
 
 # Return if imosh is reloaded.  Operations in 50+ run level may have
 # destructive operations, so they are skipped in reloading.
