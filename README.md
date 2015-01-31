@@ -161,6 +161,7 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 
 * [getchildpids](doc/info/getchildpids.sh.md) -- Gets child process IDs.
 * [getmypid](doc/info/getmypid.sh.md) -- Gets the current process ID.
+* [is_main](doc/info/is_main.sh.md) -- Returns 0 iff caller is in the main script.
 
 ## Logging Functions
 
