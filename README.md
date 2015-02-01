@@ -223,6 +223,8 @@ Functions only for testing.
 * [EXPECT_DEATH](doc/testing/EXPECT_DEATH.sh.md) -- Expects a command unsuccessfully dies.
 * [EXPECT_EQ](doc/testing/EXPECT_EQ.sh.md) -- Expects two arguments are equal.
 * [EXPECT_FALSE](doc/testing/EXPECT_FALSE.sh.md) -- Expects a command fails.
+* [EXPECT_GT](doc/testing/EXPECT_GT.sh.md) -- Expects first one is greater than second one.
+* [EXPECT_LT](doc/testing/EXPECT_LT.sh.md) -- Expects first one is less than second one.
 * [EXPECT_NE](doc/testing/EXPECT_NE.sh.md) -- Expects two arguments are not equal.
 * [EXPECT_TRUE](doc/testing/EXPECT_TRUE.sh.md) -- Expects a command succeeds.
 * [FAILURE](doc/testing/FAILURE.sh.md) -- Declares a test case failed.

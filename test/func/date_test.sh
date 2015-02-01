@@ -1,4 +1,4 @@
-test::strtotime() {
+test::date() {
   EXPECT_EQ '2006-01-02 15:04:05' \
             "$(TZ=UTC sub::date 'Y-m-d H:i:s' 1136214245)"
   EXPECT_EQ '2006-01-03 00:04:05' \
@@ -13,4 +13,7 @@ test::strtotime() {
             "$(TZ=Asia/Tokyo sub::date 'r' 1136214245)"
   EXPECT_EQ '1136214245' \
             "$(TZ=Asia/Tokyo sub::date 'U' 1136214245)"
+
+  EXPECT_LT 1422807963 "$(sub::date 'U')"
+  EXPECT_GT 9999999999 "$(sub::date 'U')"
 }
