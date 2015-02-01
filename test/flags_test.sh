@@ -97,5 +97,11 @@ test::flags::argv() {
   run_testcase 'foo' --show_argv --bool foo
   run_testcase 'foo' --show_argv foo
   run_testcase 'foo bar' --show_argv foo --bool bar
-  IMOSH_PREDICATE=1 run_testcase 'foo --bool bar' --show_argv foo --bool bar
+  IMOSH_TEST_PREDICATE=1 run_testcase 'foo --bool bar' --show_argv foo --bool bar
+
+  for pid in "${pids[@]}"; do
+    if ! wait "${pid}"; then
+      IMOSH_TEST_IS_FAILED=1
+    fi
+  done
 }

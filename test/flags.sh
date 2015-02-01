@@ -11,7 +11,7 @@ DEFINE_bool 'bool' false 'Boolean flag.'
 DEFINE_multiint 'multiint' 1,10,100 'Multiple integers flag.'
 DEFINE_list 'list' 'a,b,c' 'Multiple strings flag.'
 
-eval "${IMOSH_INIT}"
+IMOSH_PREDICATE="${IMOSH_TEST_PREDICATE:--1}" eval "${IMOSH_INIT}"
 
 if (( FLAGS_show_argv )); then
   echo "$@"
