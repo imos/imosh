@@ -8,46 +8,31 @@ func::strtotime() {
   if [ "$#" -eq 2 ]; then
     local __func_strtotime_match=()
     local __func_strtotime_text=''
-    if [ "${#2}" -eq 8 ]; then
-      # 20060102
-      if sub::ereg_match '^([0-9]{8})$' "${2}"; then
-        __func::strtotime "${1}" "${2}000000" '%Y%m%d%H%M%S'
-        return
-      fi
-    elif [ "${#2}" -eq 10 ]; then
-      # 2006-01-02
-      if sub::ereg_match '^([0-9]{4})[-/:]([0-9]{2})[-/:]([0-9]{2})$' \
-          "${2}" __func_strtotime_match; then
-        __func_strtotime_text+="${__func_strtotime_match[1]}"
-        __func_strtotime_text+="-${__func_strtotime_match[2]}"
-        __func_strtotime_text+="-${__func_strtotime_match[3]}"
-        __func_strtotime_text+=' 00:00:00'
-        __func::strtotime "${1}" "${__func_strtotime_text}" '%Y-%m-%d %H:%M:%S'
-        return
-      fi
-    elif [ "${#2}" -eq 14 ]; then
-      # 20060102150405
-      if sub::ereg_match '^[0-9]{14}$' "${2}"; then
-        __func::strtotime "${1}" "${2}" '%Y%m%d%H%M%S'
-        return
-      fi
-    elif [ "${#2}" -eq 19 ]; then
-      # 2006-01-02 15:04:05 (MySQL)
-      # 2006/01/02 15:04:05 (Regular format)
-      # 2006:01:02 15:04:05 (EXIF)
-      # 2006-01-02T15:04:05
-      if sub::ereg_match \
-          '^([0-9]{4})[-/:]([0-9]{2})[-/:]([0-9]{2})[ T]([0-9]{2})[:\-]([0-9]{2})[:\-]([0-9]{2})$' \
-          "${2}" __func_strtotime_match; then
-        __func_strtotime_text+="${__func_strtotime_match[1]}"
-        __func_strtotime_text+="-${__func_strtotime_match[2]}"
-        __func_strtotime_text+="-${__func_strtotime_match[3]}"
-        __func_strtotime_text+=" ${__func_strtotime_match[4]}"
-        __func_strtotime_text+=":${__func_strtotime_match[5]}"
-        __func_strtotime_text+=":${__func_strtotime_match[6]}"
-        __func::strtotime "${1}" "${__func_strtotime_text}" '%Y-%m-%d %H:%M:%S'
-        return
-      fi
+    # 2006-01-02
+    if sub::ereg_match '^([0-9]{4})[-/:]?([0-9]{2})[-/:]?([0-9]{2})$' \
+        "${2}" __func_strtotime_match; then
+      __func_strtotime_text+="${__func_strtotime_match[1]}"
+      __func_strtotime_text+="-${__func_strtotime_match[2]}"
+      __func_strtotime_text+="-${__func_strtotime_match[3]}"
+      __func_strtotime_text+=' 00:00:00'
+      __func::strtotime "${1}" "${__func_strtotime_text}" '%Y-%m-%d %H:%M:%S'
+      return
+    fi
+    # 2006-01-02 15:04:05 (MySQL)
+    # 2006/01/02 15:04:05 (Regular format)
+    # 2006:01:02 15:04:05 (EXIF)
+    # 2006-01-02T15:04:05
+    if sub::ereg_match \
+        '^([0-9]{4})[-/:]?([0-9]{2})[-/:]?([0-9]{2})[ T]?([0-9]{2})[:\-]?([0-9]{2})[:\-]?([0-9]{2})$' \
+        "${2}" __func_strtotime_match; then
+      __func_strtotime_text+="${__func_strtotime_match[1]}"
+      __func_strtotime_text+="-${__func_strtotime_match[2]}"
+      __func_strtotime_text+="-${__func_strtotime_match[3]}"
+      __func_strtotime_text+=" ${__func_strtotime_match[4]}"
+      __func_strtotime_text+=":${__func_strtotime_match[5]}"
+      __func_strtotime_text+=":${__func_strtotime_match[6]}"
+      __func::strtotime "${1}" "${__func_strtotime_text}" '%Y-%m-%d %H:%M:%S'
+      return
     fi
     # Mon, 02 Jan 2006 15:04:05 GMT (HTTP format)
     if sub::ereg_match \
