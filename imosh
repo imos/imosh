@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2015-01-31 11:35:46 +0900 (cb218bc)'
+IMOSH_VERSION='2015-01-31 11:48:02 +0900 (b44a5fb)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -362,6 +362,73 @@ __func::quick_sort() {
   if ! sub::array_is_empty values3; then __sort_values+=("${values3[@]}"); fi
 }
 
+# strtotime -- Parses a datetime text into a UNIX timestamp.
+#
+# strtotime parses a datetime text into a UNIX timestamp.
+#
+# Usage:
+#     void func::strtotime(int* time, string time_text)
+func::strtotime() {
+  if [ "$#" -eq 2 ]; then
+    local __func_strtotime_match=()
+    local __func_strtotime_text=''
+    if [ "${#2}" -eq 10 ]; then
+      # 2006-01-02
+      if sub::ereg_match '^([0-9]{4})[-/:]([0-9]{2})[-/:]([0-9]{2})$' \
+          "${2}" __func_strtotime_match; then
+        __func_strtotime_text+="${__func_strtotime_match[1]}"
+        __func_strtotime_text+="-${__func_strtotime_match[2]}"
+        __func_strtotime_text+="-${__func_strtotime_match[3]}"
+        __func_strtotime_text+=' 00:00:00'
+        __func::strtotime "${1}" "${__func_strtotime_text}" '%Y-%m-%d %H:%M:%S'
+        return
+      fi
+    elif [ "${#2}" -eq 19 ]; then
+      # 2006-01-02 15:04:05 (MySQL)
+      # 2006/01/02 15:04:05 (Regular format)
+      # 2006:01:02 15:04:05 (EXIF)
+      # 2006-01-02T15:04:05
+      if sub::ereg_match \
+          '^([0-9]{4})[-/:]([0-9]{2})[-/:]([0-9]{2})[ T]([0-9]{2})[:\-]([0-9]{2})[:\-]([0-9]{2})$' \
+          "${2}" __func_strtotime_match; then
+        __func_strtotime_text+="${__func_strtotime_match[1]}"
+        __func_strtotime_text+="-${__func_strtotime_match[2]}"
+        __func_strtotime_text+="-${__func_strtotime_match[3]}"
+        __func_strtotime_text+=" ${__func_strtotime_match[4]}"
+        __func_strtotime_text+=":${__func_strtotime_match[5]}"
+        __func_strtotime_text+=":${__func_strtotime_match[6]}"
+        __func::strtotime "${1}" "${__func_strtotime_text}" '%Y-%m-%d %H:%M:%S'
+        return
+      fi
+    fi
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+sub::strtotime() {
+  if [ "$#" -eq 1 ]; then
+    local __sub_strtotime=''
+    func::strtotime __sub_strtotime "${1}"
+    sub::println "${__sub_strtotime}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# void __func::strtotime(int* time, string input_time, string input_format)
+__func::strtotime() {
+  if [ "$#" -eq 3 ]; then
+    if [ "${UNAME}" = 'Linux' ]; then
+      func::let "${1}" "$(LC_ALL=C date --date="${2}" '+%s')"
+    else
+      func::let "${1}" "$(LC_ALL=C date -j -f "${3}" "${2}" '+%s')"
+    fi
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
 # fgets -- Gets a line from STDIN.
 #
 # fgets reads a line and regards it as a result.  fgets does not strip a
@@ -533,6 +600,32 @@ sub::tmpfile() {
     local tmpfile=''
     func::tmpfile tmpfile
     sub::println "${tmpfile}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# ereg_match -- Checks if a string matches an EREG pattern.
+#
+# ereg_match checks if a string matches an EREG pattern.
+#
+# Usage:
+#     // 1. Command form.
+#     bool sub::ereg_match(string pattern, string subject)
+sub::ereg_match() {
+  if [ "$#" -eq 2 ]; then
+    if [[ "${2}" =~ $1 ]]; then
+      return 0
+    else
+      return 1
+    fi
+  elif [ "$#" -eq 3 ]; then
+    if [[ "${2}" =~ $1 ]]; then
+      func::array_values "${3}" BASH_REMATCH
+      return 0
+    else
+      return 1
+    fi
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
@@ -967,6 +1060,26 @@ __func::rand() {
 sub::atexit() {
   if [ "$#" -eq 1 ]; then
     sub::println "${1}" >> "${__IMOSH_CORE_TMPDIR}/atexit.sh"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# exec -- Executes an external program.
+#
+# func::exec executes an external program and sets its output to the variable.
+#
+# Usage:
+#     // Function form.
+#     void func::exec(string* output, string arguments...)
+func::exec() {
+  if [ "$#" -gt 1 ]; then
+    local __func_exec_variable="${1}"
+    shift
+    local __func_exec_output=''
+    func::tmpfile __func_exec_output
+    "$@" >"${__func_exec_output}"
+    func::file_get_contents "${__func_exec_variable}" "${__func_exec_output}"
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi

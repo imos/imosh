@@ -142,6 +142,9 @@ imosh outputs log files to `${TMPDIR}/<program name>.<host name>.<user>.<severit
 * [count](doc/array/count.sh.md) -- Counts the number of elements.
 * [sort](doc/array/sort.sh.md) -- Sorts elements.
 
+
+* [strtotime](doc/datetime/strtotime.sh.md) -- Parses a datetime text into a UNIX timestamp.
+
 ## Filesystem
 
 * [fgets](doc/filesystem/fgets.sh.md) -- Gets a line from STDIN.
@@ -153,6 +156,7 @@ imosh outputs log files to `${TMPDIR}/<program name>.<host name>.<user>.<severit
 ## Regular Expressions (Glob-Compatible)
 For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://mywiki.wooledge.org/glob).
 
+* [ereg_match](doc/greg/ereg_match.sh.md) -- Checks if a string matches an EREG pattern.
 * [greg_match](doc/greg/greg_match.sh.md) -- Checks if a string matches a GREG pattern.
 * [greg_replace](doc/greg/greg_replace.sh.md) -- Replace a GREG pattern with a string.
 * [greg_split](doc/greg/greg_split.sh.md) -- Splits a string with a GREG pattern.
@@ -176,6 +180,7 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 ## Miscellaneous Functions
 
 * [atexit](doc/misc/atexit.sh.md) -- Registers a function on shutdown.
+* [exec](doc/misc/exec.sh.md) -- Executes an external program.
 * [exit, die](doc/misc/exit.sh.md) -- Kills the current script.
 * [throttle](doc/misc/throttle.sh.md) -- Throttles by the number of child processes.
 * [usage](doc/misc/usage.sh.md) -- Shows a usage message.
