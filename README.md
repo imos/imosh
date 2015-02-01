@@ -142,6 +142,7 @@ imosh outputs log files to `${TMPDIR}/<program name>.<host name>.<user>.<severit
 * [count](doc/array/count.sh.md) -- Counts the number of elements.
 * [sort](doc/array/sort.sh.md) -- Sorts elements.
 
+## Date/Time
 
 * [date](doc/datetime/date.sh.md) -- Format a local time/date.
 * [strtotime](doc/datetime/strtotime.sh.md) -- Parses a datetime text into a UNIX timestamp.
@@ -223,7 +224,9 @@ Functions only for testing.
 * [EXPECT_DEATH](doc/testing/EXPECT_DEATH.sh.md) -- Expects a command unsuccessfully dies.
 * [EXPECT_EQ](doc/testing/EXPECT_EQ.sh.md) -- Expects two arguments are equal.
 * [EXPECT_FALSE](doc/testing/EXPECT_FALSE.sh.md) -- Expects a command fails.
+* [EXPECT_GE](doc/testing/EXPECT_GE.sh.md) -- Expects first one is greater than or equal to second one.
 * [EXPECT_GT](doc/testing/EXPECT_GT.sh.md) -- Expects first one is greater than second one.
+* [EXPECT_LE](doc/testing/EXPECT_LE.sh.md) -- Expects first one is less than or equal to second one.
 * [EXPECT_LT](doc/testing/EXPECT_LT.sh.md) -- Expects first one is less than second one.
 * [EXPECT_NE](doc/testing/EXPECT_NE.sh.md) -- Expects two arguments are not equal.
 * [EXPECT_TRUE](doc/testing/EXPECT_TRUE.sh.md) -- Expects a command succeeds.

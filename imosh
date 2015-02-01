@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2015-02-02 01:23:19 +0900 (32108f0)'
+IMOSH_VERSION='2015-02-02 01:47:41 +0900 (2088ea1)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -2500,6 +2500,47 @@ EXPECT_FALSE() {
   LOG INFO 'EXPECT_FALSE passes:' "$@"
 }
 
+# EXPECT_GE -- Expects first one is greater than or equal to second one.
+#
+# EXPECT_GE expects first one is greater than or equal to second one.
+#
+# Usage:
+#     void EXPECT_GE(string target, string actual)
+#     void EXPECT_STRGE(string target, string actual)
+EXPECT_GE() {
+  if [ "$#" -eq 2 ]; then
+    if [ "$1" -lt "$2" ]; then
+      echo "Actual: $2" >&2
+      echo "Target: $1" >&2
+      FAILURE
+    fi
+    LOG INFO "EXPECT_GE passes: '$1' >= '$2'"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+EXPECT_STRGE() {
+  if [ "$#" -eq 2 ]; then
+    if [ "$1" \< "$2" ]; then
+      echo "Actual: $2" >&2
+      echo "Target: $1" >&2
+      FAILURE
+    fi
+    LOG INFO "EXPECT_STRGE passes: '$1' >= '$2'"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+ASSERT_GE() {
+  __ASSERT EXPECT_GE "$@"
+}
+
+ASSERT_STRGE() {
+  __ASSERT EXPECT_STRGE "$@"
+}
+
 # EXPECT_GT -- Expects first one is greater than second one.
 #
 # EXPECT_GT expects first one is greater than second one.
@@ -2533,6 +2574,55 @@ EXPECT_STRGT() {
   fi
 }
 
+ASSERT_GT() {
+  __ASSERT EXPECT_GT "$@"
+}
+
+ASSERT_STRGT() {
+  __ASSERT EXPECT_STRGT "$@"
+}
+
+# EXPECT_LE -- Expects first one is less than or equal to second one.
+#
+# EXPECT_LE expects first one is less than or equal to second one.
+#
+# Usage:
+#     void EXPECT_LE(string target, string actual)
+#     void EXPECT_STRLE(string target, string actual)
+EXPECT_LE() {
+  if [ "$#" -eq 2 ]; then
+    if [ "$1" -gt "$2" ]; then
+      echo "Actual: $2" >&2
+      echo "Target: $1" >&2
+      FAILURE
+    fi
+    LOG INFO "EXPECT_LE passes: '$1' <= '$2'"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+EXPECT_STRLE() {
+  if [ "$#" -eq 2 ]; then
+    if [ "$1" \> "$2" ]; then
+      echo "Actual: $2" >&2
+      echo "Target: $1" >&2
+      FAILURE
+    fi
+    LOG INFO "EXPECT_STRLE passes: '$1' <= '$2'"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+ASSERT_LE() {
+  __ASSERT EXPECT_LE "$@"
+}
+
+ASSERT_STRLE() {
+  __ASSERT EXPECT_STRLE "$@"
+}
+
 # EXPECT_LT -- Expects first one is less than second one.
 #
 # EXPECT_LT expects first one is less than second one.
@@ -2564,6 +2654,14 @@ EXPECT_STRLT() {
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
+}
+
+ASSERT_LT() {
+  __ASSERT EXPECT_LT "$@"
+}
+
+ASSERT_STRLT() {
+  __ASSERT EXPECT_STRLT "$@"
 }
 
 # EXPECT_NE -- Expects two arguments are not equal.
