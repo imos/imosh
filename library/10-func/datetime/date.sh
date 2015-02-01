@@ -72,7 +72,9 @@ func::date() {
           __func_date_php="${__func_date_php:1}"
           ;;
         'a'*)
-          __func_date_c+='%P'
+          __func::date __func_date_buffer '%p' "${3}"
+          func::strtoupper __func_date_buffer
+          __func_date_c+="${__func_date_buffer}"
           __func_date_php="${__func_date_php:1}"
           ;;
         'A'*)
@@ -135,7 +137,7 @@ func::date() {
           __func_date_php="${__func_date_php:1}"
           ;;
         '\'*)
-          __func_date_c+="${__func_date_php:0:2}"
+          __func_date_c+="${__func_date_php:1:1}"
           __func_date_php="${__func_date_php:2}"
           ;;
         *)
@@ -147,6 +149,16 @@ func::date() {
     __func::date "${1}" "${__func_date_c}" "${3}"
   elif [ "$#" -eq 2 ]; then
     func::date "$@" "$(date +'%s')"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+sub::date() {
+  if [ "$#" -eq 1 -o "$#" -eq 2 ]; then
+    local __sub_date_result=''
+    func::date __sub_date_result "$@"
+    sub::println "${__sub_date_result}"
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
