@@ -143,7 +143,9 @@ imosh outputs log files to `${TMPDIR}/<program name>.<host name>.<user>.<severit
 * [sort](doc/array/sort.sh.md) -- Sorts elements.
 
 
+* [date](doc/datetime/date.sh.md) -- Format a local time/date.
 * [strtotime](doc/datetime/strtotime.sh.md) -- Parses a datetime text into a UNIX timestamp.
+* [time](doc/datetime/time.sh.md) -- Returns current Unix timestamp.
 
 ## Filesystem
 
