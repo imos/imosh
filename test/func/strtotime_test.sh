@@ -54,8 +54,8 @@ test::strtotime() {
   # Common logfile format.
   run_fixed_datetime '03/Jan/2006:00:04:05 +0900'
   # ISO 8601 format.
-  # run_fixed_datetime '2006-01-02 15:04:05 +0000'
-  # run_fixed_datetime '2006-01-03 00:04:05 +0900'
+  run_fixed_datetime '2006-01-02 15:04:05 +0000'
+  run_fixed_datetime '2006-01-03 00:04:05 +0900'
   # UNIX timestamp format.
   run_fixed_datetime '1136214245'
   run_fixed_datetime '@1136214245'
