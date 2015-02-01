@@ -51,11 +51,16 @@ test::strtotime() {
   run_fixed_datetime '02 Jan 2006 15:04:05 GMT'
   run_fixed_datetime 'Tue, 03 Jan 2006 00:04:05 +0900'
   run_fixed_datetime 'Tue, 03 Jan 2006 00:04:05 JST'
+  # Old RFC850 HTTP format.
+  run_fixed_datetime 'Monday, 02-Jan-06 15:04:05 GMT'
+  run_fixed_datetime 'Monday, 02-Jan-2006 15:04:05 GMT'
   # Common logfile format.
   run_fixed_datetime '03/Jan/2006:00:04:05 +0900'
   # ISO 8601 format.
   run_fixed_datetime '2006-01-02 15:04:05 +0000'
   run_fixed_datetime '2006-01-03 00:04:05 +0900'
+  run_fixed_datetime '2006-01-02T15:04:05Z'
+  run_fixed_datetime '2006-01-03T00:04:05+0900'
   # UNIX timestamp format.
   run_fixed_datetime '1136214245'
   run_fixed_datetime '@1136214245'

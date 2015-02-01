@@ -63,7 +63,7 @@ func::strtotime() {
     # 2006:01:02 15:04:05 (EXIF)
     # 2006-01-02T15:04:05
     if sub::ereg_match \
-        '^([0-9]{4})[-/:]?([0-9]{2})[-/:]?([0-9]{2})[ T]?([0-9]{2})[:\-]?([0-9]{2})[:\-]?([0-9]{2}) *([A-Z][A-Za-z0-9\-\+ /]+)?([\-\+][0-9]{4})?$' \
+        '^([0-9]{4})[-/:]?([0-9]{2})[-/:]?([0-9]{2})[ T]?([0-9]{2})[:\-]?([0-9]{2})[:\-]?([0-9]{2}) *([A-Za-z0-9\-\+ /]+)?$' \
         "${2}" __func_strtotime_match; then
       __func_strtotime_text+="${__func_strtotime_match[1]}"
       __func_strtotime_text+="-${__func_strtotime_match[2]}"
@@ -72,7 +72,6 @@ func::strtotime() {
       __func_strtotime_text+=":${__func_strtotime_match[5]}"
       __func_strtotime_text+=":${__func_strtotime_match[6]}"
       __func_strtotime_timezone+="${__func_strtotime_match[7]}"
-      __func_strtotime_timezone+="${__func_strtotime_match[8]}"
       __func_strtotime_format='%Y-%m-%d %H:%M:%S'
     # Mon, 02 Jan 2006 15:04:05 GMT (HTTP format)
     elif sub::ereg_match \
@@ -100,6 +99,7 @@ func::strtotime() {
       return 1
     fi
     case "${__func_strtotime_timezone}" in
+      'Z')   __func_strtotime_timezone='+0000';;
       'JST') __func_strtotime_timezone='+0900';;
     esac
     if [ "${__func_strtotime_timezone}" != '' ]; then
