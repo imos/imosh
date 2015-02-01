@@ -113,7 +113,7 @@ func::strtotime() {
     fi
     # @1136214245 (Unix timestamp)
     if sub::ereg_match '^@?(-?[0-9]+)$' "${2}" __func_strtotime_match; then
-      __func::strtotime "${1}" "${__func_strtotime_match[1]}" '%s'
+      __func::strtotime "${1}" "@${__func_strtotime_match[1]}" '@%s'
       return
     fi
     LOG ERROR "Unkown date format: ${2}"
