@@ -1,5 +1,5 @@
 get_flag() {
-  bash test/flags.sh --show_argv "$@" 2>/dev/null &
+  "${BASH}" test/flags.sh --show_argv "$@" 2>/dev/null &
   if ! wait $!; then sub::print invalid; fi
 }
 

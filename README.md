@@ -142,6 +142,12 @@ imosh outputs log files to `${TMPDIR}/<program name>.<host name>.<user>.<severit
 * [count](doc/array/count.sh.md) -- Counts the number of elements.
 * [sort](doc/array/sort.sh.md) -- Sorts elements.
 
+## Date/Time
+
+* [date](doc/datetime/date.sh.md) -- Format a local time/date.
+* [strtotime](doc/datetime/strtotime.sh.md) -- Parses a datetime text into a UNIX timestamp.
+* [time](doc/datetime/time.sh.md) -- Returns current Unix timestamp.
+
 ## Filesystem
 
 * [fgets](doc/filesystem/fgets.sh.md) -- Gets a line from STDIN.
@@ -153,6 +159,7 @@ imosh outputs log files to `${TMPDIR}/<program name>.<host name>.<user>.<severit
 ## Regular Expressions (Glob-Compatible)
 For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://mywiki.wooledge.org/glob).
 
+* [ereg_match](doc/greg/ereg_match.sh.md) -- Checks if a string matches an EREG pattern.
 * [greg_match](doc/greg/greg_match.sh.md) -- Checks if a string matches a GREG pattern.
 * [greg_replace](doc/greg/greg_replace.sh.md) -- Replace a GREG pattern with a string.
 * [greg_split](doc/greg/greg_split.sh.md) -- Splits a string with a GREG pattern.
@@ -161,6 +168,13 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 
 * [getchildpids](doc/info/getchildpids.sh.md) -- Gets child process IDs.
 * [getmypid](doc/info/getmypid.sh.md) -- Gets the current process ID.
+* [is_main](doc/info/is_main.sh.md) -- Returns 0 iff caller is in the main script.
+
+## Logging Functions
+
+* [CHECK](doc/logging/CHECK.sh.md) -- checks if a command succeeds.
+* [DEPRECATED](doc/logging/DEPRECATED.sh.md) -- Declares as deprecated.
+* [LOG](doc/logging/LOG.sh.md) -- Logs a message.
 
 ## Mathematical Functions
 
@@ -169,12 +183,16 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 ## Miscellaneous Functions
 
 * [atexit](doc/misc/atexit.sh.md) -- Registers a function on shutdown.
+* [exec](doc/misc/exec.sh.md) -- Executes an external program.
 * [exit, die](doc/misc/exit.sh.md) -- Kills the current script.
 * [throttle](doc/misc/throttle.sh.md) -- Throttles by the number of child processes.
+* [usage](doc/misc/usage.sh.md) -- Shows a usage message.
 
 ## Strings
 
 * [addslashes](doc/strings/addslashes.sh.md) -- Quotes a string with backslahses.
+* [base64_decode](doc/strings/base64_decode.sh.md) -- Decodes data with MIME base64.
+* [base64_encode](doc/strings/base64_encode.sh.md) -- Encodes data with MIME base64.
 * [bin2hex](doc/strings/bin2hex.sh.md) -- Converts a binary string into hexadecimal representation.
 * [escapeshellarg](doc/strings/escapeshellarg.sh.md) -- Escapes a variable as a shell argument.
 * [explode](doc/strings/explode.sh.md) -- Splits a string by a substring.
@@ -190,7 +208,30 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 * [strcpy](doc/strings/strcpy.sh.md) -- Copies a string from a variable to another variable.
 * [strtolower](doc/strings/strtolower.sh.md) -- Makes a string lowercase.
 * [strtoupper](doc/strings/strtoupper.sh.md) -- Makes a string uppercase.
+* [substr](doc/strings/substr.sh.md) -- Returns a substring.
 * [trim](doc/strings/trim.sh.md) -- Strips whitespaces from both sides.
+
+## Testing
+Functions only for testing.
+
+* [ASSERT_ALIVE](doc/testing/ASSERT_ALIVE.sh.md) -- Asserts a command successfully dies.
+* [ASSERT_DEATH](doc/testing/ASSERT_DEATH.sh.md) -- Asserts a command unsuccessfully dies.
+* [ASSERT_EQ](doc/testing/ASSERT_EQ.sh.md) -- Asserts two arguments are equal.
+* [ASSERT_FALSE](doc/testing/ASSERT_FALSE.sh.md) -- Expects a command fails.
+* [ASSERT_NE](doc/testing/ASSERT_NE.sh.md) -- Asserts two arguments are not equal.
+* [ASSERT_TRUE](doc/testing/ASSERT_TRUE.sh.md) -- Asserts a command succeeds.
+* [EXPECT_ALIVE](doc/testing/EXPECT_ALIVE.sh.md) -- Expects a command successfully exits.
+* [EXPECT_DEATH](doc/testing/EXPECT_DEATH.sh.md) -- Expects a command unsuccessfully dies.
+* [EXPECT_EQ](doc/testing/EXPECT_EQ.sh.md) -- Expects two arguments are equal.
+* [EXPECT_FALSE](doc/testing/EXPECT_FALSE.sh.md) -- Expects a command fails.
+* [EXPECT_GE](doc/testing/EXPECT_GE.sh.md) -- Expects first one is greater than or equal to second one.
+* [EXPECT_GT](doc/testing/EXPECT_GT.sh.md) -- Expects first one is greater than second one.
+* [EXPECT_LE](doc/testing/EXPECT_LE.sh.md) -- Expects first one is less than or equal to second one.
+* [EXPECT_LT](doc/testing/EXPECT_LT.sh.md) -- Expects first one is less than second one.
+* [EXPECT_NE](doc/testing/EXPECT_NE.sh.md) -- Expects two arguments are not equal.
+* [EXPECT_TRUE](doc/testing/EXPECT_TRUE.sh.md) -- Expects a command succeeds.
+* [FAILURE](doc/testing/FAILURE.sh.md) -- Declares a test case failed.
+* [test_file](doc/testing/test_functions.sh.md) -- Tests a file.
 
 ## Variable handling
 

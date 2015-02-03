@@ -12,11 +12,12 @@
 func::intval() {
   if [ "$#" -eq 2 ]; then
     if [[ ! "${2}" =~ ^[[:space:]]*(-?[0-9]+) ]]; then
+      func::let "${1}" 0
       return 1
     fi
     func::let "${1}" "${BASH_REMATCH[1]}"
   elif [ "$#" -eq 1 ]; then
-    eval "func::intval \"\${1}\" \"\${${1}}\"" || return "$?"
+    eval "func::intval \"\${1}\" \"\${${1}}\" || return \"\$?\""
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi

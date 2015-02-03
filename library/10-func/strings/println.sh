@@ -9,7 +9,7 @@
 #     // 1. Command form.
 #     void sub::println(string message...) > output
 func::println() {
-  LOG ERROR 'This form is deprecated.'
+  DEPRECATED
   printf "%s\n" "$*"
 }
 

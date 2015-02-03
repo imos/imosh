@@ -11,17 +11,17 @@ DEFINE_bool 'bool' false 'Boolean flag.'
 DEFINE_multiint 'multiint' 1,10,100 'Multiple integers flag.'
 DEFINE_list 'list' 'a,b,c' 'Multiple strings flag.'
 
-eval "${IMOSH_INIT}"
+IMOSH_PREDICATE="${IMOSH_TEST_PREDICATE:--1}" eval "${IMOSH_INIT}"
 
 if (( FLAGS_show_argv )); then
-  echo "$@";
+  echo "$@"
   exit
 fi
 
 if [ "${FLAGS_flag}" == '' ]; then
-  LOG FATAL "flag must be specified"
+  LOG FATAL '--flag must be specified.'
 fi
-if [ "${FLAGS_flag:0:5}" = 'multi' ]; then
+if [ "${FLAGS_flag}" = 'list' -o "${FLAGS_flag:0:5}" = 'multi' ]; then
   func::array_values values "FLAGS_${FLAGS_flag}"
   if [ "${#values[*]}" -ne 0 ]; then
     for value in "${values[@]}"; do
@@ -31,5 +31,5 @@ if [ "${FLAGS_flag:0:5}" = 'multi' ]; then
     sub::println 'EMPTY'
   fi
 else
-  eval "echo -n 'FLAGS_${FLAGS_flag}='\"\${FLAGS_${FLAGS_flag}}\""
+  eval "sub::println 'FLAGS_${FLAGS_flag}='\"\${FLAGS_${FLAGS_flag}}\""
 fi

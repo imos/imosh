@@ -1,6 +1,8 @@
 # __IMOSH_FLAGS_TYPE_<flag name>=<flag type>
 # __IMOSH_FLAGS_DESCRIPTION_<flag name>=<description>
+# __IMOSH_FLAGS_GROUP_<flag name>=<group>
 # __IMOSH_FLAGS_ALIASES=(from:to ...)
+# __IMOSH_FLAGS_IS_DEFAULT_<flag name>=<is default>
 
 imosh::internal::flag_type() {
   local name="$1"
@@ -31,8 +33,12 @@ imosh::internal::define_flag() {
   if sub::isset "IMOSH_FLAGS_${name}"; then
     func::strcpy default_value "IMOSH_FLAGS_${name}"
   fi
-  if [ "${type:0:5}" = 'MULTI' ]; then
-    func::explode default_value ',' "${default_value}"
+  if [ "${type}" = 'LIST' -o "${type:0:5}" = 'MULTI' ]; then
+    if [ "${default_value}" = '' ]; then
+      default_value=()
+    else
+      func::explode default_value ',' "${default_value}"
+    fi
   fi
   CHECK \
       --message="${name}'s default value is invalid: ${original_default_value}." \
@@ -40,12 +46,13 @@ imosh::internal::define_flag() {
   if sub::isset "__IMOSH_FLAGS_TYPE_${name}"; then
     LOG FATAL "already defined flag: ${name}"
   fi
-  if [ "${type:0:5}" = 'MULTI' ]; then
+  if [ "${type}" = 'LIST' -o "${type:0:5}" = 'MULTI' ]; then
     func::array_values "FLAGS_${name}" 'default_value'
   else
     func::strcpy "FLAGS_${name}" 'default_value'
   fi
   func::strcpy "__IMOSH_FLAGS_TYPE_${name}" 'type'
+  func::let "__IMOSH_FLAGS_IS_DEFAULT_${name}" '1'
   if [ "${ARGS_alias}" != '' ]; then
     imosh::internal::define_flag "${type}" --alias_flag \
         "${ARGS_alias}" "${original_default_value}" "${description}"
@@ -73,6 +80,9 @@ imosh::internal::define_flag() {
       description+=" (Alias: --${ARGS_alias})"
     fi
     func::let "__IMOSH_FLAGS_DESCRIPTION_${name}" "${description}"
+    if [ "${group}" != 'IMOSH' -a "${group}" != 'MAIN' ]; then
+      func::let "__IMOSH_FLAGS_GROUP_${name}" "${group}"
+    fi
     __IMOSH_FLAGS+=("${group}:${name}")
   fi
 }
@@ -85,7 +95,7 @@ DEFINE_multistring() { imosh::internal::define_flag MULTISTRING "$@"; }
 DEFINE_multiint() { imosh::internal::define_flag MULTIINT "$@"; }
 DEFINE_multibool() { imosh::internal::define_flag MULTIBOOL "$@"; }
 DEFINE_multidouble() { imosh::internal::define_flag MULTIDOUBLE "$@"; }
-DEFINE_list() { DEFINE_multistring "$@"; }
+DEFINE_list() { imosh::internal::define_flag LIST "$@"; }
 
 imosh::internal::get_main_script() {
   local depth="${#BASH_SOURCE[*]}"
@@ -132,7 +142,7 @@ imosh::internal::flag_groups() {
   if (( main_group_exists )); then
     echo 'main'
   fi
-  if [ "${#groups[*]}" -ne 0 -a "${FLAGS_helpfull}" -ne 0 ]; then
+  if [ "${#groups[*]}" -ne 0 ]; then
     func::array_unique groups
     for group in "${groups[@]}"; do
       echo "${group}"
@@ -168,7 +178,7 @@ imosh::internal::group_flags() {
 imosh::internal::man() {
   echo ".TH ${0##*/} 1"; echo
   echo '.SH DESCRIPTION'
-  __imosh::show_usage --format=groff --notitle \
+  sub::usage --format=groff --notitle \
       "$(imosh::internal::get_main_script)"
 
   echo '.SH OPTIONS'
@@ -188,7 +198,7 @@ imosh::internal::man() {
 }
 
 imosh::internal::help() {
-  __imosh::show_usage --format=text --notitle \
+  sub::usage --format=text --notitle \
       "$(imosh::internal::get_main_script)"
   echo "OPTIONS:"
   for flag_group in $(imosh::internal::flag_groups); do
@@ -206,7 +216,7 @@ imosh::internal::help() {
 }
 
 __imosh::help_markdown() {
-  __imosh::show_usage --format=markdown --notitle \
+  sub::usage --format=markdown --notitle \
       "$(imosh::internal::get_main_script)"
   echo "# Options"
   for flag_group in $(imosh::internal::flag_groups); do
@@ -233,21 +243,35 @@ __imosh::help() {
 
 imosh::internal::init() {
   imosh::internal::parse_args flag "$@"
-  if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
+  if [ "${#IMOSH_ARGS[*]}" -ne 0 ]; then
     eval "${IMOSH_ARGS[@]}"
   fi
-  imosh::internal::init_log
+  imosh::logging::init
   if [ "${#__IMOSH_FLAGS_ALIASES[*]}" -ne 0 ]; then
     for alias in "${__IMOSH_FLAGS_ALIASES[@]}"; do
       eval "FLAGS_${alias%%:*}=\"\${FLAGS_${alias#*:}}\""
       unset "FLAGS_${alias#*:}"
     done
   fi
+  # Re-assign flag values so as to support flag aliases.
   if [ "${#IMOSH_ARGS[*]}" -ne 0 ]; then
     eval "${IMOSH_ARGS[@]}"
   fi
   if (( FLAGS_help || FLAGS_helpfull )) ||
      [ "${FLAGS_help_format}" != '' ]; then
+    imosh::help
+    exit 0
+  fi
+}
+
+# imosh::help -- Shows help message.
+#
+# This shows a help message as --help flag does.
+#
+# Usage:
+#   void imosh::help()
+imosh::help() {
+  if [ "$#" -eq 0 ]; then
     if [ "${FLAGS_help_format}" = '' ]; then
       if [ -t 1 ]; then
         FLAGS_help_format='groff'
@@ -262,6 +286,7 @@ imosh::internal::init() {
     else
       __imosh::help >&2
     fi
-    exit 0
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }

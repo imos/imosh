@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2014-11-17 00:21:24 +0900 (9ab4e05)'
+IMOSH_VERSION='2015-02-04 00:38:58 +0900 (d78c4d6)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -362,6 +362,357 @@ __func::quick_sort() {
   if ! sub::array_is_empty values3; then __sort_values+=("${values3[@]}"); fi
 }
 
+# date -- Format a local time/date.
+#
+# date formats a local time/date.
+#
+# Usage:
+#     void func::date(string* output, string format, int time)
+func::date() {
+  if [ "$#" -eq 3 ]; then
+    local __func_date_php="${2}"
+    local __func_date_c=''
+    local __func_date_buffer=''
+    while [ "${__func_date_php}" != '' ]; do
+      case "${__func_date_php}" in
+        'd'*)
+          __func_date_c+='%d'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'D'*)
+          __func_date_c+='%a'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'j'*)
+          __func_date_c+='%-d'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'l'*)
+          __func_date_c+='%A'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'N'*)
+          __func_date_c+='%u'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'w'*)
+          __func_date_c+='%w'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'z'*)
+          __func_date_c+='%-j'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'W'*)
+          __func_date_c+='%W'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'F'*)
+          __func_date_c+='%B'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'm'*)
+          __func_date_c+='%m'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'M'*)
+          __func_date_c+='%b'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'n'*)
+          __func_date_c+='%-m'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'o'*)
+          __func_date_c+='%G'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'Y'*)
+          __func_date_c+='%Y'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'y'*)
+          __func_date_c+='%y'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'a'*)
+          __func::date __func_date_buffer '%p' "${3}"
+          func::strtoupper __func_date_buffer
+          __func_date_c+="${__func_date_buffer}"
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'A'*)
+          __func_date_c+='%p'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'g'*)
+          __func_date_c+='%-I'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'G'*)
+          __func_date_c+='%-H'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'h'*)
+          __func_date_c+='%I'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'H'*)
+          __func_date_c+='%H'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'i'*)
+          __func_date_c+='%M'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        's'*)
+          __func_date_c+='%S'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'e'*|'T'*)
+          __func_date_c+='%Z'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'O'*)
+          __func_date_c+='%z'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'P'*)
+          __func::date __func_date_buffer '%z' "${3}"
+          __func_date_c+="${__func_date_buffer:0:3}:${__func_date_buffer:3}"
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'c'*)
+          __func_date_c+='%Y-%m-%dT%H:%M:%S'
+          __func::date __func_date_buffer '%z' "${3}"
+          __func_date_c+="${__func_date_buffer:0:3}:${__func_date_buffer:3}"
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'r'*)
+          __func_date_c+='%a, %d %b %Y %T %z'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        'U'*)
+          __func_date_c+='%s'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        '\%'*|'%'*)
+          __func_date_c+='%%'
+          __func_date_php="${__func_date_php:1}"
+          ;;
+        '\'*)
+          __func_date_c+="${__func_date_php:1:1}"
+          __func_date_php="${__func_date_php:2}"
+          ;;
+        *)
+          __func_date_c+="${__func_date_php:0:1}"
+          __func_date_php="${__func_date_php:1}"
+          ;;
+      esac
+    done
+    __func::date "${1}" "${__func_date_c}" "${3}"
+  elif [ "$#" -eq 2 ]; then
+    func::date "$@" "$(date +'%s')"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+sub::date() {
+  if [ "$#" -eq 1 -o "$#" -eq 2 ]; then
+    local __sub_date_result=''
+    func::date __sub_date_result "$@"
+    sub::println "${__sub_date_result}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+__func::date() {
+  if [ "$#" -eq 3 ]; then
+    if [ "${UNAME}" = 'Linux' ]; then
+      func::let "${1}" "$(LC_ALL=C date --date="@${3}" "+${2}")"
+    else
+      func::let "${1}" "$(LC_ALL=C date -j -f '@%s' "@${3}" "+${2}")"
+    fi
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# strtotime -- Parses a datetime text into a UNIX timestamp.
+#
+# strtotime parses a datetime text into a UNIX timestamp.
+#
+# Usage:
+#     void func::strtotime(int* time, string time_text)
+func::strtotime() {
+  if [ "$#" -eq 2 ]; then
+    local __func_strtotime_match=()
+    local __func_strtotime_text=''
+    local __func_strtotime_timezone=''
+    local __func_strtotime_format=''
+    # 2006-01-02
+    if sub::ereg_match '^([0-9]{4})[-/:]?([0-9]{2})[-/:]?([0-9]{2})$' \
+        "${2}" __func_strtotime_match; then
+      __func_strtotime_text+="${__func_strtotime_match[1]}"
+      __func_strtotime_text+="-${__func_strtotime_match[2]}"
+      __func_strtotime_text+="-${__func_strtotime_match[3]}"
+      __func_strtotime_text+=' 00:00:00'
+      __func::strtotime "${1}" "${__func_strtotime_text}" '%Y-%m-%d %H:%M:%S'
+      return
+    fi
+    # 02/Jan/2006 (Common logfile format)
+    if sub::ereg_match \
+        '^([0-9]+)[/ \-]+([A-Z][a-z][a-z])[/ \-]+([0-9]{4})$' \
+        "${2}" __func_strtotime_match; then
+      func::exec __func_strtotime_text printf '%02d %s %04d 00:00:00' \
+          "${__func_strtotime_match[1]}" \
+          "${__func_strtotime_match[2]}" \
+          "${__func_strtotime_match[3]}"
+      __func::strtotime "${1}" "${__func_strtotime_text}" '%d %b %Y %H:%M:%S'
+      return
+    fi
+    # 02-Jan-06 (Old RFC850 HTTP format)
+    if sub::ereg_match \
+        '^([0-9]+)[/ \-]+([A-Z][a-z][a-z])[/ \-]+([0-9]{2})$' \
+        "${2}" __func_strtotime_match; then
+      func::exec __func_strtotime_text printf '%02d %s %02d 00:00:00' \
+          "${__func_strtotime_match[1]}" \
+          "${__func_strtotime_match[2]}" \
+          "${__func_strtotime_match[3]}"
+      __func::strtotime "${1}" "${__func_strtotime_text}" '%d %b %y %H:%M:%S'
+      return
+    fi
+    # Jan 2 2006 (Unix ls format)
+    if sub::ereg_match \
+        '^([A-Z][a-z][a-z])[/ \-]+([0-9]+)[,/ \-]+([0-9]{4})$' \
+        "${2}" __func_strtotime_match; then
+      func::exec __func_strtotime_text printf '%02d %s %04d 00:00:00' \
+          "${__func_strtotime_match[2]}" \
+          "${__func_strtotime_match[1]}" \
+          "${__func_strtotime_match[3]}"
+      __func::strtotime "${1}" "${__func_strtotime_text}" '%d %b %Y %H:%M:%S'
+      return
+    fi
+    # @1136214245 (Unix timestamp)
+    if sub::ereg_match '^@?(-?[0-9]{1,10})$' "${2}" __func_strtotime_match; then
+      __func::strtotime "${1}" "@${__func_strtotime_match[1]}" '@%s'
+      return
+    fi
+    # 2006-01-02 15:04:05 (MySQL)
+    # 2006/01/02 15:04:05 (Regular format)
+    # 2006:01:02 15:04:05 (EXIF)
+    # 2006-01-02T15:04:05
+    if sub::ereg_match \
+        '^([0-9]{4})[-/:]?([0-9]{2})[-/:]?([0-9]{2})[ T]?([0-9]{2})[:\-]?([0-9]{2})[:\-]?([0-9]{2}) *([A-Za-z0-9\-\+: /]+)?$' \
+        "${2}" __func_strtotime_match; then
+      __func_strtotime_text+="${__func_strtotime_match[1]}"
+      __func_strtotime_text+="-${__func_strtotime_match[2]}"
+      __func_strtotime_text+="-${__func_strtotime_match[3]}"
+      __func_strtotime_text+=" ${__func_strtotime_match[4]}"
+      __func_strtotime_text+=":${__func_strtotime_match[5]}"
+      __func_strtotime_text+=":${__func_strtotime_match[6]}"
+      __func_strtotime_timezone+="${__func_strtotime_match[7]}"
+      __func_strtotime_format='%Y-%m-%d %H:%M:%S'
+    # Mon, 02 Jan 2006 15:04:05 GMT (HTTP format)
+    elif sub::ereg_match \
+        '^([A-Z][a-z]+, +)?([0-9]+)[/ \-]+([A-Z][a-z][a-z])[/ \-]+([0-9]{2}|[0-9]{4})[ :T]([0-9]{2})[:\-]([0-9]{2})[:\-]([0-9]{2}) *([A-Za-z0-9\-\+: /]+)?$' \
+        "${2}" __func_strtotime_match; then
+      if [ "${#__func_strtotime_match[4]}" -eq 2 ]; then
+        if [ "${__func_strtotime_match[4]}" -lt 70 ]; then
+          __func_strtotime_match[4]="20${__func_strtotime_match[4]}"
+        else
+          __func_strtotime_match[4]="19${__func_strtotime_match[4]}"
+        fi
+      fi
+      func::exec __func_strtotime_text printf '%02d %s %04d %02d:%02d:%02d' \
+          "${__func_strtotime_match[2]}" \
+          "${__func_strtotime_match[3]}" \
+          "${__func_strtotime_match[4]}" \
+          "${__func_strtotime_match[5]}" \
+          "${__func_strtotime_match[6]}" \
+          "${__func_strtotime_match[7]}"
+      __func_strtotime_timezone+="${__func_strtotime_match[8]}"
+      __func_strtotime_format='%d %b %Y %H:%M:%S'
+    else
+      LOG ERROR "Unkown date format: ${2}"
+      return 1
+    fi
+    case "${__func_strtotime_timezone}" in
+      '-'*':'*|'+'*':'*)
+            func::str_replace __func_strtotime_timezone ':' '';;
+      'Z')   __func_strtotime_timezone='+0000';;
+      'JST') __func_strtotime_timezone='+0900';;
+    esac
+    if [ "${__func_strtotime_timezone}" != '' ]; then
+      if sub::ereg_match '^[\-\+][0-9]{4}$' \
+                         "${__func_strtotime_timezone}"; then
+        __func::strtotime \
+            "${1}" "${__func_strtotime_text} ${__func_strtotime_timezone}" \
+            "${__func_strtotime_format} %z"
+      else
+        TZ="${__func_strtotime_timezone}" \
+            __func::strtotime \
+            "${1}" "${__func_strtotime_text}" "${__func_strtotime_format}"
+      fi
+    else
+      __func::strtotime \
+          "${1}" "${__func_strtotime_text}" "${__func_strtotime_format}"
+    fi
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+sub::strtotime() {
+  if [ "$#" -eq 1 ]; then
+    local __sub_strtotime=''
+    func::strtotime __sub_strtotime "${1}"
+    sub::println "${__sub_strtotime}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# void __func::strtotime(int* time, string input_time, string input_format)
+__func::strtotime() {
+  if [ "$#" -eq 3 ]; then
+    if [ "${UNAME}" = 'Linux' ]; then
+      func::let "${1}" "$(LC_ALL=C date --date="${2}" '+%s')"
+    else
+      func::let "${1}" "$(LC_ALL=C date -j -f "${3}" "${2}" '+%s')"
+    fi
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# time -- Returns current Unix timestamp.
+#
+# time returns current Unix timestamp.
+#
+# Usage:
+#     // 1. Function form.
+#     void func::time(string* result)
+#     // 2. Command form.
+#     void sub::time() > output
+func::time() {
+  if [ "$#" -eq 1 ]; then
+    sub::let "${1}" "$(date +'%s')"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+sub::time() {
+  if [ "$#" -eq 0 ]; then
+    date +'%s'
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
 # fgets -- Gets a line from STDIN.
 #
 # fgets reads a line and regards it as a result.  fgets does not strip a
@@ -538,6 +889,32 @@ sub::tmpfile() {
   fi
 }
 
+# ereg_match -- Checks if a string matches an EREG pattern.
+#
+# ereg_match checks if a string matches an EREG pattern.
+#
+# Usage:
+#     // 1. Command form.
+#     bool sub::ereg_match(string pattern, string subject)
+sub::ereg_match() {
+  if [ "$#" -eq 2 ]; then
+    if [[ "${2}" =~ $1 ]]; then
+      return 0
+    else
+      return 1
+    fi
+  elif [ "$#" -eq 3 ]; then
+    if [[ "${2}" =~ $1 ]]; then
+      func::array_values "${3}" BASH_REMATCH
+      return 0
+    else
+      return 1
+    fi
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
 # greg_match -- Checks if a string matches a GREG pattern.
 #
 # greg_match checks if a string matches a GREG pattern.
@@ -691,6 +1068,221 @@ sub::getmypid() {
   fi
 }
 
+# is_main -- Returns 0 iff caller is in the main script.
+#
+# Usage:
+#     // 1. Command form.
+#     void sub::is_main()
+sub::is_main() {
+  if [ "$#" -eq 0 ]; then
+    local __is_main_depth="${#BASH_SOURCE[*]}"
+    if [ "${BASH_SOURCE[1]}" = \
+         "${BASH_SOURCE[$((__is_main_depth - 1))]}" ]; then
+      return 0
+    else
+      return 1
+    fi
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# CHECK -- checks if a command succeeds.
+#
+# CHECK fails with a fatal error if a command fails.
+#
+# Usage:
+#     void CHECK(string command...)
+CHECK() {
+  IFS=' ' eval 'local __CHECK_message="Check failure: $*"'
+  if [ "$#" -ge 1 ] && [ "${1:0:10}" = '--message=' ]; then
+    __CHECK_message="${1:10}"
+    shift
+  fi
+
+  if [ "$#" -ge 1 ]; then
+    local __CHECK_invert="${1}"
+
+    if [ "${__CHECK_invert}" = '!' ]; then
+      shift
+      if "$@"; then
+        LOG ERROR 'Check failure: !' "$@"
+        LOG FATAL "${__CHECK_message}"
+      fi
+    else
+      if ! "$@"; then
+        LOG ERROR 'Check failure:' "$@"
+        LOG FATAL "${__CHECK_message}"
+      fi
+    fi
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# DEPRECATED -- Declares as deprecated.
+#
+# DEPRECATED displays an error message and a stack trace.
+#
+# Usage:
+#     void DEPRECATED()
+DEPRECATED() {
+  if [ "$#" -eq 0 ]; then
+    LOG ERROR "$(imosh::stack_trace 'This is deprecated.' 2>&1)"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# LOG -- Logs a message.
+#
+# LOG logs a message with a timestamp, the current process ID and a file
+# position.
+#
+# Usage:
+#     void LOG(string log_level, string message...)
+LOG() {
+  if [ "$#" -ge 2 ]; then
+    local log_level="${1}"; shift
+    local log_level_id=0
+    func::log_level log_level_id "${log_level}"
+    if (( log_level_id < 1 || 4 < log_level_id )); then
+      LOG FATAL "Invalid log_level for LOG: ${log_level}(${log_level_id})"
+    fi
+    # Do not use FLAGS_* variables directly because LOG may be called before
+    # flag initialization.
+    local logtostderr=0
+    if sub::isset FLAGS_logtostderr; then
+      logtostderr="${FLAGS_logtostderr}"
+    fi
+    local alsologtostderr=0
+    if sub::isset FLAGS_alsologtostderr; then
+      alsologtostderr="${FLAGS_alsologtostderr}"
+    fi
+    # Speed up by skipping message generation if it is not necessary.
+    if ! sub::isset __IMOSH_LOGGING &&
+       (( log_level_id < 3 && logtostderr == 0 && alsologtostderr == 0 )); then
+      return
+    fi
+    local datetime="$(date +'%m%d %T.%N')"
+    # For systems not supporting %N in date.
+    datetime="${datetime/.N/.000000}"
+    datetime="${datetime:0:20}"
+    local pid
+    if sub::isset __IMOSH_LOG_PID; then
+      pid="${__IMOSH_LOG_PID}"
+    else
+      func::getmypid pid
+    fi
+    local file="${BASH_SOURCE[1]##*/}"
+    if [ "${file}" = '' ]; then file='-'; fi
+    local message_parameters=(
+        "${log_level:0:1}${datetime}"
+        "${pid}"
+        "${file}:${BASH_LINENO[0]}]"
+        "$@")
+    IFS=' ' eval 'local message="${message_parameters[*]}"'
+    local stacktrace_thoreshold=4
+    if sub::isset FLAGS_stacktrace_threshold; then
+      func::log_level __IMOSH_LOGGING_STACKTRACE \
+                      "${FLAGS_stacktrace_threshold}"
+    fi
+    if (( stacktrace_thoreshold <= log_level_id )); then
+      message+=$'\n'
+      message+="$(
+          imosh::stack_trace "*** LOG ${log_level} stack trace ***" 2>&1)"
+    fi
+    case "${log_level}" in
+      'INFO')
+        if (( logtostderr || alsologtostderr )); then
+          echo "${message}" >&105
+        fi
+        if (( ! logtostderr )); then
+          echo "${message}" >&101
+        fi
+        ;;
+      'WARNING')
+        if (( logtostderr || alsologtostderr )); then
+          echo "${message}" >&105
+        fi
+        if (( ! logtostderr )); then
+          echo "${message}" >&101
+          echo "${message}" >&102
+        fi
+        ;;
+      'ERROR')
+        echo "${message}" >&105
+        if (( ! logtostderr )); then
+          echo "${message}" >&101
+          echo "${message}" >&102
+          echo "${message}" >&103
+        fi
+        ;;
+      'FATAL')
+        echo "${message}" >&105
+        if (( ! logtostderr )); then
+          echo "${message}" >&101
+          echo "${message}" >&102
+          echo "${message}" >&103
+          echo "${message}" >&104
+        fi
+        sub::exit 1
+        ;;
+    esac
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+func::log_level() {
+  if [ "$#" -eq 2 ]; then
+    case "${2}" in
+      'ALL')     func::let "${1}" 0;;
+      'INFO')    func::let "${1}" 1;;
+      'WARNING') func::let "${1}" 2;;
+      'ERROR')   func::let "${1}" 3;;
+      'FATAL')   func::let "${1}" 4;;
+      'NONE')    func::let "${1}" 5;;
+      *)         LOG FATAL "Unknown log level: ${2}";;
+    esac
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+__imosh::logging::open() {
+  if [ "$#" -eq 2 ]; then
+    local target="${FLAGS_log_dir}/${__IMOSH_LOG_PREFIX}.${1}.${__IMOSH_LOG_SUFFIX}"
+    eval "exec ${2}> \"\${target}\""
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+imosh::logging::init() {
+  if [ "$#" -eq 0 ]; then
+    # Close descriptors for logs beforehand for BASH3's bug.
+    exec 101>&- 102>&- 103>&- 104>&-
+    if [ "${FLAGS_log_dir}" != '' ]; then
+      if [ -w "${FLAGS_log_dir}" ]; then
+        __IMOSH_LOG_PREFIX="${0##*/}.$(hostname -s).$(whoami)"
+        __IMOSH_LOG_SUFFIX="$(date +'%Y%m%d.%H%M%S').$$"
+        __imosh::logging::open INFO    101
+        __imosh::logging::open WARNING 102
+        __imosh::logging::open ERROR   103
+        __imosh::logging::open FATAL   104
+        __IMOSH_LOGGING=1
+        return
+      else
+        LOG ERROR "Failed to open files to write logs: ${FLAGS_log_dir}"
+      fi
+    fi
+    exec 101>'/dev/null' 102>'/dev/null' 103>'/dev/null' 104>'/dev/null'
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
 # rand -- Generates a random integer.
 #
 # rand generates a random integer.
@@ -757,6 +1349,26 @@ sub::atexit() {
   fi
 }
 
+# exec -- Executes an external program.
+#
+# func::exec executes an external program and sets its output to the variable.
+#
+# Usage:
+#     // Function form.
+#     void func::exec(string* output, string arguments...)
+func::exec() {
+  if [ "$#" -gt 1 ]; then
+    local __func_exec_variable="${1}"
+    shift
+    local __func_exec_output=''
+    func::tmpfile __func_exec_output
+    "$@" >"${__func_exec_output}"
+    func::file_get_contents "${__func_exec_variable}" "${__func_exec_output}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
 # exit, die -- Kills the current script.
 #
 # sub::exit kills all the subprocesses of the current program.  If an integer
@@ -776,14 +1388,25 @@ sub::atexit() {
 sub::exit() {
   if [ "$#" -eq 1 ]; then
     local status=0
-    if [[ "$1" =~ ^[0-9]+$ ]]; then
-      status="$1"
+    if [[ "${1}" =~ ^[0-9]+$ ]]; then
+      status="${1}"
     else
-      local message="$1"
+      local message="${1}"
       func::rtrim message
       sub::println "${message}"
     fi
-    imosh::exit "${status}"
+    sub::print "${status}" > "${__IMOSH_CORE_TMPDIR}/EXIT"
+    # First, kill all the childs of the current process so that no child
+    # processes spawn new processes.
+    __sub::exit
+    # Then, try to kill other processes under the root process except this
+    # process.
+    __sub::exit "${IMOSH_ROOT_PID}"
+    # Send a TERM signal to the root process.
+    kill -TERM "${IMOSH_ROOT_PID}" 2> '/dev/null' || true
+    # If this is the root process, following commands will not be executed.
+    # Exit immediately if this is the root process.
+    exit "${status}"
   elif [ "$#" -eq 0 ]; then
     sub::exit 0
   else
@@ -794,6 +1417,43 @@ sub::exit() {
 sub::die() {
   imosh::stack_trace "*** imosh::die stack trace: ***"
   sub::exit "$@"
+}
+
+# __sub::exit -- Kills subprocesses.
+#
+# __sub::exit kills pid's subprocesses.
+#
+# Usage:
+#     void __sub::exit::kill(int pid = $$, int caller_pid = $$)
+__sub::exit() {
+  if [ "$#" -eq 2 ]; then
+    if [ "${1}" != "${2}" -a "${1}" != "${IMOSH_ROOT_PID}" ]; then
+      kill -STOP "${1}" 2>/dev/null || true
+    fi
+    local tmpfile=''
+    local ppid=0
+    local pid=0
+    func::tmpfile tmpfile
+    ps -o ppid,pid > "${tmpfile}"
+    while IFS=$' \t\n' read -r ppid pid; do
+      if [ "${ppid}" = "${1}" ]; then
+        __sub::exit "${pid}" "${2}"
+      fi
+    done < "${tmpfile}"
+    if [ "${1}" != "${2}" -a "${1}" != "${IMOSH_ROOT_PID}" ]; then
+      kill -KILL "${1}" 2>/dev/null || true
+    fi
+  elif [ "$#" -eq 1 ]; then
+    local pid=0
+    func::getmypid pid
+    __sub::exit "${1}" "${pid}"
+  elif [ "$#" -eq 0 ]; then
+    local pid=0
+    func::getmypid pid
+    __sub::exit "${pid}" "${pid}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
 }
 
 # throttle -- Throttles by the number of child processes.
@@ -825,6 +1485,112 @@ sub::throttle() {
   fi
 }
 
+# usage -- Shows a usage message.
+#
+# usage shows a usage message based on a header comment.  A header comment
+# consists of consecutive comment lines.  Comment lines starting with "#!" are
+# ignored.
+#
+# Usage:
+#     void sub::usage(string file) > output
+#
+# Options:
+# - --format=text
+#       Select one fromat from text/markdown/groff.
+# - --title=true
+#       Treat the first line as title.
+# - --markdown_heading=''
+#       Prepend a string to every heading.
+sub::usage() {
+  local ARGS_format='text' ARGS_title=1 ARGS_markdown_heading=''
+  eval "${IMOSH_PARSE_ARGUMENTS}"
+
+  if [ "$#" -eq 1 ]; then
+    local usage='' line='' first_line="${ARGS_title}" is_buffered=0
+    while IFS= read -r line; do
+      case "${line}" in
+        '#!'*) continue;;
+        '# '*) usage+="${line:2}"$'\n';;
+        '#'*)  usage+="${line:1}"$'\n';;
+        *)     break;;
+      esac
+    done < "${1}"
+    func::trim usage
+    [ "${usage}" != '' ] || return
+    if [ "${ARGS_format}" = 'text' ]; then
+      sub::print "${usage}"$'\n\n'
+      return
+    fi
+    while :; do
+      (( is_buffered )) || IFS= read -r line || break
+      is_buffered=0
+      func::rtrim line
+      # Show title.
+      if (( first_line )); then
+        case "${ARGS_format}" in
+          'groff')    sub::println ".TH ${line} 1";;
+          'markdown') sub::println "${ARGS_markdown_heading} ${line}";;
+        esac
+        first_line=0
+      # Show section title.
+      elif sub::greg_match '*:' "${line}"; then
+        local title="${line%:}"
+        func::strtoupper title
+        case "${ARGS_format}" in
+          'groff')    sub::println ".SH ${title}";;
+          'markdown') sub::println "${ARGS_markdown_heading}# ${line%:}";;
+        esac
+      # Show code.
+      elif [ "${line:0:4}" = '    ' ]; then
+        case "${ARGS_format}" in
+          'groff')    sub::println '.Bd -literal -offset indent';;
+          'markdown') sub::println '```sh';;
+        esac
+        while [ "${line:0:4}" = '    ' ]; do
+          case "${ARGS_format}" in
+            'groff')    sub::println "${line#'    '}";;
+            'markdown') sub::println "${line#'    '}";;
+          esac
+          IFS= read -r line || break
+        done
+        case "${ARGS_format}" in
+          'groff')    sub::println '.Ed';;
+          'markdown') sub::print $'```\n\n';;
+        esac
+        is_buffered=1
+      # Show an item.
+      elif sub::greg_match '*( )- *' "${line}"; then
+        func::ltrim line
+        CHECK [ "${line:0:2}" = '- ' ]
+        line="${line:2}"
+        case "${ARGS_format}" in
+          'groff')    sub::println $'.TP\n'".B ${line}";;
+          'markdown') sub::println "* ${line}";;
+        esac
+        local markdown_indent='    * '
+        while IFS= read -r line; do
+          if sub::greg_match '*( )- *' "${line}" || \
+             sub::greg_match '*([[:space:]])' "${line}"; then
+            break
+          fi
+          func::ltrim line
+          case "${ARGS_format}" in
+            'groff')    sub::println "${line}";;
+            'markdown') sub::println "${markdown_indent}${line}"
+                        markdown_indent='      ';;
+          esac
+        done
+        is_buffered=1
+      else
+        sub::println "${line}"
+      fi
+    done <<<"${usage}"
+    sub::println
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
 # addslashes -- Quotes a string with backslahses.
 #
 # Quotes string with backslashes. Single quote, double quote and backslash in
@@ -838,6 +1604,89 @@ func::addslashes() {
     func::str_replace "${1}" '\' '\\'
     func::str_replace "${1}" "'" "\\'"
     func::str_replace "${1}" '"' '\"'
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# base64_decode -- Decodes data with MIME base64.
+#
+# Usage:
+#     // 1. Function form.
+#     void func::base64_decode(string* variable, string data)
+#     // 2. Command form.
+#     void sub::base64_decode(string data) > output
+#     // 3. Stream form.
+#     void stream::base64_decode() < input > output
+func::base64_decode() {
+  if [ "$#" -eq 2 ]; then
+    local __base64_decode_file=''
+    func::tmpfile __base64_decode_file
+    sub::print "${2}" | stream::base64_decode >"${__base64_decode_file}"
+    func::file_get_contents "${1}" "${__base64_decode_file}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+sub::base64_decode() {
+  if [ "$#" -eq 1 ]; then
+    sub::print "${1}" | stream::base64_decode
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+stream::base64_decode() {
+  if [ "$#" -eq 0 ]; then
+    local __base64_decode_file=''
+    func::tmpfile __base64_decode_file
+    tr -cd '[:alnum:]/+' >"${__base64_decode_file}"
+    wc -c <"${__base64_decode_file}" >"${__base64_decode_file}.count"
+    local __base64_decode_count=0
+    func::file_get_contents \
+        __base64_decode_count "${__base64_decode_file}.count"
+    local __base64_decode_suffix='===='
+    sub::print "${__base64_decode_suffix:0:$(( 3 - (__base64_decode_count + 3) % 4 ))}" >>"${__base64_decode_file}"
+    base64 --decode -i "${__base64_decode_file}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# base64_encode -- Encodes data with MIME base64.
+#
+# Usage:
+#     // 1. Function form.
+#     void func::base64_encode(string* variable, string data)
+#     // 2. Command form.
+#     void sub::base64_encode(string data) > output
+#     // 3. Stream form.
+#     void stream::base64_encode() < input > output
+func::base64_encode() {
+  if [ "$#" -eq 2 ]; then
+    local __base64_encode_file=''
+    func::tmpfile __base64_encode_file
+    sub::print "${2}" | stream::base64_encode > "${__base64_encode_file}"
+    func::file_get_contents "${1}" "${__base64_encode_file}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+sub::base64_encode() {
+  if [ "$#" -eq 1 ]; then
+    sub::print "${1}" | stream::base64_encode
+    sub::println
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+stream::base64_encode() {
+  if [ "$#" -eq 0 ]; then
+    # Remove newlines for compatibility.
+    openssl enc -e -base64 | tr -cd '[:print:]'
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
@@ -1017,10 +1866,10 @@ func::implode() {
     done
     func::let "${1}" "${__implode_result}"
   elif [ "$#" -eq 2 ]; then
-    LOG ERROR 'This form is deprecated.'
+    DEPRECATED
     sub::implode "$@"
   elif [ "$#" -eq 1 ]; then
-    LOG ERROR 'This form is deprecated.'
+    DEPRECATED
     stream::implode "$@"
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
@@ -1162,7 +2011,7 @@ sub::ord() {
 #     // 1. Command form.
 #     void sub::print(string message...) > output
 func::print() {
-  LOG ERROR 'This form is deprecated.'
+  DEPRECATED
   printf "%s" "$*"
 }
 
@@ -1181,7 +2030,7 @@ sub::print() {
 #     // 1. Command form.
 #     void sub::println(string message...) > output
 func::println() {
-  LOG ERROR 'This form is deprecated.'
+  DEPRECATED
   printf "%s\n" "$*"
 }
 
@@ -1437,6 +2286,50 @@ stream::strtoupper() {
   fi
 }
 
+# substr -- Returns a substring.
+#
+# substr returns a substring of a string specfied by start and length.
+#
+# Usage:
+#     // 1. Function form.
+#     void func::substr(
+#         string* output, string input, string start, string length)
+#     void func::substr(
+#         string* output, string input, string start)
+#     // 2. Command form.
+#     void sub::substr(string input, string start, string length) > output
+#     void sub::substr(string input, string start) > output
+func::substr() {
+  if [ "$#" -eq 4 ]; then
+    local __substr_size="${#2}"
+    local __substr_start="${3}"
+    local __substr_length="${4}"
+    (( __substr_start = ( __substr_start < 0 )
+                      ? __substr_size + __substr_start : __substr_start,
+       __substr_start = ( __substr_start < 0 ) ? 0 : __substr_start,
+       __substr_length = ( __substr_length < 0 )
+                       ? __substr_size + __substr_length - __substr_start
+                       : __substr_length,
+       __substr_length = ( __substr_length < 0 ) ? 0 : __substr_length
+    )) || true
+    func::let "${1}" "${2:${__substr_start}:${__substr_length}}"
+  elif [ "$#" -eq 3 ]; then
+    func::substr "${1}" "${2}" "${3}" "${#2}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+sub::substr() {
+  if [ "$#" -eq 3 -o "$#" -eq 2 ]; then
+    local __substr_value=''
+    func::substr __substr_value "$@"
+    sub::println "${__substr_value}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
 # trim -- Strips whitespaces from both sides.
 #
 # trim strips whitespaces (or other characters) from the beginning and end of a
@@ -1456,6 +2349,476 @@ func::trim() {
     func::trim "${1}"
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# ASSERT_ALIVE -- Asserts a command successfully dies.
+#
+# ASSERT_ALIVE asserts that a command dies with a zero return value.
+#
+# Usage:
+#     void ASSERT_ALIVE(string arguments,...)
+ASSERT_ALIVE() {
+  __ASSERT EXPECT_ALIVE "$@"
+}
+
+# ASSERT_DEATH -- Asserts a command unsuccessfully dies.
+#
+# ASSERT_DEATH asserts that a command dies with a non-zero return value.
+#
+# Usage:
+#     void ASSERT_DEATH(string arguments,...)
+ASSERT_DEATH() {
+  __ASSERT EXPECT_DEATH "$@"
+}
+
+# ASSERT_EQ -- Asserts two arguments are equal.
+#
+# ASSERT_EQ asserts two arguments are equal.
+#
+# Usage:
+#     void ASSERT_EQ(string expected, string actual)
+#
+# Alias:
+#   ASSERT_STREQ is an alias of ASSERT_EQ.
+ASSERT_EQ() {
+  __ASSERT EXPECT_EQ "$@"
+}
+
+ASSERT_STREQ() {
+  ASSERT_EQ "$@"
+}
+
+# ASSERT_FALSE -- Expects a command fails.
+#
+# ASSERT_FALSE expects the command fails (returns a non-zero value).
+#
+# Usage:
+#     void ASSERT_FALSE(string arguments,...)
+ASSERT_FALSE() {
+  __ASSERT EXPECT_FALSE "$@"
+}
+
+# ASSERT_NE -- Asserts two arguments are not equal.
+#
+# ASSERT_NE asserts two arguments are not equal.
+#
+# Usage:
+#     void ASSERT_NE(string target, string actual)
+#
+# Alias:
+#   ASSERT_STRNE is an alias of ASSERT_NE.
+ASSERT_NE() {
+  __ASSERT EXPECT_NE "$@"
+}
+
+ASSERT_STRNE() {
+  ASSERT_NE "$@"
+}
+
+# ASSERT_TRUE -- Asserts a command succeeds.
+#
+# ASSERT_TRUE asserts the command succeeds (returns 0).
+#
+# Usage:
+#     void ASSERT_TRUE(string arguments,...)
+ASSERT_TRUE() {
+  __ASSERT EXPECT_TRUE "$@"
+}
+
+# EXPECT_ALIVE -- Expects a command successfully exits.
+#
+# EXPECT_ALIVE expects that a command exits with a zero return value.
+#
+# Usage:
+#     void EXPECT_ALIVE(string arguments,...)
+EXPECT_ALIVE() {
+  "$@" &
+  if ! wait "$!"; then
+    LOG ERROR 'Command died unexpectedly:' "$@"
+    FAILURE
+    return
+  fi
+  LOG INFO 'Command did not die as expected:' "$@"
+}
+
+# EXPECT_DEATH -- Expects a command unsuccessfully dies.
+#
+# EXPECT_DEATH expects that a command dies with a non-zero return value.
+#
+# Usage:
+#     void EXPECT_DEATH(string arguments,...)
+EXPECT_DEATH() {
+  "$@" &
+  if wait "$!"; then
+    LOG ERROR 'Command did not die unexpectedly:' "$@"
+    FAILURE
+    return
+  fi
+  LOG INFO 'Command died as expected:' "$@"
+}
+
+# EXPECT_EQ -- Expects two arguments are equal.
+#
+# EXPECT_EQ expects two arguments are equal.
+#
+# Usage:
+#     void EXPECT_EQ(string expected, string actual)
+#
+# Alias:
+#   EXPECT_STREQ is an alias of EXPECT_EQ.
+EXPECT_EQ() {
+  if [ "$#" -eq 2 ]; then
+    if [ "$1" != "$2" ]; then
+      echo "  Actual: $2" >&2
+      echo "Expected: $1" >&2
+      FAILURE
+    fi
+    LOG INFO "EXPECT_EQ passes: '$1' == '$2'"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+EXPECT_STREQ() {
+  EXPECT_EQ "$@"
+}
+
+# EXPECT_FALSE -- Expects a command fails.
+#
+# EXPECT_FALSE expects the command fails (returns a non-zero value).
+#
+# Usage:
+#     void EXPECT_FALSE(string arguments,...)
+EXPECT_FALSE() {
+  if "$@"; then
+    sub::println '  Actual: true' >&2
+    sub::println 'Expected: false' >&2
+    LOG ERROR 'EXPECT_FALSE failed:' "$@"
+    FAILURE
+    return
+  fi
+  LOG INFO 'EXPECT_FALSE passes:' "$@"
+}
+
+# EXPECT_GE -- Expects first one is greater than or equal to second one.
+#
+# EXPECT_GE expects first one is greater than or equal to second one.
+#
+# Usage:
+#     void EXPECT_GE(string target, string actual)
+#     void EXPECT_STRGE(string target, string actual)
+EXPECT_GE() {
+  if [ "$#" -eq 2 ]; then
+    if [ "$1" -lt "$2" ]; then
+      echo "Actual: $2" >&2
+      echo "Target: $1" >&2
+      FAILURE
+    fi
+    LOG INFO "EXPECT_GE passes: '$1' >= '$2'"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+EXPECT_STRGE() {
+  if [ "$#" -eq 2 ]; then
+    if [ "$1" \< "$2" ]; then
+      echo "Actual: $2" >&2
+      echo "Target: $1" >&2
+      FAILURE
+    fi
+    LOG INFO "EXPECT_STRGE passes: '$1' >= '$2'"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+ASSERT_GE() {
+  __ASSERT EXPECT_GE "$@"
+}
+
+ASSERT_STRGE() {
+  __ASSERT EXPECT_STRGE "$@"
+}
+
+# EXPECT_GT -- Expects first one is greater than second one.
+#
+# EXPECT_GT expects first one is greater than second one.
+#
+# Usage:
+#     void EXPECT_GT(string target, string actual)
+#     void EXPECT_STRGT(string target, string actual)
+EXPECT_GT() {
+  if [ "$#" -eq 2 ]; then
+    if [ "$1" -le "$2" ]; then
+      echo "Actual: $2" >&2
+      echo "Target: $1" >&2
+      FAILURE
+    fi
+    LOG INFO "EXPECT_GT passes: '$1' > '$2'"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+EXPECT_STRGT() {
+  if [ "$#" -eq 2 ]; then
+    if [ "$1" \<= "$2" ]; then
+      echo "Actual: $2" >&2
+      echo "Target: $1" >&2
+      FAILURE
+    fi
+    LOG INFO "EXPECT_STRGT passes: '$1' > '$2'"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+ASSERT_GT() {
+  __ASSERT EXPECT_GT "$@"
+}
+
+ASSERT_STRGT() {
+  __ASSERT EXPECT_STRGT "$@"
+}
+
+# EXPECT_LE -- Expects first one is less than or equal to second one.
+#
+# EXPECT_LE expects first one is less than or equal to second one.
+#
+# Usage:
+#     void EXPECT_LE(string target, string actual)
+#     void EXPECT_STRLE(string target, string actual)
+EXPECT_LE() {
+  if [ "$#" -eq 2 ]; then
+    if [ "$1" -gt "$2" ]; then
+      echo "Actual: $2" >&2
+      echo "Target: $1" >&2
+      FAILURE
+    fi
+    LOG INFO "EXPECT_LE passes: '$1' <= '$2'"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+EXPECT_STRLE() {
+  if [ "$#" -eq 2 ]; then
+    if [ "$1" \> "$2" ]; then
+      echo "Actual: $2" >&2
+      echo "Target: $1" >&2
+      FAILURE
+    fi
+    LOG INFO "EXPECT_STRLE passes: '$1' <= '$2'"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+ASSERT_LE() {
+  __ASSERT EXPECT_LE "$@"
+}
+
+ASSERT_STRLE() {
+  __ASSERT EXPECT_STRLE "$@"
+}
+
+# EXPECT_LT -- Expects first one is less than second one.
+#
+# EXPECT_LT expects first one is less than second one.
+#
+# Usage:
+#     void EXPECT_LT(string target, string actual)
+#     void EXPECT_STRLT(string target, string actual)
+EXPECT_LT() {
+  if [ "$#" -eq 2 ]; then
+    if [ "$1" -ge "$2" ]; then
+      echo "Actual: $2" >&2
+      echo "Target: $1" >&2
+      FAILURE
+    fi
+    LOG INFO "EXPECT_LT passes: '$1' < '$2'"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+EXPECT_STRLT() {
+  if [ "$#" -eq 2 ]; then
+    if [ "$1" \>= "$2" ]; then
+      echo "Actual: $2" >&2
+      echo "Target: $1" >&2
+      FAILURE
+    fi
+    LOG INFO "EXPECT_STRLT passes: '$1' < '$2'"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+ASSERT_LT() {
+  __ASSERT EXPECT_LT "$@"
+}
+
+ASSERT_STRLT() {
+  __ASSERT EXPECT_STRLT "$@"
+}
+
+# EXPECT_NE -- Expects two arguments are not equal.
+#
+# EXPECT_NE expects two arguments are not equal.
+#
+# Usage:
+#     void EXPECT_NE(string target, string actual)
+#
+# Alias:
+#   EXPECT_STRNE is an alias of EXPECT_NE.
+EXPECT_NE() {
+  if [ "$#" -eq 2 ]; then
+    if [ "$1" = "$2" ]; then
+      echo "Actual: $2" >&2
+      echo "Target: $1" >&2
+      FAILURE
+    fi
+    LOG INFO "EXPECT_NE passes: '$1' != '$2'"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+EXPECT_STRNE() {
+  EXPECT_NE "$@"
+}
+
+# EXPECT_TRUE -- Expects a command succeeds.
+#
+# EXPECT_TRUE expects the command succeeds (returns 0).
+#
+# Usage:
+#     void EXPECT_TRUE(string arguments,...)
+EXPECT_TRUE() {
+  if ! "$@"; then
+    sub::println '  Actual: false' >&2
+    sub::println 'Expected: true' >&2
+    LOG ERROR 'EXPECT_TRUE failed:' "$@"
+    FAILURE
+    return
+  fi
+  LOG INFO 'EXPECT_TRUE passes:' "$@"
+}
+
+# FAILURE -- Declares a test case failed.
+#
+# FAILURE sets the test case as failed and shows a stack trace.
+#
+# Usage:
+#     void FAILURE()
+FAILURE() {
+  IMOSH_TEST_IS_FAILED=1
+  imosh::stack_trace --skip_imosh '*** Check failure ***'
+}
+
+__ASSERT() {
+  local last_state="${IMOSH_TEST_IS_FAILED}"
+  IMOSH_TEST_IS_FAILED=0
+  "$@"
+  if (( IMOSH_TEST_IS_FAILED )); then
+    exit 1
+  fi
+  IMOSH_TEST_IS_FAILED="${last_state}"
+}
+
+# test_file -- Tests a file.
+#
+# test_file tests test cases in a file.
+#
+# Usage:
+#     void imosh::test_file(string file_path)
+imosh::test_case() {
+  if [ "$#" -eq 1 ]; then
+    IMOSH_TEST_IS_FAILED=0
+    "test::${1}"
+    (( ! IMOSH_TEST_IS_FAILED )) || exit 1
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+imosh::test_file() {
+  if [ "$#" -eq 1 ]; then
+    sub::print   "${IMOSH_COLOR_GREEN}[==========]" >&2
+    sub::println "${IMOSH_STYLE_DEFAULT} Running tests for ${1}." >&2
+    IMOSH_TESTING=0 source "${1}" || exit 1
+    ( ( declare -F | grep 'test::' ) || true ) >"${IMOSH_TMPDIR}/test_func"
+    if [ "$(cat "${IMOSH_TMPDIR}/test_func")" == '' ]; then
+      LOG FATAL "${1} has no test."
+    fi
+    exec 3>&2
+    while read line; do
+      function="${line##*test::}"
+      sub::print   "${IMOSH_COLOR_GREEN}[ RUN      ]" >&2
+      sub::println "${IMOSH_STYLE_DEFAULT} ${function}" >&2
+      {
+        time -p {
+          imosh::test_case "${function}" 2>&1 &
+          wait $!
+        }
+      } 2>"${IMOSH_TMPDIR}/time" \
+        1>"${IMOSH_TMPDIR}/stdout" &
+      if wait $!; then
+        func::file_get_contents time "${IMOSH_TMPDIR}/time"
+        func::greg_replace time '+([[:space:]])' ' '
+        func::trim time
+        sub::print   "${IMOSH_COLOR_GREEN}[       OK ]" >&2
+        sub::println "${IMOSH_STYLE_DEFAULT} ${function} (${time})" >&2
+      else
+        cat "${IMOSH_TMPDIR}/stdout"
+        func::file_get_contents time "${IMOSH_TMPDIR}/time"
+        func::greg_replace time '+([[:space:]])' ' '
+        func::trim time
+        sub::print   "${IMOSH_COLOR_RED}[  FAILED  ]" >&2
+        sub::println "${IMOSH_STYLE_DEFAULT} ${function} (${time})" >&2
+        IMOSH_TEST_IS_FAILED=1
+      fi
+    done <"${IMOSH_TMPDIR}/test_func"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+imosh::test_files() {
+  local IMOSH_TEST_IS_FAILED=0
+  if [ "$#" -eq 1 ]; then
+    imosh::test_file "${1}"
+  else
+    local ppid=()
+    local files=()
+    local file=''
+    local index=0
+    for file in "$@"; do
+      sub::throttle 4
+      "${BASH}" "${BASH_SOURCE}" "${file}" \
+          >"${IMOSH_TMPDIR}/test_index_${index}.stdout" \
+          2>"${IMOSH_TMPDIR}/test_index_${index}.stderr" &
+      ppid+=("$!")
+      files+=("${file}")
+      (( index += 1 ))
+    done
+    index=0
+    while [ "${index}" -lt "${#ppid[*]}" ]; do
+      if ! wait "${ppid[${index}]}"; then
+        IMOSH_TEST_IS_FAILED=1
+        LOG ERROR "${files[${index}]} failed."
+      fi
+      cat "${IMOSH_TMPDIR}/test_index_${index}.stdout"
+      cat "${IMOSH_TMPDIR}/test_index_${index}.stderr" >&2
+      sub::println
+      (( index += 1 ))
+    done
+  fi
+  if (( IMOSH_TEST_IS_FAILED )); then
+    exit 1
   fi
 }
 
@@ -1482,7 +2845,7 @@ func::boolval() {
       fi
     fi
   elif [ "$#" -eq 1 ]; then
-    eval "func::boolval \"\${1}\" \"\${${1}}\"" || return "$?"
+    eval "func::boolval \"\${1}\" \"\${${1}}\" || return \"\$?\""
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
@@ -1509,6 +2872,10 @@ sub::boolval() {
 #     void func::cast_or_die(variant* variable, string type)
 func::cast() {
   if [ "$#" -eq 2 ]; then
+    if [ "${2}" = 'LIST' ]; then
+      func::cast "${1}" 'MULTISTRING' || return "$?"
+      return
+    fi
     case "${2}" in
       'MULTI'*)
         local __cast_values=()
@@ -1560,7 +2927,7 @@ func::floatval() {
     fi
     func::let "${1}" "${BASH_REMATCH[1]}"
   elif [ "$#" -eq 1 ]; then
-    eval "func::floatval \"\${1}\" \"\${${1}}\"" || return "$?"
+    eval "func::floatval \"\${1}\" \"\${${1}}\" || return \"\$?\""
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
@@ -1590,11 +2957,12 @@ sub::floatval() {
 func::intval() {
   if [ "$#" -eq 2 ]; then
     if [[ ! "${2}" =~ ^[[:space:]]*(-?[0-9]+) ]]; then
+      func::let "${1}" 0
       return 1
     fi
     func::let "${1}" "${BASH_REMATCH[1]}"
   elif [ "$#" -eq 1 ]; then
-    eval "func::intval \"\${1}\" \"\${${1}}\"" || return "$?"
+    eval "func::intval \"\${1}\" \"\${${1}}\" || return \"\$?\""
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
@@ -1632,7 +3000,7 @@ func::isset() {
       func::let "${1}" 0
     fi
   elif [ "$#" -eq 1 ]; then
-    LOG ERROR 'This form is deprecated.'
+    DEPRECATED
     sub::isset "$@" || return "$?"
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
@@ -1695,156 +3063,6 @@ sub::strval() {
   fi
 }
 
-CHECK() {
-  IFS=' ' eval 'local __CHECK_message="Check failure: $*"'
-  if [ "$#" -ge 1 ] && [ "${1:0:10}" = '--message=' ]; then
-    __CHECK_message="${1:10}"
-    shift
-  fi
-
-  if [ "$#" -ge 1 ]; then
-    local __CHECK_invert="$1"
-
-    if [ "${__CHECK_invert}" = '!' ]; then
-      shift
-      if "$@"; then
-        IFS=' ' eval 'LOG ERROR "Check failure: ! $*"'
-        LOG FATAL "${__CHECK_message}"
-      fi
-    else
-      if ! "$@"; then
-        IFS=' ' eval 'LOG ERROR "Check failure: $*"'
-        LOG FATAL "${__CHECK_message}"
-      fi
-    fi
-  else
-    LOG ERROR "Wrong number of arguments: $#"
-    return 1
-  fi
-}
-
-imosh::internal::loglevel() {
-  case "$1" in
-    ALL)     echo 0;;
-    INFO)    echo 1;;
-    WARNING) echo 2;;
-    ERROR)   echo 3;;
-    FATAL)   echo 4;;
-    NONE)    echo 5;;
-    *)       LOG FATAL "unknown level: $1";;
-  esac
-}
-
-LOG() {
-  local level="$1"
-  shift
-
-  case "${level}" in
-    INFO|WARNING|ERROR|FATAL) :;;
-    *) LOG FATAL "no such log level: ${level}"
-  esac
-  local datetime="$(date +'%m%d %T.%N')"
-  # For systems not supporting %N in date.
-  datetime="${datetime/.N/.000000}"
-  datetime="${datetime:0:20}"
-  local pid
-  if sub::isset __IMOSH_LOG_PID; then
-    pid="${__IMOSH_LOG_PID}"
-  else
-    func::getmypid pid
-  fi
-  local file="${BASH_SOURCE[1]##*/}"
-  if [ "${file}" = '' ]; then file='-'; fi
-  local message=(
-      "${level:0:1}${datetime}"
-      "${pid}"
-      "${file}:${BASH_LINENO[0]}]"
-      "$@")
-  IFS=' ' eval 'message="${message[*]}"'
-  if ! sub::isset FLAGS_stacktrace_threshold || \
-     [ "${FLAGS_stacktrace_threshold}" = '' ]; then
-    FLAGS_stacktrace_threshold='ERROR'
-  fi
-  if [ "$(imosh::internal::loglevel "${level}")" -ge \
-       "$(imosh::internal::loglevel "${FLAGS_stacktrace_threshold}")" ]; then
-    message+=$'\n'
-    message+="$(imosh::stack_trace "*** LOG ${level} stack trace: ***" 2>&1)"
-  fi
-  local logtostderr=0
-  if sub::isset FLAGS_logtostderr; then
-    logtostderr="${FLAGS_logtostderr}"
-  fi
-  local alsologtostderr=0
-  if sub::isset FLAGS_alsologtostderr; then
-    alsologtostderr="${FLAGS_alsologtostderr}"
-  fi
-  case "${level}" in
-    INFO)
-      if (( logtostderr || alsologtostderr )); then
-        echo "${message}" >&105
-      fi
-      if (( ! logtostderr )); then
-        echo "${message}" >&101
-      fi
-      ;;
-    WARNING)
-      if (( logtostderr || alsologtostderr )); then
-        echo "${message}" >&105
-      fi
-      if (( ! logtostderr )); then
-        echo "${message}" >&101
-        echo "${message}" >&102
-      fi
-      ;;
-    ERROR)
-      echo "${message}" >&105
-      if (( ! logtostderr )); then
-        echo "${message}" >&101
-        echo "${message}" >&102
-        echo "${message}" >&103
-      fi
-      ;;
-    FATAL)
-      echo "${message}" >&105
-      if (( ! logtostderr )); then
-        echo "${message}" >&101
-        echo "${message}" >&102
-        echo "${message}" >&103
-        echo "${message}" >&104
-      fi
-      sub::exit 1
-      ;;
-  esac
-}
-
-imosh::internal::log_file() {
-  local severity="${1}"
-  local path=''
-  if [ "${FLAGS_log_dir}" == '' ]; then
-    return
-  fi
-  path+="${FLAGS_log_dir}/"
-  path+="${__IMOSH_LOG_PREFIX}.${severity}.${__IMOSH_LOG_SUFFIX}"
-  sub::print "${path}"
-}
-
-imosh::internal::init_log() {
-  # Close descriptors for logs beforehand for BASH3's bug.
-  exec 101>&- 102>&- 103>&- 104>&-
-  if [ "${FLAGS_log_dir}" != '' -a -w "${FLAGS_log_dir}" ]; then
-    exec 101>"$(imosh::internal::log_file INFO)"
-    exec 102>"$(imosh::internal::log_file WARNING)"
-    exec 103>"$(imosh::internal::log_file ERROR)"
-    exec 104>"$(imosh::internal::log_file FATAL)"
-    return
-  fi
-  exec 101>/dev/null 102>/dev/null 103>/dev/null 104>/dev/null
-  if [ "${FLAGS_log_dir}" == '' ]; then
-    return
-  fi
-  LOG ERROR "failed to open files to write logs: ${__IMOSH_LOG_DIR}"
-}
-
 # Parses arguments without getopt.
 imosh::internal::parse_args() {
   local class_name="$1"; shift
@@ -1855,6 +3073,12 @@ imosh::internal::parse_args() {
   IMOSH_ARGV=()
   IMOSH_ARGS=()
   while [ "$#" != '0' ]; do
+    if sub::isset IMOSH_PREDICATE &&
+       [ "${upper_class_name}" = 'FLAG' ] &&
+       [ "${#IMOSH_ARGV[*]}" -eq "${IMOSH_PREDICATE}" ]; then
+      IMOSH_ARGV+=("$@")
+      break
+    fi
     local arg="$1"
     shift
     if [ "${arg:0:1}" != '-' ]; then
@@ -1878,136 +3102,80 @@ imosh::internal::parse_args() {
       LOG FATAL "${class_name} name is bad: ${arg_name}"
     fi
     arg_value="${arg:${#arg_name}}"
-    if [ "${arg_value:0:1}" != '=' ]; then
-      if [ "${arg_name:0:2}" = 'no' ]; then
-        if sub::isset "${upper_class_name}S_${arg_name:2}"; then
-          if [ "${class_name}" != 'flag' ] || \
-             [ "$(imosh::internal::flag_type "${arg_name:2}")" = 'BOOL' ]; then
-            IMOSH_ARGS+=("${upper_class_name}S_${arg_name:2}=0")
-            continue
-          fi
+    # If the argument does not have "=", it should be a boolean flag or it
+    # should consume its next argument.
+    if [ "${arg_value:0:1}" = '=' ]; then
+      arg_value="${arg_value:1}"
+    # Preprocess for boolean flags (e.g. --name, --noname) and separated flags
+    # (e.g. --name value).
+    else
+      # If it is a negative boolean flag (--noname).
+      if [ "${arg_name:0:2}" = 'no' ] &&
+         sub::isset "${upper_class_name}S_${arg_name:2}" &&
+         ( [ "${class_name}" != 'flag' ] ||
+           [ "$(imosh::internal::flag_type "${arg_name:2}")" = 'BOOL' ] ); then
+        arg_name="${arg_name:2}"
+        arg_value=0
+      else
+        if ! sub::isset "${upper_class_name}S_${arg_name}"; then
+          LOG FATAL "no such bool ${class_name} is defined:" \
+                    "(${upper_class_name}S_)${arg_name}"
         fi
-      fi
-      if sub::isset "${upper_class_name}S_${arg_name}"; then
         if [ "${class_name}" != 'flag' ] ||
            [ "$(imosh::internal::flag_type "${arg_name}")" = 'BOOL' ]; then
-          IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=1")
-          continue
-        fi
-      fi
-      if ! sub::isset "${upper_class_name}S_${arg_name}"; then
-        LOG FATAL "no such bool ${class_name} is defined:" \
-                  "(${upper_class_name}S_)${arg_name}"
-      fi
-      if [ "$#" -eq 0 ]; then
-        LOG FATAL "the ${arg_name} flag requires a value"
-      fi
-      arg_value="=${1}"
-      shift
-    fi
-    arg_value="${arg_value:1}"
-    if sub::isset "${upper_class_name}S_${arg_name}"; then
-      if [ "${class_name}" = 'flag' ]; then
-        local original_value="${arg_value}"
-        local type="$(imosh::internal::flag_type "${arg_name}")"
-        if [ "${type:0:5}" = 'MULTI' ]; then
-          # TODO(imos): Support delimiter.
-          func::explode arg_value ',' "${arg_value}"
-        fi
-        CHECK \
-            --message="${upper_class_name}S_${arg_name} is invalid: ${arg_value}" \
-            func::cast arg_value "$(imosh::internal::flag_type "${arg_name}")"
-        if [ "${type:0:5}" = 'MULTI' ]; then
-          # Set values here.  FLAGS_* are global variables, and this does not
-          # cause scope issues.
-          func::array_values "${upper_class_name}S_${arg_name}" arg_value
+          arg_value=1
         else
-          IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value}")
+          if [ "$#" -eq 0 ]; then
+            LOG FATAL "the ${arg_name} flag requires a value"
+          fi
+          arg_value="${1}"
+          shift
         fi
-      else
-        IMOSH_ARGS+=("${upper_class_name}S_${arg_name}=${arg_value}")
       fi
-      continue
     fi
-    LOG FATAL "no such ${class_name} is defined:" \
-              "(${upper_class_name}S_)${arg_name}"
+    if [ "${class_name}" = 'flag' ]; then
+      local type="$(imosh::internal::flag_type "${arg_name}")"
+      local single_type="${type}"
+      if [ "${type:0:5}" = 'MULTI' ]; then
+        single_type="${type:5}"
+      fi
+      if [ "${type}" = 'LIST' ]; then
+        # TODO(imos): Support delimiter.
+        func::explode arg_value ',' "${arg_value}"
+      fi
+      CHECK --message="FLAGS_${arg_name} is invalid: ${arg_value}" \
+            func::cast arg_value "${single_type}"
+      local is_default=0
+      func::strcpy 'is_default' "__IMOSH_FLAGS_IS_DEFAULT_${arg_name}"
+      func::let "__IMOSH_FLAGS_IS_DEFAULT_${arg_name}" '0'
+      if [ "${type}" = 'LIST' ]; then
+        # Set values here.  FLAGS_* are global variables, and this does not
+        # cause scope issues.
+        func::array_values "FLAGS_${arg_name}" arg_value
+        continue
+      fi
+      if [ "${type:0:5}" = 'MULTI' ]; then
+        if (( is_default )); then
+          eval "FLAGS_${arg_name}=(\"\${arg_value}\")"
+        else
+          eval "FLAGS_${arg_name}+=(\"\${arg_value}\")"
+        fi
+        continue
+      fi
+    fi
+    if ! sub::isset "${upper_class_name}S_${arg_name}"; then
+      LOG FATAL "No such ${class_name} is defined: ${arg_name}"
+    fi
+    func::str_replace arg_value "'" "'\\''"
+    IMOSH_ARGS+=("${upper_class_name}S_${arg_name}='${arg_value}'")
   done
-}
-
-# imosh::exit
-#
-# Usage:
-#   void imosh::exit(int status = 0)
-#
-# imosh::exit kills all the subprocesses of the root process with the status.
-imosh::exit() {
-  if [ "$#" -eq 0 ]; then
-    set -- 0
-  fi
-  if [ "$#" -eq 1 ]; then
-    local status="$1"
-    echo "${status}" >"${__IMOSH_CORE_TMPDIR}/status"
-
-    local PID=''
-    func::getmypid PID
-    # First, kill all the childs of the current process so that no child
-    # processes spawn new processes.
-    __imosh::kill "${PID}"
-    # Then, try to kill other processes under the root process except this
-    # process.
-    __imosh::kill "${IMOSH_ROOT_PID}"
-    # Send a TERM signal to the root process.
-    kill -TERM "${IMOSH_ROOT_PID}" 2>/dev/null || true
-    # Exit immediately.
-    exit "${status}"
-  else
-    LOG FATAL "Wrong number of aruments: $#"
-  fi
-}
-
-# __imosh::kill
-#
-# Usage:
-#   void __imosh::kill(int pid)
-#
-# __imosh::kill must not be called by functions other than imosh::exit because
-# a killer process `PID` must not be stopped by a signal.
-__imosh::kill() {
-  if [ "$#" -eq 1 ]; then
-    local target_pid="$1"
-    LOG INFO "killing ${target_pid}..."
-    local keep_alive=0
-    if [ "${target_pid}" = "${PID}" -o \
-         "${target_pid}" = "${IMOSH_ROOT_PID}" ]; then
-      keep_alive=1
-    fi
-    if (( ! keep_alive )); then
-      kill -STOP "${target_pid}" 2>/dev/null || true
-    fi
-    export IFS=$' \t\n'
-    local child_pids="$(ps -o ppid,pid | \
-                        grep "^[[:space:]]*${target_pid}[[:space:]]" | \
-                        awk '{ print $2 }')"
-    if [ "${child_pids}" != '' ]; then
-      LOG INFO "Target PID (${target_pid})'s child PIDs are: ${child_pids[*]}"
-      local child=''
-      for child in ${child_pids}; do
-        __imosh::kill "${child}"
-      done
-    else
-      LOG INFO "Target PID (${target_pid}) has no child PIDs."
-    fi
-    if (( ! keep_alive )); then
-      kill -KILL "${target_pid}" 2>/dev/null || true
-    fi
-  else
-    LOG FATAL "Wrong number of arguments: $#"
-  fi
 }
 
 # __IMOSH_FLAGS_TYPE_<flag name>=<flag type>
 # __IMOSH_FLAGS_DESCRIPTION_<flag name>=<description>
+# __IMOSH_FLAGS_GROUP_<flag name>=<group>
 # __IMOSH_FLAGS_ALIASES=(from:to ...)
+# __IMOSH_FLAGS_IS_DEFAULT_<flag name>=<is default>
 
 imosh::internal::flag_type() {
   local name="$1"
@@ -2038,8 +3206,12 @@ imosh::internal::define_flag() {
   if sub::isset "IMOSH_FLAGS_${name}"; then
     func::strcpy default_value "IMOSH_FLAGS_${name}"
   fi
-  if [ "${type:0:5}" = 'MULTI' ]; then
-    func::explode default_value ',' "${default_value}"
+  if [ "${type}" = 'LIST' -o "${type:0:5}" = 'MULTI' ]; then
+    if [ "${default_value}" = '' ]; then
+      default_value=()
+    else
+      func::explode default_value ',' "${default_value}"
+    fi
   fi
   CHECK \
       --message="${name}'s default value is invalid: ${original_default_value}." \
@@ -2047,12 +3219,13 @@ imosh::internal::define_flag() {
   if sub::isset "__IMOSH_FLAGS_TYPE_${name}"; then
     LOG FATAL "already defined flag: ${name}"
   fi
-  if [ "${type:0:5}" = 'MULTI' ]; then
+  if [ "${type}" = 'LIST' -o "${type:0:5}" = 'MULTI' ]; then
     func::array_values "FLAGS_${name}" 'default_value'
   else
     func::strcpy "FLAGS_${name}" 'default_value'
   fi
   func::strcpy "__IMOSH_FLAGS_TYPE_${name}" 'type'
+  func::let "__IMOSH_FLAGS_IS_DEFAULT_${name}" '1'
   if [ "${ARGS_alias}" != '' ]; then
     imosh::internal::define_flag "${type}" --alias_flag \
         "${ARGS_alias}" "${original_default_value}" "${description}"
@@ -2080,6 +3253,9 @@ imosh::internal::define_flag() {
       description+=" (Alias: --${ARGS_alias})"
     fi
     func::let "__IMOSH_FLAGS_DESCRIPTION_${name}" "${description}"
+    if [ "${group}" != 'IMOSH' -a "${group}" != 'MAIN' ]; then
+      func::let "__IMOSH_FLAGS_GROUP_${name}" "${group}"
+    fi
     __IMOSH_FLAGS+=("${group}:${name}")
   fi
 }
@@ -2092,7 +3268,7 @@ DEFINE_multistring() { imosh::internal::define_flag MULTISTRING "$@"; }
 DEFINE_multiint() { imosh::internal::define_flag MULTIINT "$@"; }
 DEFINE_multibool() { imosh::internal::define_flag MULTIBOOL "$@"; }
 DEFINE_multidouble() { imosh::internal::define_flag MULTIDOUBLE "$@"; }
-DEFINE_list() { DEFINE_multistring "$@"; }
+DEFINE_list() { imosh::internal::define_flag LIST "$@"; }
 
 imosh::internal::get_main_script() {
   local depth="${#BASH_SOURCE[*]}"
@@ -2139,7 +3315,7 @@ imosh::internal::flag_groups() {
   if (( main_group_exists )); then
     echo 'main'
   fi
-  if [ "${#groups[*]}" -ne 0 -a "${FLAGS_helpfull}" -ne 0 ]; then
+  if [ "${#groups[*]}" -ne 0 ]; then
     func::array_unique groups
     for group in "${groups[@]}"; do
       echo "${group}"
@@ -2175,7 +3351,7 @@ imosh::internal::group_flags() {
 imosh::internal::man() {
   echo ".TH ${0##*/} 1"; echo
   echo '.SH DESCRIPTION'
-  __imosh::show_usage --format=groff --notitle \
+  sub::usage --format=groff --notitle \
       "$(imosh::internal::get_main_script)"
 
   echo '.SH OPTIONS'
@@ -2195,7 +3371,7 @@ imosh::internal::man() {
 }
 
 imosh::internal::help() {
-  __imosh::show_usage --format=text --notitle \
+  sub::usage --format=text --notitle \
       "$(imosh::internal::get_main_script)"
   echo "OPTIONS:"
   for flag_group in $(imosh::internal::flag_groups); do
@@ -2213,7 +3389,7 @@ imosh::internal::help() {
 }
 
 __imosh::help_markdown() {
-  __imosh::show_usage --format=markdown --notitle \
+  sub::usage --format=markdown --notitle \
       "$(imosh::internal::get_main_script)"
   echo "# Options"
   for flag_group in $(imosh::internal::flag_groups); do
@@ -2240,21 +3416,35 @@ __imosh::help() {
 
 imosh::internal::init() {
   imosh::internal::parse_args flag "$@"
-  if [ "${#IMOSH_ARGS[@]}" -ne 0 ]; then
+  if [ "${#IMOSH_ARGS[*]}" -ne 0 ]; then
     eval "${IMOSH_ARGS[@]}"
   fi
-  imosh::internal::init_log
+  imosh::logging::init
   if [ "${#__IMOSH_FLAGS_ALIASES[*]}" -ne 0 ]; then
     for alias in "${__IMOSH_FLAGS_ALIASES[@]}"; do
       eval "FLAGS_${alias%%:*}=\"\${FLAGS_${alias#*:}}\""
       unset "FLAGS_${alias#*:}"
     done
   fi
+  # Re-assign flag values so as to support flag aliases.
   if [ "${#IMOSH_ARGS[*]}" -ne 0 ]; then
     eval "${IMOSH_ARGS[@]}"
   fi
   if (( FLAGS_help || FLAGS_helpfull )) ||
      [ "${FLAGS_help_format}" != '' ]; then
+    imosh::help
+    exit 0
+  fi
+}
+
+# imosh::help -- Shows help message.
+#
+# This shows a help message as --help flag does.
+#
+# Usage:
+#   void imosh::help()
+imosh::help() {
+  if [ "$#" -eq 0 ]; then
     if [ "${FLAGS_help_format}" = '' ]; then
       if [ -t 1 ]; then
         FLAGS_help_format='groff'
@@ -2269,7 +3459,8 @@ imosh::internal::init() {
     else
       __imosh::help >&2
     fi
-    exit 0
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -2303,290 +3494,8 @@ imosh::stack_trace() {
   done
 }
 
-__imosh::mktemp() {
-  TMPDIR="${TMPDIR:-/tmp}"
-  TMPDIR="${TMPDIR%/}"
-  export TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/imosh.XXXXXX")"
-  if [ "${TMPDIR}" = '' -o "${TMPDIR}" = '/' ]; then
-    LOG FATAL 'failed to create a temporary directory.'
-  fi
-
-  export __IMOSH_CORE_TMPDIR="${TMPDIR}/.imosh"
-  mkdir "${__IMOSH_CORE_TMPDIR}"
-  local tmpdir="${TMPDIR}"
-  func::escapeshellarg tmpdir
-  sub::atexit "rm -rf ${tmpdir}"
-
-  # For backward compatibility.
-  export IMOSH_TMPDIR="${TMPDIR}"
-}
-
-# __imosh::get_usage
-#
-# Usage:
-#   void __imosh::get_usage(string file) > output
-__imosh::get_usage() {
-  local file="$1"
-  local line=''
-  while IFS= read -r line; do
-    case "${line}" in
-      '#!'*) continue;;
-      '# '*) echo "${line:2}";;
-      '#'*)  echo "${line:1}";;
-      *)     break;;
-    esac
-  done < "${file}"
-}
-
-# __imosh::show_usage
-#
-# Usage:
-#     bool __imosh::show_usage(string file) > output
-#
-# Options:
-#   --format=text
-#     Select one fromat from text/markdown/groff.
-#   --title=true
-#     Treat the first line as title.
-#   --markdown_heading=''
-#     Prepend a string to every heading.
-__imosh::show_usage() {
-  local ARGS_format=text ARGS_title=1 ARGS_markdown_heading=''
-  eval "${IMOSH_PARSE_ARGUMENTS}"
-
-  if [ "$#" -eq 1 ]; then
-    local file="$1"
-
-    local usage="$(__imosh::get_usage "$1")"
-    if [ "${usage}" = '' ]; then
-      return
-    fi
-
-    local line='' first_line="${ARGS_title}" no_read=0
-    while :; do
-      if (( ! no_read )) && ! IFS= read -r line; then
-        break
-      fi
-      no_read=0
-      if [ "${ARGS_format}" = 'text' ]; then
-        echo "${line}"
-        continue
-      fi
-      func::rtrim line
-      if (( first_line )); then
-        case "${ARGS_format}" in
-          groff)    echo ".TH ${line} 1";;
-          markdown) echo "${ARGS_markdown_heading} ${line}";;
-        esac
-        first_line=0
-        continue
-      fi
-      if sub::greg_match '*:' "${line}"; then
-        local title="${line%:}"
-        func::strtoupper title
-        case "${ARGS_format}" in
-          groff)    echo ".SH ${title}";;
-          markdown) echo "${ARGS_markdown_heading}# ${line%:}";;
-        esac
-        continue
-      fi
-
-      local code_mode=0
-      while [ "${line:0:4}" = '    ' ]; do
-        if (( ! code_mode )); then
-          case "${ARGS_format}" in
-            groff)    echo '.Bd -literal -offset indent';;
-            markdown) echo '```sh';;
-          esac
-          code_mode=1
-        fi
-        case "${ARGS_format}" in
-          groff)    echo "${line#'    '}";;
-          markdown) echo "${line#'    '}";;
-        esac
-        code_mode=1
-        if ! IFS= read -r line; then break; fi
-      done
-      if (( code_mode )); then
-        case "${ARGS_format}" in
-          groff)    echo '.Ed';;
-          markdown) echo '```'
-                    echo;;
-        esac
-        no_read=1
-        continue
-      fi
-
-      if sub::greg_match '*( )-*' "${line}"; then
-        func::ltrim line
-        if [ "${line:0:2}" = '- ' ]; then
-          line="${line:2}"
-        fi
-        case "${ARGS_format}" in
-          groff)    echo '.TP'
-                    echo ".B ${line}";;
-          markdown) echo "* ${line}";;
-        esac
-        local item_first_line=1
-        while IFS= read -r line; do
-          if sub::greg_match '*( )-*' "${line}" || \
-             sub::greg_match '*([[:space:]])' "${line}"; then
-            break
-          fi
-          func::ltrim line
-          case "${ARGS_format}" in
-            groff)    echo "${line}";;
-            markdown)
-              if (( item_first_line )); then
-                echo "    * ${line}"
-                item_first_line=0
-              else
-                echo "      ${line}"
-              fi
-              ;;
-          esac
-        done
-        no_read=1
-        continue
-      fi
-      echo "${line}"
-    done <<<"${usage}"
-    echo
-  else
-    LOG FATAL "Wrong number of arguments: $#"
-  fi
-}
-
-ASSERT() {
-  local last_state="${IMOSH_TEST_IS_FAILED}"
-  IMOSH_TEST_IS_FAILED=0
-  "$@"
-  if (( IMOSH_TEST_IS_FAILED )); then
-    exit 1
-  fi
-  IMOSH_TEST_IS_FAILED="${last_state}"
-}
-
-FAILURE() {
-  IMOSH_TEST_IS_FAILED=1
-  imosh::stack_trace --skip_imosh '*** Check failure ***'
-}
-
-EXPECT_TRUE() {
-  if ! "$@"; then
-    echo '  Actual: false' >&2
-    echo 'Expected: true' >&2
-    FAILURE
-    return 1
-  fi
-  IFS=' ' eval 'LOG INFO "EXPECT_TRUE passes: $*"'
-}
-
-EXPECT_FALSE() {
-  if "$@"; then
-    echo '  Actual: true' >&2
-    echo 'Expected: false' >&2
-    FAILURE
-    return 1
-  fi
-  IFS=' ' eval 'LOG INFO "EXPECT_FALSE passes: $*"'
-}
-
-ASSERT_TRUE() {
-  ASSERT EXPECT_TRUE "$@"
-}
-
-ASSERT_FALSE() {
-  ASSERT EXPECT_FALSE "$@"
-}
-
-# EXPECT_DEATH, EXPECT_ALIVE, ASSERT_DEATH, ASSERT_ALIVE
-#
-# Usage:
-#   bool EXPECT_DEATH(string arguments...)
-#   bool EXPECT_ALIVE(string arguments...)
-#   void ASSERT_DEATH(string arguments...)
-#   void ASSERT_ALIVE(string arguments...)
-EXPECT_DEATH() {
-  "$@" &
-  if wait "$!"; then
-    IFS=' ' eval 'LOG ERROR "Command did not die unexpectedly: $*"'
-    return 1
-  fi
-  IFS=' ' eval 'LOG INFO "Command died as expected: $*"'
-}
-
-EXPECT_ALIVE() {
-  "$@" &
-  if ! wait "$!"; then
-    IFS=' ' eval 'LOG ERROR "Command died unexpectedly: $*"'
-    return 1
-  fi
-  IFS=' ' eval 'LOG INFO "Command did not die as expected: $*"'
-}
-
-ASSERT_DEATH() { ASSERT EXPECT_DEATH "$@"; }
-ASSERT_ALIVE() { ASSERT EXPECT_ALIVE "$@"; }
-
-# EXPECT_EQ, ASSERT_EQ -- Check if two values are equal.
-#
-# Usage:
-#   bool EXPECT_EQ(string expected, string actual)
-#   void ASSERT_EQ(string expected, string actual)
-#
-# Aliases:
-#   EXPECT_STREQ is an alias of EXPECT_EQ, and ASSERT_STREQ is an alias of
-#   ASSERT_EQ.
-EXPECT_EQ() {
-  if [ "$#" -ne 2 ]; then
-    LOG ERROR 'EXPECT_EQ requires two arguments.'
-    return 1
-  fi
-  if [ "$1" != "$2" ]; then
-    echo "  Actual: $2" >&2
-    echo "Expected: $1" >&2
-    FAILURE
-    return 1
-  fi
-  LOG INFO "EXPECT_EQ passes: '$1' == '$2'"
-}
-
-ASSERT_EQ() {
-  ASSERT EXPECT_EQ "$@"
-}
-
-EXPECT_STREQ() { EXPECT_EQ "$@"; }
-ASSERT_STREQ() { ASSERT_EQ "$@"; }
-
-# EXPECT_NE, ASSERT_NE -- Check if two values are not equal.
-#
-# Usage:
-#   bool EXPECT_NE(string expected, string actual)
-#   void ASSERT_NE(string expected, string actual)
-#
-# Aliases:
-#   EXPECT_STRNE is an alias of EXPECT_NE, and ASSERT_STRNE is an alias of
-#   ASSERT_NE.
-EXPECT_NE() {
-  if [ "$#" -ne 2 ]; then
-    LOG ERROR 'EXPECT_NE requires two arguments.'
-    return 1
-  fi
-  if [ "$1" = "$2" ]; then
-    echo "Actual: $2" >&2
-    echo "Target: $1" >&2
-    FAILURE
-    return 1
-  fi
-  LOG INFO "EXPECT_NE passes: '$1' != '$2'"
-}
-
-ASSERT_NE() {
-  ASSERT EXPECT_NE "$@"
-}
-
-EXPECT_STRNE() { EXPECT_NE "$@"; }
-ASSERT_STRNE() { ASSERT_NE "$@"; }
+# IMOSH_PREDICATE declares the number of predicates.
+unset IMOSH_PREDICATE
 
 # Return if imosh is reloaded.  Operations in 50+ run level may have
 # destructive operations, so they are skipped in reloading.
@@ -2612,7 +3521,10 @@ readonly IMOSH_PARSE_ARGUMENTS='
     local IMOSH_ARGV IMOSH_ARGS
     imosh::internal::parse_args arg "$@"
     if [ "${#IMOSH_ARGS[*]}" -ne 0 ]; then
-      readonly "${IMOSH_ARGS[@]}"
+      local __imosh_parse_arguments_arg=""
+      for __imosh_parse_arguments_arg in "${IMOSH_ARGS[@]}"; do
+        eval "local ${__imosh_parse_arguments_arg}"
+      done
     fi
     if [ "${#IMOSH_ARGV[*]}" -ne 0 ]; then
       set -- "${IMOSH_ARGV[@]}"
@@ -2646,12 +3558,6 @@ if ! sub::isset UNAME; then
   UNAME="$(uname)"
 fi
 
-__IMOSH_PROGRAM_NAME="${0##*/}"
-__IMOSH_HOSTNAME="$(hostname -s)"
-__IMOSH_USER="$(whoami)"
-__IMOSH_LOG_PREFIX="${__IMOSH_PROGRAM_NAME}.${__IMOSH_HOSTNAME}.${__IMOSH_USER}"
-__IMOSH_LOG_SUFFIX="$(date +'%Y%m%d.%H%M%S').$$"
-
 __imosh::error_handler() {
   local exit_code="$?"
   __IMOSH_STACK_TRACED=1
@@ -2660,36 +3566,44 @@ __imosh::error_handler() {
 
 trap '__imosh::error_handler' ERR
 
-__imosh::exit_handler() {
-  local exit_code="$?"
-  if (( exit_code && ! __IMOSH_STACK_TRACED )); then
-    imosh::stack_trace "error status: ${exit_code}"
-  fi
-
-  local pid=''
-  func::getmypid pid
-  if [ "${pid}" != "${IMOSH_ROOT_PID}" ]; then
-    LOG INFO 'finalizing a child process...'
-    return
-  fi
-
-  LOG INFO 'finalizing...'
-
+__imosh::exit_handler::atexit() {
+  # Stop checking exit statuses because this is inside exit_handler, and it is
+  # impossible to output a stacktrace for an irregular exit status.
   set +e
   if [ -f "${__IMOSH_CORE_TMPDIR}/atexit.sh" ]; then
     source "${__IMOSH_CORE_TMPDIR}/atexit.sh"
   fi
-  rm -rf "${__IMOSH_CORE_TMPDIR}"
+}
 
-  # Close log pipes and remove unused log files.
+__imosh::exit_handler() {
+  local exit_code="$?"
+
+  # Revert the EXIT trap to prevent an infinite loop.
+  trap - EXIT
+
+  # Output a stacktrace if the script does not output a stacktrace for the
+  # error.  (signal_handler may output a stacktrace before calling this.)
+  if (( exit_code && ! __IMOSH_STACK_TRACED )); then
+    imosh::stack_trace "Error status: ${exit_code}"
+  fi
+
+  # Check the current process is not the root process so as not to remove the
+  # root process's temporary directory.
+  local pid=''
+  func::getmypid pid
+  if [ "${pid}" != "${IMOSH_ROOT_PID}" ]; then
+    LOG INFO 'Finalizing a child process...'
+    return
+  fi
+
+  __imosh::exit_handler::atexit &
+  if ! wait "$!"; then
+    LOG ERROR 'Failed to run atexit entirely.'
+  fi
+  rm -R -f "${IMOSH_TMPDIR}"
+
+  # Close log pipes.
   exec 101>&- 102>&- 103>&- 104>&-
-  local severity=''
-  for severity in INFO WARNING ERROR FATAL; do
-    local path="$(imosh::internal::log_file "${severity}")"
-    if [ "${path}" != '' -a ! -s "${path}" ]; then
-      rm "${path}"
-    fi
-  done
 }
 
 trap '__imosh::exit_handler' EXIT
@@ -2697,17 +3611,16 @@ trap '__imosh::exit_handler' EXIT
 __imosh::signal_handler() {
   local signal="$1"
   trap - "${signal}"
-  local PID=''
-  func::getmypid PID
-  if [ "${PID}" == "${IMOSH_ROOT_PID}" ]; then
-    LOG INFO 'killing child processes.'
-    __imosh::kill "${IMOSH_ROOT_PID}"
-    if [ -f "${__IMOSH_CORE_TMPDIR}/status" ]; then
-      exit "$(cat "${__IMOSH_CORE_TMPDIR}/status")"
+  local pid=''
+  func::getmypid pid
+  if [ "${pid}" = "${IMOSH_ROOT_PID}" ]; then
+    __sub::exit "${pid}" "${pid}"
+    if [ -f "${__IMOSH_CORE_TMPDIR}/EXIT" ]; then
+      exit "$(cat "${__IMOSH_CORE_TMPDIR}/EXIT")"
     fi
   fi
-  LOG ERROR "$(imosh::stack_trace "terminated by signal: ${signal}" 2>&1)"
-  kill -s "${signal}" "${PID}"
+  LOG ERROR "$(imosh::stack_trace "Terminated by signal: ${signal}" 2>&1)"
+  kill -s "${signal}" "${pid}"
 }
 
 if ! shopt login_shell >/dev/null; then
@@ -2722,25 +3635,92 @@ exec 101>&- 102>&- 103>&- 104>&-
 # Open descriptors for LOG without calling init_log.
 exec 101>/dev/null 102>/dev/null 103>/dev/null 104>/dev/null
 # Redirect log output to the current STDERR.
+exec 105>&-
 exec 105>&2
 
 # Prepares a temporary directory and sets its path to TMPDIR.
-__imosh::mktemp
+TMPDIR="${TMPDIR:-/tmp}"
+TMPDIR="${TMPDIR%/}"
+export TMPDIR="${TMPDIR}/imosh.${RANDOM}.${RANDOM}.${RANDOM}.${RANDOM}"
+export IMOSH_TMPDIR="${TMPDIR}"
+export __IMOSH_CORE_TMPDIR="${TMPDIR}/.imosh"
+if ! mkdir -p "${__IMOSH_CORE_TMPDIR}"; then
+  LOG FATAL "Failed to create a temporary directory: ${__IMOSH_CORE_TMPDIR}"
+fi
 
-DEFINE_bool --group=imosh --alias=h help false \
-    'Print this help message and exit.'
-DEFINE_bool --group=imosh helpfull false \
-    'Print all the help message.'
-DEFINE_bool --group=imosh 'alsologtostderr' false \
-    'Log messages go to stderr in addition to logfiles.'
-DEFINE_bool --group=imosh 'logtostderr' false \
-    'Log messages go to stderr instead of logfiles.'
-DEFINE_string --group=imosh 'log_dir' '' \
-    'Directory to output log files.  Output no files if this flag is empty.'
-DEFINE_string --group=imosh 'stacktrace_threshold' 'FATAL' \
-    'Threshold to show stacktrace.'
-DEFINE_string --group=imosh 'help_format' '' \
-    'Help format to output.'
+if sub::isset IMOSH_USE_DEFINE_FLAGS && (( IMOSH_USE_DEFINE_FLAGS )); then
+  DEFINE_bool --group=imosh --alias=h help false \
+      'Print this help message and exit.'
+  DEFINE_bool --group=imosh helpfull false \
+      'Print all the help message.'
+  DEFINE_bool --group=imosh 'alsologtostderr' false \
+      'Log messages go to stderr in addition to logfiles.'
+  DEFINE_bool --group=imosh 'logtostderr' false \
+      'Log messages go to stderr instead of logfiles.'
+  DEFINE_string --group=imosh 'log_dir' '' \
+      'Directory to output log files.  Output no files if this flag is empty.'
+  DEFINE_string --group=imosh 'stacktrace_threshold' 'FATAL' \
+      'Threshold to show stacktrace.'
+  DEFINE_string --group=imosh 'help_format' '' \
+      'Help format to output.'
+  DEFINE_string --group=imosh 'imosh_test' '' \
+      'Test files to test.'
+else
+  :
+
+# This is automatically generated by print-flag-variables.
+FLAGS_alsologtostderr=0
+FLAGS_h=0
+FLAGS_help=0
+FLAGS_help_format=
+FLAGS_helpfull=0
+FLAGS_imosh_test=
+FLAGS_log_dir=
+FLAGS_logtostderr=0
+FLAGS_stacktrace_threshold=FATAL
+__IMOSH_FLAGS=([0]="IMOSH:help" [1]="IMOSH:helpfull" [2]="IMOSH:alsologtostderr" [3]="IMOSH:logtostderr" [4]="IMOSH:log_dir" [5]="IMOSH:stacktrace_threshold" [6]="IMOSH:help_format" [7]="IMOSH:imosh_test")
+__IMOSH_FLAGS_ALIASES=([0]="help:h")
+__IMOSH_FLAGS_DEFAULT_alsologtostderr=--alsologtostderr=false
+__IMOSH_FLAGS_DEFAULT_help=--help=false
+__IMOSH_FLAGS_DEFAULT_help_format='--help_format='\'''\'''
+__IMOSH_FLAGS_DEFAULT_helpfull=--helpfull=false
+__IMOSH_FLAGS_DEFAULT_imosh_test='--imosh_test='\'''\'''
+__IMOSH_FLAGS_DEFAULT_log_dir='--log_dir='\'''\'''
+__IMOSH_FLAGS_DEFAULT_logtostderr=--logtostderr=false
+__IMOSH_FLAGS_DEFAULT_stacktrace_threshold='--stacktrace_threshold='\''FATAL'\'''
+__IMOSH_FLAGS_DESCRIPTION_alsologtostderr='Log messages go to stderr in addition to logfiles.'
+__IMOSH_FLAGS_DESCRIPTION_help='Print this help message and exit. (Alias: --h)'
+__IMOSH_FLAGS_DESCRIPTION_help_format='Help format to output.'
+__IMOSH_FLAGS_DESCRIPTION_helpfull='Print all the help message.'
+__IMOSH_FLAGS_DESCRIPTION_imosh_test='Test files to test.'
+__IMOSH_FLAGS_DESCRIPTION_log_dir='Directory to output log files.  Output no files if this flag is empty.'
+__IMOSH_FLAGS_DESCRIPTION_logtostderr='Log messages go to stderr instead of logfiles.'
+__IMOSH_FLAGS_DESCRIPTION_stacktrace_threshold='Threshold to show stacktrace.'
+__IMOSH_FLAGS_IS_DEFAULT_alsologtostderr=1
+__IMOSH_FLAGS_IS_DEFAULT_h=1
+__IMOSH_FLAGS_IS_DEFAULT_help=1
+__IMOSH_FLAGS_IS_DEFAULT_help_format=1
+__IMOSH_FLAGS_IS_DEFAULT_helpfull=1
+__IMOSH_FLAGS_IS_DEFAULT_imosh_test=1
+__IMOSH_FLAGS_IS_DEFAULT_log_dir=1
+__IMOSH_FLAGS_IS_DEFAULT_logtostderr=1
+__IMOSH_FLAGS_IS_DEFAULT_stacktrace_threshold=1
+__IMOSH_FLAGS_TYPE_alsologtostderr=BOOL
+__IMOSH_FLAGS_TYPE_h=BOOL
+__IMOSH_FLAGS_TYPE_help=BOOL
+__IMOSH_FLAGS_TYPE_help_format=STRING
+__IMOSH_FLAGS_TYPE_helpfull=BOOL
+__IMOSH_FLAGS_TYPE_imosh_test=STRING
+__IMOSH_FLAGS_TYPE_log_dir=STRING
+__IMOSH_FLAGS_TYPE_logtostderr=BOOL
+__IMOSH_FLAGS_TYPE_stacktrace_threshold=STRING
+
+fi
 
 __IMOSH_IS_LOADED=1
+
+if sub::is_main; then
+  eval "${IMOSH_INIT}"
+  imosh::test_files "$@"
+fi
 

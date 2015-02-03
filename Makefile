@@ -1,3 +1,5 @@
+BASH=/bin/bash
+
 concat:
 	@echo '#!/bin/bash' >imosh
 	@echo '# imosh is a utility library for BASH.' >>imosh
@@ -17,15 +19,26 @@ concat:
 	@chmod +x imosh
 	@chmod +x tool/update-readme.sh
 	@./tool/update-readme.sh
+	@IMOSH_USE_DEFINE_FLAGS=1 \
+	    ./tool/print-flag-variables.sh > library/90-flags/50-variables.sh
 .PHONY: concat
 
-test: concat
-	bash --version
+all: info bug test
+
+info:
+	$(BASH) --version
 	env
-	bash -c shopt
-	@if ! bash test/main.sh test/*_test.sh test/*/*_test.sh; then exit 1; fi
+	$(BASH) -c shopt
+.PHONY: info
+
+bug:
+	-@$(BASH) ./imosh test/bash_bug.sh
+.PHONY: bug
+
+test: concat
+	@if ! $(BASH) ./imosh test/*_test.sh test/*/*_test.sh; then exit 1; fi
 .PHONY: test
 
 benchmark: concat
-	@time bash -c "for i in {1..10}; do bash -c '. ./imosh'; done"
+	@time $(BASH) -c "for i in {1..10}; do $(BASH) -c '. ./imosh'; done"
 .PHONY: benchmark

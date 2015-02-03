@@ -33,10 +33,10 @@ func::implode() {
     done
     func::let "${1}" "${__implode_result}"
   elif [ "$#" -eq 2 ]; then
-    LOG ERROR 'This form is deprecated.'
+    DEPRECATED
     sub::implode "$@"
   elif [ "$#" -eq 1 ]; then
-    LOG ERROR 'This form is deprecated.'
+    DEPRECATED
     stream::implode "$@"
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"

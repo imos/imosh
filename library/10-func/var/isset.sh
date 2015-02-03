@@ -20,7 +20,7 @@ func::isset() {
       func::let "${1}" 0
     fi
   elif [ "$#" -eq 1 ]; then
-    LOG ERROR 'This form is deprecated.'
+    DEPRECATED
     sub::isset "$@" || return "$?"
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
