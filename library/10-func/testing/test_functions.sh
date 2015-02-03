@@ -70,7 +70,7 @@ imosh::test_files() {
     local index=0
     for file in "$@"; do
       sub::throttle 4
-      "${BASH}" "${BASH_SOURCE}" "${file}" \
+      "${BASH}" test/main.sh "${file}" \
           >"${IMOSH_TMPDIR}/test_index_${index}.stdout" \
           2>"${IMOSH_TMPDIR}/test_index_${index}.stderr" &
       ppid+=("$!")
