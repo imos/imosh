@@ -30,14 +30,12 @@ imosh::test_file() {
       sub::println "${IMOSH_STYLE_DEFAULT} ${function}" >&2
       {
         time -p {
-          imosh::test_case "${function}" 2>&3 &
+          imosh::test_case "${function}" 2>&1 &
           wait $!
         }
       } 2>"${IMOSH_TMPDIR}/time" \
-        1>"${IMOSH_TMPDIR}/stdout" \
-        3>"${IMOSH_TMPDIR}/stderr" &
+        1>"${IMOSH_TMPDIR}/stdout" &
       if wait $!; then
-        cat "${IMOSH_TMPDIR}/stderr" >&2
         func::file_get_contents time "${IMOSH_TMPDIR}/time"
         func::greg_replace time '+([[:space:]])' ' '
         func::trim time
@@ -45,7 +43,6 @@ imosh::test_file() {
         sub::println "${IMOSH_STYLE_DEFAULT} ${function} (${time})" >&2
       else
         cat "${IMOSH_TMPDIR}/stdout"
-        cat "${IMOSH_TMPDIR}/stderr" >&2
         func::file_get_contents time "${IMOSH_TMPDIR}/time"
         func::greg_replace time '+([[:space:]])' ' '
         func::trim time
