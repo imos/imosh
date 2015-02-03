@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2015-02-03 09:53:29 +0900 (9092953)'
+IMOSH_VERSION='2015-02-03 10:21:39 +0900 (405c921)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -3689,9 +3689,7 @@ fi
 __IMOSH_IS_LOADED=1
 
 if sub::is_main; then
-  if sub::isset 'IMOSH_TESTING' && (( IMOSH_TESTING )); then
-    eval "${IMOSH_INIT}"
-    imosh::test_files "$@"
-  fi
+  eval "${IMOSH_INIT}"
+  imosh::test_files "$@"
 fi
 

@@ -32,11 +32,11 @@ info:
 .PHONY: info
 
 bug:
-	-@$(BASH) IMOSH_TESTING=1 ./imosh test/bash_bug.sh
+	-@$(BASH) ./imosh test/bash_bug.sh
 .PHONY: bug
 
 test: concat
-	@if ! IMOSH_TESTING=1 $(BASH) ./imosh test/*_test.sh test/*/*_test.sh; then exit 1; fi
+	@if ! $(BASH) ./imosh test/*_test.sh test/*/*_test.sh; then exit 1; fi
 .PHONY: test
 
 benchmark: concat
