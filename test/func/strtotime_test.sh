@@ -61,6 +61,7 @@ test::strtotime() {
   run_fixed_datetime '2006-01-03 00:04:05 +0900'
   run_fixed_datetime '2006-01-02T15:04:05Z'
   run_fixed_datetime '2006-01-03T00:04:05+0900'
+  run_fixed_datetime '2006-01-03T00:04:05+09:00'
   # UNIX timestamp format.
   run_fixed_datetime '1136214245'
   run_fixed_datetime '@1136214245'
