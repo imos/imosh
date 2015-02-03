@@ -6,8 +6,8 @@
 sub::is_main() {
   if [ "$#" -eq 0 ]; then
     local __is_main_depth="${#BASH_SOURCE[*]}"
-    if [ "${BASH_SOURCE[0]}" = \
-         "${BASH_SOURCE[$((__is_main_depth - 2))]}" ]; then
+    if [ "${BASH_SOURCE[1]}" = \
+         "${BASH_SOURCE[$((__is_main_depth - 1))]}" ]; then
       return 0
     else
       return 1

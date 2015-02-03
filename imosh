@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2015-02-03 09:43:14 +0900 (92b53b3)'
+IMOSH_VERSION='2015-02-03 09:53:29 +0900 (9092953)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -1075,8 +1075,8 @@ sub::getmypid() {
 sub::is_main() {
   if [ "$#" -eq 0 ]; then
     local __is_main_depth="${#BASH_SOURCE[*]}"
-    if [ "${BASH_SOURCE[0]}" = \
-         "${BASH_SOURCE[$((__is_main_depth - 2))]}" ]; then
+    if [ "${BASH_SOURCE[1]}" = \
+         "${BASH_SOURCE[$((__is_main_depth - 1))]}" ]; then
       return 0
     else
       return 1
@@ -2800,7 +2800,7 @@ imosh::test_files() {
     local index=0
     for file in "$@"; do
       sub::throttle 4
-      "${BASH}" test/main.sh "${file}" \
+      "${BASH}" "${BASH_SOURCE}" "${file}" \
           >"${IMOSH_TMPDIR}/test_index_${index}.stdout" \
           2>"${IMOSH_TMPDIR}/test_index_${index}.stderr" &
       ppid+=("$!")
@@ -3690,6 +3690,7 @@ __IMOSH_IS_LOADED=1
 
 if sub::is_main; then
   if sub::isset 'IMOSH_TESTING' && (( IMOSH_TESTING )); then
+    eval "${IMOSH_INIT}"
     imosh::test_files "$@"
   fi
 fi
