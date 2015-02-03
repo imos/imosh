@@ -70,17 +70,31 @@ imosh::internal::parse_args() {
     fi
     if [ "${class_name}" = 'flag' ]; then
       local type="$(imosh::internal::flag_type "${arg_name}")"
+      local single_type="${type}"
       if [ "${type:0:5}" = 'MULTI' ]; then
+        single_type="${type:5}"
+      fi
+      if [ "${type}" = 'LIST' ]; then
         # TODO(imos): Support delimiter.
         func::explode arg_value ',' "${arg_value}"
       fi
-      CHECK \
-          --message="${upper_class_name}S_${arg_name} is invalid: ${arg_value}" \
-          func::cast arg_value "$(imosh::internal::flag_type "${arg_name}")"
-      if [ "${type:0:5}" = 'MULTI' ]; then
+      CHECK --message="FLAGS_${arg_name} is invalid: ${arg_value}" \
+            func::cast arg_value "${single_type}"
+      local is_default=0
+      func::strcpy 'is_default' "__IMOSH_FLAGS_IS_DEFAULT_${arg_name}"
+      func::let "__IMOSH_FLAGS_IS_DEFAULT_${arg_name}" '0'
+      if [ "${type}" = 'LIST' ]; then
         # Set values here.  FLAGS_* are global variables, and this does not
         # cause scope issues.
-        func::array_values "${upper_class_name}S_${arg_name}" arg_value
+        func::array_values "FLAGS_${arg_name}" arg_value
+        continue
+      fi
+      if [ "${type:0:5}" = 'MULTI' ]; then
+        if (( is_default )); then
+          eval "FLAGS_${arg_name}=(\"\${arg_value}\")"
+        else
+          eval "FLAGS_${arg_name}+=(\"\${arg_value}\")"
+        fi
         continue
       fi
     fi

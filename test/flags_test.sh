@@ -93,6 +93,33 @@ test::string_flag() {
   done
 }
 
+test::flags::multiint() {
+  local pids=()
+
+  run_testcase $'1\n10\n100' --flag=multiint
+  run_testcase '1' --flag=multiint --multiint=1
+  run_testcase $'1\n2' --flag=multiint --multiint=1 --multiint=2
+
+  for pid in "${pids[@]}"; do
+    if ! wait "${pid}"; then
+      IMOSH_TEST_IS_FAILED=1
+    fi
+  done
+}
+
+test::flags::list() {
+  local pids=()
+
+  run_testcase $'a\nb\nc' --flag=list
+  run_testcase $'aaa\nbbb' --flag=list --list=aaa,bbb
+
+  for pid in "${pids[@]}"; do
+    if ! wait "${pid}"; then
+      IMOSH_TEST_IS_FAILED=1
+    fi
+  done
+}
+
 test::flags::argv() {
   run_testcase 'foo' --show_argv --bool foo
   run_testcase 'foo' --show_argv foo

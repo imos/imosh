@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2015-02-03 10:24:58 +0900 (8dd26ee)'
+IMOSH_VERSION='2015-02-03 22:43:00 +0900 (ebe03c4)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -2871,6 +2871,10 @@ sub::boolval() {
 #     void func::cast_or_die(variant* variable, string type)
 func::cast() {
   if [ "$#" -eq 2 ]; then
+    if [ "${2}" = 'LIST' ]; then
+      func::cast "${1}" 'MULTISTRING' || return "$?"
+      return
+    fi
     case "${2}" in
       'MULTI'*)
         local __cast_values=()
@@ -3130,17 +3134,31 @@ imosh::internal::parse_args() {
     fi
     if [ "${class_name}" = 'flag' ]; then
       local type="$(imosh::internal::flag_type "${arg_name}")"
+      local single_type="${type}"
       if [ "${type:0:5}" = 'MULTI' ]; then
+        single_type="${type:5}"
+      fi
+      if [ "${type}" = 'LIST' ]; then
         # TODO(imos): Support delimiter.
         func::explode arg_value ',' "${arg_value}"
       fi
-      CHECK \
-          --message="${upper_class_name}S_${arg_name} is invalid: ${arg_value}" \
-          func::cast arg_value "$(imosh::internal::flag_type "${arg_name}")"
-      if [ "${type:0:5}" = 'MULTI' ]; then
+      CHECK --message="FLAGS_${arg_name} is invalid: ${arg_value}" \
+            func::cast arg_value "${single_type}"
+      local is_default=0
+      func::strcpy 'is_default' "__IMOSH_FLAGS_IS_DEFAULT_${arg_name}"
+      func::let "__IMOSH_FLAGS_IS_DEFAULT_${arg_name}" '0'
+      if [ "${type}" = 'LIST' ]; then
         # Set values here.  FLAGS_* are global variables, and this does not
         # cause scope issues.
-        func::array_values "${upper_class_name}S_${arg_name}" arg_value
+        func::array_values "FLAGS_${arg_name}" arg_value
+        continue
+      fi
+      if [ "${type:0:5}" = 'MULTI' ]; then
+        if (( is_default )); then
+          eval "FLAGS_${arg_name}=(\"\${arg_value}\")"
+        else
+          eval "FLAGS_${arg_name}+=(\"\${arg_value}\")"
+        fi
         continue
       fi
     fi
@@ -3156,6 +3174,7 @@ imosh::internal::parse_args() {
 # __IMOSH_FLAGS_DESCRIPTION_<flag name>=<description>
 # __IMOSH_FLAGS_GROUP_<flag name>=<group>
 # __IMOSH_FLAGS_ALIASES=(from:to ...)
+# __IMOSH_FLAGS_IS_DEFAULT_<flag name>=<is default>
 
 imosh::internal::flag_type() {
   local name="$1"
@@ -3186,8 +3205,12 @@ imosh::internal::define_flag() {
   if sub::isset "IMOSH_FLAGS_${name}"; then
     func::strcpy default_value "IMOSH_FLAGS_${name}"
   fi
-  if [ "${type:0:5}" = 'MULTI' ]; then
-    func::explode default_value ',' "${default_value}"
+  if [ "${type}" = 'LIST' -o "${type:0:5}" = 'MULTI' ]; then
+    if [ "${default_value}" = '' ]; then
+      default_value=()
+    else
+      func::explode default_value ',' "${default_value}"
+    fi
   fi
   CHECK \
       --message="${name}'s default value is invalid: ${original_default_value}." \
@@ -3195,12 +3218,13 @@ imosh::internal::define_flag() {
   if sub::isset "__IMOSH_FLAGS_TYPE_${name}"; then
     LOG FATAL "already defined flag: ${name}"
   fi
-  if [ "${type:0:5}" = 'MULTI' ]; then
+  if [ "${type}" = 'LIST' -o "${type:0:5}" = 'MULTI' ]; then
     func::array_values "FLAGS_${name}" 'default_value'
   else
     func::strcpy "FLAGS_${name}" 'default_value'
   fi
   func::strcpy "__IMOSH_FLAGS_TYPE_${name}" 'type'
+  func::let "__IMOSH_FLAGS_IS_DEFAULT_${name}" '1'
   if [ "${ARGS_alias}" != '' ]; then
     imosh::internal::define_flag "${type}" --alias_flag \
         "${ARGS_alias}" "${original_default_value}" "${description}"
@@ -3243,7 +3267,7 @@ DEFINE_multistring() { imosh::internal::define_flag MULTISTRING "$@"; }
 DEFINE_multiint() { imosh::internal::define_flag MULTIINT "$@"; }
 DEFINE_multibool() { imosh::internal::define_flag MULTIBOOL "$@"; }
 DEFINE_multidouble() { imosh::internal::define_flag MULTIDOUBLE "$@"; }
-DEFINE_list() { DEFINE_multistring "$@"; }
+DEFINE_list() { imosh::internal::define_flag LIST "$@"; }
 
 imosh::internal::get_main_script() {
   local depth="${#BASH_SOURCE[*]}"
@@ -3671,6 +3695,15 @@ __IMOSH_FLAGS_DESCRIPTION_imosh_test='Test files to test.'
 __IMOSH_FLAGS_DESCRIPTION_log_dir='Directory to output log files.  Output no files if this flag is empty.'
 __IMOSH_FLAGS_DESCRIPTION_logtostderr='Log messages go to stderr instead of logfiles.'
 __IMOSH_FLAGS_DESCRIPTION_stacktrace_threshold='Threshold to show stacktrace.'
+__IMOSH_FLAGS_IS_DEFAULT_alsologtostderr=1
+__IMOSH_FLAGS_IS_DEFAULT_h=1
+__IMOSH_FLAGS_IS_DEFAULT_help=1
+__IMOSH_FLAGS_IS_DEFAULT_help_format=1
+__IMOSH_FLAGS_IS_DEFAULT_helpfull=1
+__IMOSH_FLAGS_IS_DEFAULT_imosh_test=1
+__IMOSH_FLAGS_IS_DEFAULT_log_dir=1
+__IMOSH_FLAGS_IS_DEFAULT_logtostderr=1
+__IMOSH_FLAGS_IS_DEFAULT_stacktrace_threshold=1
 __IMOSH_FLAGS_TYPE_alsologtostderr=BOOL
 __IMOSH_FLAGS_TYPE_h=BOOL
 __IMOSH_FLAGS_TYPE_help=BOOL

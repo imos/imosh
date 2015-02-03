@@ -2,6 +2,7 @@
 # __IMOSH_FLAGS_DESCRIPTION_<flag name>=<description>
 # __IMOSH_FLAGS_GROUP_<flag name>=<group>
 # __IMOSH_FLAGS_ALIASES=(from:to ...)
+# __IMOSH_FLAGS_IS_DEFAULT_<flag name>=<is default>
 
 imosh::internal::flag_type() {
   local name="$1"
@@ -32,8 +33,12 @@ imosh::internal::define_flag() {
   if sub::isset "IMOSH_FLAGS_${name}"; then
     func::strcpy default_value "IMOSH_FLAGS_${name}"
   fi
-  if [ "${type:0:5}" = 'MULTI' ]; then
-    func::explode default_value ',' "${default_value}"
+  if [ "${type}" = 'LIST' -o "${type:0:5}" = 'MULTI' ]; then
+    if [ "${default_value}" = '' ]; then
+      default_value=()
+    else
+      func::explode default_value ',' "${default_value}"
+    fi
   fi
   CHECK \
       --message="${name}'s default value is invalid: ${original_default_value}." \
@@ -41,12 +46,13 @@ imosh::internal::define_flag() {
   if sub::isset "__IMOSH_FLAGS_TYPE_${name}"; then
     LOG FATAL "already defined flag: ${name}"
   fi
-  if [ "${type:0:5}" = 'MULTI' ]; then
+  if [ "${type}" = 'LIST' -o "${type:0:5}" = 'MULTI' ]; then
     func::array_values "FLAGS_${name}" 'default_value'
   else
     func::strcpy "FLAGS_${name}" 'default_value'
   fi
   func::strcpy "__IMOSH_FLAGS_TYPE_${name}" 'type'
+  func::let "__IMOSH_FLAGS_IS_DEFAULT_${name}" '1'
   if [ "${ARGS_alias}" != '' ]; then
     imosh::internal::define_flag "${type}" --alias_flag \
         "${ARGS_alias}" "${original_default_value}" "${description}"
@@ -89,7 +95,7 @@ DEFINE_multistring() { imosh::internal::define_flag MULTISTRING "$@"; }
 DEFINE_multiint() { imosh::internal::define_flag MULTIINT "$@"; }
 DEFINE_multibool() { imosh::internal::define_flag MULTIBOOL "$@"; }
 DEFINE_multidouble() { imosh::internal::define_flag MULTIDOUBLE "$@"; }
-DEFINE_list() { DEFINE_multistring "$@"; }
+DEFINE_list() { imosh::internal::define_flag LIST "$@"; }
 
 imosh::internal::get_main_script() {
   local depth="${#BASH_SOURCE[*]}"

@@ -9,6 +9,10 @@
 #     void func::cast_or_die(variant* variable, string type)
 func::cast() {
   if [ "$#" -eq 2 ]; then
+    if [ "${2}" = 'LIST' ]; then
+      func::cast "${1}" 'MULTISTRING' || return "$?"
+      return
+    fi
     case "${2}" in
       'MULTI'*)
         local __cast_values=()

@@ -21,7 +21,7 @@ fi
 if [ "${FLAGS_flag}" == '' ]; then
   LOG FATAL '--flag must be specified.'
 fi
-if [ "${FLAGS_flag:0:5}" = 'multi' ]; then
+if [ "${FLAGS_flag}" = 'list' -o "${FLAGS_flag:0:5}" = 'multi' ]; then
   func::array_values values "FLAGS_${FLAGS_flag}"
   if [ "${#values[*]}" -ne 0 ]; then
     for value in "${values[@]}"; do
