@@ -231,6 +231,7 @@ Functions only for testing.
 * [EXPECT_NE](doc/testing/EXPECT_NE.sh.md) -- Expects two arguments are not equal.
 * [EXPECT_TRUE](doc/testing/EXPECT_TRUE.sh.md) -- Expects a command succeeds.
 * [FAILURE](doc/testing/FAILURE.sh.md) -- Declares a test case failed.
+* [test_file](doc/testing/test_functions.sh.md) -- Tests a file.
 
 ## Variable handling
 

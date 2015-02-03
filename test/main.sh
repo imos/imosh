@@ -1,16 +1,6 @@
 source "$(dirname "${BASH_SOURCE}")"/../imosh || exit 1
 eval "${IMOSH_INIT}"
 
-testing::run() {
-  local test_name="$1"
-
-  IMOSH_TEST_IS_FAILED=0
-  test::"${test_name}"
-  if (( IMOSH_TEST_IS_FAILED )); then
-    exit 1
-  fi
-}
-
 IMOSH_TEST_IS_FAILED=0
 if [ "$#" -gt '1' ]; then
   ppid=()
@@ -48,38 +38,4 @@ if [ "$#" -gt '1' ]; then
   exit
 fi
 
-echo "${IMOSH_COLOR_GREEN}[==========]${IMOSH_STYLE_DEFAULT}" \
-     "Running tests for ${1}." >&2
-source "$1" || exit 1
-( ( declare -F | grep 'test::' ) || true ) >"${IMOSH_TMPDIR}/test_func"
-if [ "$(cat "${IMOSH_TMPDIR}/test_func")" == '' ]; then
-  LOG FATAL "$1 has no test."
-fi
-exec 3>&2
-while read line; do
-  function="${line##*test::}"
-  echo "${IMOSH_COLOR_GREEN}[ RUN      ]${IMOSH_STYLE_DEFAULT} ${function}" >&2
-  { time -p {
-    export TMPDIR="${IMOSH_TMPDIR}"
-    testing::run "${function}" 2>&3 &
-    wait $!
-  } } 2>"${IMOSH_TMPDIR}/time" \
-      1>"${IMOSH_TMPDIR}/stdout" \
-      3>"${IMOSH_TMPDIR}/stderr" &
-  if wait $!; then
-    cat "${IMOSH_TMPDIR}/stderr" >&2
-    time="($(echo $(cat "${IMOSH_TMPDIR}/time")))"
-    echo "${IMOSH_COLOR_GREEN}[       OK ]${IMOSH_STYLE_DEFAULT}" \
-         "${function} ${time}" >&2
-  else
-    cat "${IMOSH_TMPDIR}/stdout"
-    cat "${IMOSH_TMPDIR}/stderr" >&2
-    time="($(echo $(cat "${IMOSH_TMPDIR}/time")))"
-    echo "${IMOSH_COLOR_RED}[  FAILED  ]${IMOSH_STYLE_DEFAULT}" \
-         "${function} ${time}" >&2
-    IMOSH_TEST_IS_FAILED=1
-  fi
-done <"${IMOSH_TMPDIR}/test_func"
-if (( IMOSH_TEST_IS_FAILED )); then
-  exit 1
-fi
+imosh::test_file "${1}"

@@ -16,3 +16,4 @@ if sub::isset IMOSH_USE_DEFINE_FLAGS && (( IMOSH_USE_DEFINE_FLAGS )); then
   DEFINE_string --group=imosh 'imosh_test' '' \
       'Test files to test.'
 else
+  :
