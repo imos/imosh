@@ -10,6 +10,7 @@ DEFINE_int 'int' 100 'Integer flag.'
 DEFINE_bool 'bool' false 'Boolean flag.'
 DEFINE_multiint 'multiint' 1,10,100 'Multiple integers flag.'
 DEFINE_list 'list' 'a,b,c' 'Multiple strings flag.'
+DEFINE_enum 'enum' 'bar' --values='foo,bar' 'Enum flag.'
 
 IMOSH_PREDICATE="${IMOSH_TEST_PREDICATE:--1}" eval "${IMOSH_INIT}"
 

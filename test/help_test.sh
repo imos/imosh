@@ -12,6 +12,8 @@ OPTIONS:
   MAIN OPTIONS:
     --bool=false
         Boolean flag.
+    --enum='bar'
+        Enum flag.
     --flag=''
         Flag name to show.
     --int=100
@@ -53,6 +55,10 @@ A script to test imosh flags.
 Boolean flag.
 
 .TP
+\fB--enum='\''bar'\''\fP
+Enum flag.
+
+.TP
 \fB--flag='\'\''\fP
 Flag name to show.
 
@@ -85,6 +91,8 @@ test::help_markdown() {
 ## main options
 * --bool=false
     * Boolean flag.
+* --enum='\''bar'\''
+    * Enum flag.
 * --flag='\'\''
     * Flag name to show.
 * --int=100

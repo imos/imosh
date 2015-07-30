@@ -69,6 +69,23 @@ test::int_flag() {
   done
 }
 
+test::enum_flag() {
+  local pids=()
+
+  run_testcase 'FLAGS_enum=bar' --flag=enum
+
+  run_testcase 'FLAGS_enum=foo' --flag=enum --enum=foo
+
+  run_testcase 'invalid' --flag=enum --enum
+  run_testcase 'invalid' --flag=enum --enum=FOO
+
+  for pid in "${pids[@]}"; do
+    if ! wait "${pid}"; then
+      IMOSH_TEST_IS_FAILED=1
+    fi
+  done
+}
+
 test::string_flag() {
   local pids=()
 

@@ -140,6 +140,7 @@ imosh outputs log files to `${TMPDIR}/<program name>.<host name>.<user>.<severit
 * [array_unique](doc/array/array_unique.sh.md) -- Removes duplicated elements from an array variable.
 * [array_values](doc/array/array_values.sh.md) -- Copies elements from an array to an array.
 * [count](doc/array/count.sh.md) -- Counts the number of elements.
+* [in_array](doc/array/in_array.sh.md) -- Checks if a value exists in an array.
 * [sort](doc/array/sort.sh.md) -- Sorts elements.
 
 ## Date/Time
@@ -242,6 +243,7 @@ Functions only for testing.
 
 * [boolval](doc/var/boolval.sh.md) -- Casts a variable as a boolean value.
 * [cast](doc/var/cast.sh.md) -- Casts a variable.
+* [enumval](doc/var/enumval.sh.md) -- Casts a variable as an enum value.
 * [floatval](doc/var/floatval.sh.md) -- Casts a variable as a float value.
 * [intval](doc/var/intval.sh.md) -- Casts a variable as an integer value.
 * [isset](doc/var/isset.sh.md) -- Checks if a variable exists.

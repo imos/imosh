@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2015-07-31 01:55:57 +0900 (6662fea)'
+IMOSH_VERSION='2015-07-31 02:19:32 +0900 (3d07b9a)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -321,6 +321,30 @@ func::count() {
 sub::count() {
   if [ "$#" -eq 1 ]; then
     eval "sub::println \"\${#${1}[*]}\""
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# in_array -- Checks if a value exists in an array.
+#
+# Searches haystack for needle.
+#
+# Usage:
+#     // 1. Command form.
+#     bool sub::in_array(string needle, string[]* haystack)
+sub::in_array() {
+  if [ "$#" -eq 2 ]; then
+    if sub::array_is_empty "${2}"; then
+      return 1
+    fi
+    eval "
+        for value in \"\${${2}[@]}\"; do
+          if [ \"\${value}\" == \"\${1}\" ]; then
+            return
+          fi
+        done"
+    return 1
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
@@ -3007,6 +3031,7 @@ func::cast() {
         func::array_values "${1}" __cast_values
         ;;
       'INT')     func::intval "${1}" || return "$?";;
+      'ENUM')    func::enumval "${1}" || return "$?";;
       'FLOAT')   func::floatval "${1}" || return "$?";;
       'STRING')  func::strval "${1}" || return "$?";;
       'BOOL')    func::boolval "${1}" || return "$?";;
@@ -3021,6 +3046,42 @@ func::cast() {
 func::cast_or_die() {
   if ! func::cast "${@}"; then
     IFS=' ' eval 'LOG FATAL "Type mismatch: ${*}"'
+  fi
+}
+
+# enumval -- Casts a variable as an enum value.
+#
+# Casts variable into enum type.  If it fails, returns 1.
+#
+# Usage:
+#     // 1-a. Function from.
+#     bool func::enumval(string* output, string input)
+#     // 1-b. Inplace function form.
+#     bool func::enumval(string* variable)
+#     // 2. Command form.
+#     bool sub::enumval(string input) > output
+func::enumval() {
+  if [ "$#" -eq 2 ]; then
+    if sub::in_array "${2}" __imosh_enum_values; then
+      func::let "${1}" "${2}"
+    else
+      func::let "${1}" "${__imosh_enum_values[0]}"
+      return 1
+    fi
+  elif [ "$#" -eq 1 ]; then
+    eval "func::enumval \"\${1}\" \"\${${1}}\" || return \"\$?\""
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+sub::enumval() {
+  if [ "$#" -eq 1 ]; then
+    local __enumval_value="${1}"
+    func::enumval __enumval_value || return "$?"
+    sub::println "${__enumval_value}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
 }
 
@@ -3258,6 +3319,11 @@ imosh::internal::parse_args() {
         # TODO(imos): Support delimiter.
         func::explode arg_value ',' "${arg_value}"
       fi
+      if [ "${single_type}" = 'ENUM' ]; then
+        local __imosh_enum_values=()
+        func::array_values \
+            __imosh_enum_values "__IMOSH_FLAGS_ENUM_VALUES_${arg_name}"
+      fi
       CHECK --message="FLAGS_${arg_name} is invalid: ${arg_value}" \
             func::cast arg_value "${single_type}"
       local is_default=0
@@ -3304,6 +3370,9 @@ imosh::internal::flag_type() {
 imosh::internal::define_flag() {
   local type="$1"; shift
 
+  if [ "${type}" == 'ENUM' -o "${type}" == 'MULTIENUM' ]; then
+    local ARGS_values=''
+  fi
   local ARGS_alias='' ARGS_alias_flag=0 ARGS_group='main'
   eval "${IMOSH_PARSE_ARGUMENTS}"
 
@@ -3316,6 +3385,15 @@ imosh::internal::define_flag() {
   local description="$*"
   local group="${ARGS_group}"
   func::strtoupper group
+
+  if [ "${type}" == 'ENUM' -o "${type}" == 'MULTIENUM' ]; then
+    local __imosh_enum_values=()
+    if [ "${ARGS_values}" == '' ]; then
+      LOG FATAL "No enum values are specified for ${name}."
+    fi
+    func::explode __imosh_enum_values ',' "${ARGS_values}"
+    func::array_values "__IMOSH_FLAGS_ENUM_VALUES_${name}" __imosh_enum_values
+  fi
 
   # Change the default value based on its corresponding environment variable.
   if sub::isset "IMOSH_FLAGS_${name}"; then
@@ -3375,15 +3453,18 @@ imosh::internal::define_flag() {
   fi
 }
 
-DEFINE_string() { imosh::internal::define_flag STRING "$@"; }
-DEFINE_int() { imosh::internal::define_flag INT "$@"; }
 DEFINE_bool() { imosh::internal::define_flag BOOL "$@"; }
 DEFINE_double() { imosh::internal::define_flag DOUBLE "$@"; }
-DEFINE_multistring() { imosh::internal::define_flag MULTISTRING "$@"; }
-DEFINE_multiint() { imosh::internal::define_flag MULTIINT "$@"; }
+DEFINE_enum() { imosh::internal::define_flag ENUM "$@"; }
+DEFINE_int() { imosh::internal::define_flag INT "$@"; }
+DEFINE_list() { imosh::internal::define_flag LIST "$@"; }
+DEFINE_string() { imosh::internal::define_flag STRING "$@"; }
+
 DEFINE_multibool() { imosh::internal::define_flag MULTIBOOL "$@"; }
 DEFINE_multidouble() { imosh::internal::define_flag MULTIDOUBLE "$@"; }
-DEFINE_list() { imosh::internal::define_flag LIST "$@"; }
+DEFINE_multienum() { imosh::internal::define_flag MULTIENUM "$@"; }
+DEFINE_multiint() { imosh::internal::define_flag MULTIINT "$@"; }
+DEFINE_multistring() { imosh::internal::define_flag MULTISTRING "$@"; }
 
 imosh::internal::get_main_script() {
   local depth="${#BASH_SOURCE[*]}"

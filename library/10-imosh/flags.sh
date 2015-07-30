@@ -16,6 +16,9 @@ imosh::internal::flag_type() {
 imosh::internal::define_flag() {
   local type="$1"; shift
 
+  if [ "${type}" == 'ENUM' -o "${type}" == 'MULTIENUM' ]; then
+    local ARGS_values=''
+  fi
   local ARGS_alias='' ARGS_alias_flag=0 ARGS_group='main'
   eval "${IMOSH_PARSE_ARGUMENTS}"
 
@@ -28,6 +31,15 @@ imosh::internal::define_flag() {
   local description="$*"
   local group="${ARGS_group}"
   func::strtoupper group
+
+  if [ "${type}" == 'ENUM' -o "${type}" == 'MULTIENUM' ]; then
+    local __imosh_enum_values=()
+    if [ "${ARGS_values}" == '' ]; then
+      LOG FATAL "No enum values are specified for ${name}."
+    fi
+    func::explode __imosh_enum_values ',' "${ARGS_values}"
+    func::array_values "__IMOSH_FLAGS_ENUM_VALUES_${name}" __imosh_enum_values
+  fi
 
   # Change the default value based on its corresponding environment variable.
   if sub::isset "IMOSH_FLAGS_${name}"; then
@@ -87,15 +99,18 @@ imosh::internal::define_flag() {
   fi
 }
 
-DEFINE_string() { imosh::internal::define_flag STRING "$@"; }
-DEFINE_int() { imosh::internal::define_flag INT "$@"; }
 DEFINE_bool() { imosh::internal::define_flag BOOL "$@"; }
 DEFINE_double() { imosh::internal::define_flag DOUBLE "$@"; }
-DEFINE_multistring() { imosh::internal::define_flag MULTISTRING "$@"; }
-DEFINE_multiint() { imosh::internal::define_flag MULTIINT "$@"; }
+DEFINE_enum() { imosh::internal::define_flag ENUM "$@"; }
+DEFINE_int() { imosh::internal::define_flag INT "$@"; }
+DEFINE_list() { imosh::internal::define_flag LIST "$@"; }
+DEFINE_string() { imosh::internal::define_flag STRING "$@"; }
+
 DEFINE_multibool() { imosh::internal::define_flag MULTIBOOL "$@"; }
 DEFINE_multidouble() { imosh::internal::define_flag MULTIDOUBLE "$@"; }
-DEFINE_list() { imosh::internal::define_flag LIST "$@"; }
+DEFINE_multienum() { imosh::internal::define_flag MULTIENUM "$@"; }
+DEFINE_multiint() { imosh::internal::define_flag MULTIINT "$@"; }
+DEFINE_multistring() { imosh::internal::define_flag MULTISTRING "$@"; }
 
 imosh::internal::get_main_script() {
   local depth="${#BASH_SOURCE[*]}"

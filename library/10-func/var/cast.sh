@@ -29,6 +29,7 @@ func::cast() {
         func::array_values "${1}" __cast_values
         ;;
       'INT')     func::intval "${1}" || return "$?";;
+      'ENUM')    func::enumval "${1}" || return "$?";;
       'FLOAT')   func::floatval "${1}" || return "$?";;
       'STRING')  func::strval "${1}" || return "$?";;
       'BOOL')    func::boolval "${1}" || return "$?";;

@@ -78,6 +78,11 @@ imosh::internal::parse_args() {
         # TODO(imos): Support delimiter.
         func::explode arg_value ',' "${arg_value}"
       fi
+      if [ "${single_type}" = 'ENUM' ]; then
+        local __imosh_enum_values=()
+        func::array_values \
+            __imosh_enum_values "__IMOSH_FLAGS_ENUM_VALUES_${arg_name}"
+      fi
       CHECK --message="FLAGS_${arg_name} is invalid: ${arg_value}" \
             func::cast arg_value "${single_type}"
       local is_default=0
