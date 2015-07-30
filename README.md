@@ -156,6 +156,9 @@ imosh outputs log files to `${TMPDIR}/<program name>.<host name>.<user>.<severit
 * [readline](doc/filesystem/readline.sh.md) -- Gets a line.
 * [tmpfile](doc/filesystem/tmpfile.sh.md) -- Creates a temporary file.
 
+
+* [function_exists](doc/funchand/function_exists.sh.md) -- Returns true iff the given function has been defined.
+
 ## Regular Expressions (Glob-Compatible)
 For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://mywiki.wooledge.org/glob).
 

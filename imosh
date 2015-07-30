@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2015-02-04 00:52:12 +0900 (84fc144)'
+IMOSH_VERSION='2015-07-31 01:00:15 +0900 (64e17ac)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -274,6 +274,10 @@ stream::array_unique() {
 #     void func::array_values(string[]* output, string[]* input)
 #     // 2. Command form.
 #     void sub::array_values(string[]* input) > output
+#
+# Examples:
+#     array=(foo bar)
+#     EXPECT_EQ 'foo,bar' "$(IFS=, sub::array_values array)"
 func::array_values() {
   if [ "$#" -eq 2 ]; then
     if sub::array_is_empty "${2}"; then
@@ -897,6 +901,27 @@ sub::tmpfile() {
     local tmpfile=''
     func::tmpfile tmpfile
     sub::println "${tmpfile}"
+  else
+    eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
+  fi
+}
+
+# function_exists -- Returns true iff the given function has been defined.
+#
+# Checks the list of defined functions, both built-in (internal) and
+# user-defined, for function_name.
+#
+# Usage:
+#     // 1. Command form.
+#     bool sub::function_exists(string function_name)
+#
+# Examples:
+#     EXPECT_TRUE sub::function_exists func::array
+sub::function_exists() {
+  if [ "$#" -eq 1 ]; then
+    if ! type -t "${1}"; then
+      return 1
+    fi
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
