@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2015-07-31 02:19:32 +0900 (3d07b9a)'
+IMOSH_VERSION='2015-07-31 03:29:10 +0900 (4ec53e6)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -741,7 +741,8 @@ __func::strtotime() {
 #     void sub::time() > output
 func::time() {
   if [ "$#" -eq 1 ]; then
-    sub::let "${1}" "$(date +'%s')"
+    func::exec "${1}" date +'%s'
+    func::intval "${1}"
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi

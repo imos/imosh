@@ -9,7 +9,8 @@
 #     void sub::time() > output
 func::time() {
   if [ "$#" -eq 1 ]; then
-    sub::let "${1}" "$(date +'%s')"
+    func::exec "${1}" date +'%s'
+    func::rtrim "${1}"
   else
     eval "${IMOSH_WRONG_NUMBER_OF_ARGUMENTS}"
   fi
