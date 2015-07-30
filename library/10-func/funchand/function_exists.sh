@@ -11,7 +11,7 @@
 #     EXPECT_TRUE sub::function_exists func::array
 sub::function_exists() {
   if [ "$#" -eq 1 ]; then
-    if ! type -t "${1}"; then
+    if ! type -t "${1}" >'/dev/null'; then
       return 1
     fi
   else

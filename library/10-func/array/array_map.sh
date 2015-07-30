@@ -45,6 +45,7 @@ func::array_map() {
     local __array_map_variable="${1}"; shift
     local __array_map_type="${1}"; shift
     local __array_map_callback="${1}"; shift
+    CHECK sub::function_exists "${__array_map_callback}"
 
     local __array_map_keys=()
     local __array_map_key=''

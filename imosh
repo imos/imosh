@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2015-07-31 01:37:03 +0900 (bb3e8d6)'
+IMOSH_VERSION='2015-07-31 01:55:57 +0900 (6662fea)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -142,6 +142,7 @@ func::array_map() {
     local __array_map_variable="${1}"; shift
     local __array_map_type="${1}"; shift
     local __array_map_callback="${1}"; shift
+    CHECK sub::function_exists "${__array_map_callback}"
 
     local __array_map_keys=()
     local __array_map_key=''
@@ -919,7 +920,7 @@ sub::tmpfile() {
 #     EXPECT_TRUE sub::function_exists func::array
 sub::function_exists() {
   if [ "$#" -eq 1 ]; then
-    if ! type -t "${1}"; then
+    if ! type -t "${1}" >'/dev/null'; then
       return 1
     fi
   else
