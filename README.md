@@ -207,6 +207,7 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 * [print](doc/strings/print.sh.md) -- Prints a message.
 * [println](doc/strings/println.sh.md) -- Prints a message with a new line.
 * [rtrim](doc/strings/rtrim.sh.md) -- Strips whitespace(s) from the end of a string.
+* [sha1](doc/strings/sha1.sh.md) -- Calculates a MD5 hash.
 * [str_replace](doc/strings/str_replace.sh.md) -- Replaces a substring with another substring.
 * [strcpy](doc/strings/strcpy.sh.md) -- Copies a string from a variable to another variable.
 * [strtolower](doc/strings/strtolower.sh.md) -- Makes a string lowercase.
