@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2015-02-04 00:38:58 +0900 (d78c4d6)'
+IMOSH_VERSION='2015-02-04 00:52:12 +0900 (84fc144)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -42,6 +42,12 @@ func::array() {
 # Usage:
 #     // 1. Command form.
 #     bool sub::array_is_empty(string[]* variable)
+#
+# Example:
+#     array=()
+#     if sub::array_is_empty array; then
+#       echo 'array is empty.'
+#     fi
 sub::array_is_empty() {
   if [ "$#" -eq 1 ]; then
     if eval "[ \"\${#${1}[*]}\" -eq 0 ]"; then return 0; fi
@@ -60,6 +66,13 @@ sub::array_is_empty() {
 #     void func::array_keys(string[]* output, string[]* input)
 #     // 2. Command form.
 #     void sub::array_keys(string[]* input) > output
+#
+# Examples:
+#     array=([0]=abc [2]=def)
+#     EXPECT_EQ '0,2' "$(IFS=, sub::array_keys array)"
+#     func::array_keys result array
+#     EXPECT_EQ '0' "${result[0]}"
+#     EXPECT_EQ '2' "${result[1]}"
 func::array_keys() {
   if [ "$#" -eq 2 ]; then
     if eval "[ \"\${#${2}[*]}\" -eq 0 ]"; then

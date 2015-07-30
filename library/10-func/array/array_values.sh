@@ -7,6 +7,10 @@
 #     void func::array_values(string[]* output, string[]* input)
 #     // 2. Command form.
 #     void sub::array_values(string[]* input) > output
+#
+# Examples:
+#     array=(foo bar)
+#     EXPECT_EQ 'foo,bar' "$(IFS=, sub::array_values array)"
 func::array_values() {
   if [ "$#" -eq 2 ]; then
     if sub::array_is_empty "${2}"; then

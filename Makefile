@@ -39,6 +39,9 @@ test: concat
 	@if ! $(BASH) ./imosh test/*_test.sh test/*/*_test.sh; then exit 1; fi
 .PHONY: test
 
+test/%: concat test/%_test.sh
+	./imosh test/$*_test.sh
+
 benchmark: concat
 	@time $(BASH) -c "for i in {1..10}; do $(BASH) -c '. ./imosh'; done"
 .PHONY: benchmark
