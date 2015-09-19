@@ -17,11 +17,11 @@ OPTIONS:
     --flag=''
         Flag name to show.
     --int=100
-        Integer flag.
+        Integer flag. (Alias: --i)
     --list='a,b,c'
         Multiple strings flag.
     --multiint='1,10,100'
-        Multiple integers flag.
+        Multiple integers flag. (Alias: --m)
     --show_argv=false
         Output extra argv.
     --string='default'
@@ -64,7 +64,7 @@ Flag name to show.
 
 .TP
 \fB--int=100\fP
-Integer flag.
+Integer flag. (Alias: --i)
 
 .TP
 \fB--list='\''a,b,c'\''\fP
@@ -72,7 +72,7 @@ Multiple strings flag.
 
 .TP
 \fB--multiint='\''1,10,100'\''\fP
-Multiple integers flag.
+Multiple integers flag. (Alias: --m)
 
 .TP
 \fB--show_argv=false\fP
@@ -96,11 +96,11 @@ test::help_markdown() {
 * --flag='\'\''
     * Flag name to show.
 * --int=100
-    * Integer flag.
+    * Integer flag. (Alias: --i)
 * --list='\''a,b,c'\''
     * Multiple strings flag.
 * --multiint='\''1,10,100'\''
-    * Multiple integers flag.
+    * Multiple integers flag. (Alias: --m)
 * --show_argv=false
     * Output extra argv.
 * --string='\''default'\''

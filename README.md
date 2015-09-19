@@ -141,6 +141,7 @@ imosh outputs log files to `${TMPDIR}/<program name>.<host name>.<user>.<severit
 * [array_values](doc/array/array_values.sh.md) -- Copies elements from an array to an array.
 * [count](doc/array/count.sh.md) -- Counts the number of elements.
 * [in_array](doc/array/in_array.sh.md) -- Checks if a value exists in an array.
+* [in_array](doc/array/is_array.sh.md) -- Finds whether a variable is an array.
 * [sort](doc/array/sort.sh.md) -- Sorts elements.
 
 ## Date/Time
