@@ -13,8 +13,7 @@
 #   false for them in BASH 4.
 func::isset() {
   if [ "$#" -eq 2 ]; then
-    eval "local __isset_state=\"\${${2}+set}\""
-    if [ "${__isset_state}" = 'set' ]; then
+    if declare -p "${2}" &>/dev/null; then
       func::let "${1}" 1
     else
       func::let "${1}" 0

@@ -2,6 +2,7 @@
 # __IMOSH_FLAGS_DESCRIPTION_<flag name>=<description>
 # __IMOSH_FLAGS_GROUP_<flag name>=<group>
 # __IMOSH_FLAGS_ALIASES=(from:to ...)
+# __IMOSH_FLAGS_MULTIALIASES=(from:to ...)
 # __IMOSH_FLAGS_IS_DEFAULT_<flag name>=<is default>
 
 imosh::internal::flag_type() {
@@ -68,7 +69,11 @@ imosh::internal::define_flag() {
   if [ "${ARGS_alias}" != '' ]; then
     imosh::internal::define_flag "${type}" --alias_flag \
         "${ARGS_alias}" "${original_default_value}" "${description}"
-    __IMOSH_FLAGS_ALIASES+=("${name}:${ARGS_alias}")
+    if [ "${type:0:5}" = 'MULTI' ]; then
+      __IMOSH_FLAGS_MULTIALIASES+=("${name}:${ARGS_alias}")
+    else
+      __IMOSH_FLAGS_ALIASES+=("${name}:${ARGS_alias}")
+    fi
   fi
   if (( ! ARGS_alias_flag )); then
     local escaped_default_value=''
@@ -264,7 +269,25 @@ imosh::internal::init() {
   imosh::logging::init
   if [ "${#__IMOSH_FLAGS_ALIASES[*]}" -ne 0 ]; then
     for alias in "${__IMOSH_FLAGS_ALIASES[@]}"; do
-      eval "FLAGS_${alias%%:*}=\"\${FLAGS_${alias#*:}}\""
+      local is_default=0
+      func::let is_default "__IMOSH_FLAGS_IS_DEFAULT_${alias%%:*}"
+      if (( is_default )); then
+        eval "FLAGS_${alias%%:*}=\"\${FLAGS_${alias#*:}}\""
+      fi
+      unset "FLAGS_${alias#*:}"
+    done
+  fi
+  if [ "${#__IMOSH_FLAGS_MULTIALIASES[*]}" -ne 0 ]; then
+    for alias in "${__IMOSH_FLAGS_MULTIALIASES[@]}"; do
+      local is_default=0
+      func::let is_default "__IMOSH_FLAGS_IS_DEFAULT_${alias%%:*}"
+      if (( is_default )); then
+        if ! sub::array_is_empty "FLAGS_${alias#*:}"; then
+          func::array_values "FLAGS_${alias%%:*}" "FLAGS_${alias#*:}"
+        else
+          eval "FLAGS_${alias%%:*}=()"
+        fi
+      fi
       unset "FLAGS_${alias#*:}"
     done
   fi
