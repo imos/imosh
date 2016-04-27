@@ -17,7 +17,7 @@ __IMOSH_FLAGS_DEFAULT_helpfull=--helpfull=false
 __IMOSH_FLAGS_DEFAULT_imosh_test='--imosh_test='\'''\'''
 __IMOSH_FLAGS_DEFAULT_log_dir='--log_dir='\'''\'''
 __IMOSH_FLAGS_DEFAULT_logtostderr=--logtostderr=false
-__IMOSH_FLAGS_DEFAULT_stacktrace_threshold='--stacktrace_threshold='\''FATAL'\'''
+__IMOSH_FLAGS_DEFAULT_stacktrace_threshold=--stacktrace_threshold=FATAL
 __IMOSH_FLAGS_DESCRIPTION_alsologtostderr='Log messages go to stderr in addition to logfiles.'
 __IMOSH_FLAGS_DESCRIPTION_help='Print this help message and exit. (Alias: --h)'
 __IMOSH_FLAGS_DESCRIPTION_help_format='Help format to output.'

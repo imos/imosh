@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2015-09-19 15:52:21 +0900 (7938ec0)'
+IMOSH_VERSION='2015-10-19 23:11:49 +0900 (33e9124)'
 
 # Enables error checking if imosh is called in a script.
 if ! shopt login_shell >/dev/null; then
@@ -1834,6 +1834,13 @@ func::escapeshellarg() {
   if [ "$#" -eq 1 ]; then
     local __escapeshellarg_value=''
     func::strcpy __escapeshellarg_value "${1}"
+    if [ "${__escapeshellarg_value}" == '' ]; then
+      func::let "${1}" "''"
+      return
+    fi
+    if [ "${__escapeshellarg_value//[[:alnum:]\,\-\.\_\/\:\@]/}" == '' ]; then
+      return
+    fi
     func::str_replace __escapeshellarg_value "'" "'\\''"
     func::let "${1}" "'${__escapeshellarg_value}'"
   else
@@ -3939,7 +3946,7 @@ __IMOSH_FLAGS_DEFAULT_helpfull=--helpfull=false
 __IMOSH_FLAGS_DEFAULT_imosh_test='--imosh_test='\'''\'''
 __IMOSH_FLAGS_DEFAULT_log_dir='--log_dir='\'''\'''
 __IMOSH_FLAGS_DEFAULT_logtostderr=--logtostderr=false
-__IMOSH_FLAGS_DEFAULT_stacktrace_threshold='--stacktrace_threshold='\''FATAL'\'''
+__IMOSH_FLAGS_DEFAULT_stacktrace_threshold=--stacktrace_threshold=FATAL
 __IMOSH_FLAGS_DESCRIPTION_alsologtostderr='Log messages go to stderr in addition to logfiles.'
 __IMOSH_FLAGS_DESCRIPTION_help='Print this help message and exit. (Alias: --h)'
 __IMOSH_FLAGS_DESCRIPTION_help_format='Help format to output.'
