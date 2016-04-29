@@ -28,7 +28,11 @@ LOG() {
        (( log_level_id < 3 && logtostderr == 0 && alsologtostderr == 0 )); then
       return
     fi
-    local datetime="$(date +'%m%d %T.%N')"
+    if type gdate >/dev/null 2>/dev/null; then
+      local datetime="$(gdate +'%m%d %T.%N')"
+    else
+      local datetime="$(date +'%m%d %T.%N')"
+    fi
     # For systems not supporting %N in date.
     datetime="${datetime/.N/.000000}"
     datetime="${datetime:0:20}"

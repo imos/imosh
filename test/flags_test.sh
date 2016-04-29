@@ -56,11 +56,34 @@ test::int_flag() {
   run_testcase 'FLAGS_int=-12345' --flag=int --int -12345
   run_testcase 'FLAGS_int=012345' --flag=int --int 012345
 
+  run_testcase 'FLAGS_int=12345' --flag=int -i=12345
+  run_testcase 'FLAGS_int=12345' --flag=int -i 12345
+
   run_testcase 'invalid' --flag=int --int
   run_testcase 'invalid' --flag=int --int=abc
 
   run_testcase 'invalid' --flag=int --int
   run_testcase 'invalid' --flag=int --int abc
+
+  run_testcase 'invalid' --flag=int -i
+  run_testcase 'invalid' --flag=int -i abc
+
+  for pid in "${pids[@]}"; do
+    if ! wait "${pid}"; then
+      IMOSH_TEST_IS_FAILED=1
+    fi
+  done
+}
+
+test::enum_flag() {
+  local pids=()
+
+  run_testcase 'FLAGS_enum=bar' --flag=enum
+
+  run_testcase 'FLAGS_enum=foo' --flag=enum --enum=foo
+
+  run_testcase 'invalid' --flag=enum --enum
+  run_testcase 'invalid' --flag=enum --enum=FOO
 
   for pid in "${pids[@]}"; do
     if ! wait "${pid}"; then
@@ -99,6 +122,9 @@ test::flags::multiint() {
   run_testcase $'1\n10\n100' --flag=multiint
   run_testcase '1' --flag=multiint --multiint=1
   run_testcase $'1\n2' --flag=multiint --multiint=1 --multiint=2
+
+  run_testcase '1' --flag=multiint -m 1
+  run_testcase $'1\n2' --flag=multiint -m 1 -m 2
 
   for pid in "${pids[@]}"; do
     if ! wait "${pid}"; then

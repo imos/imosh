@@ -12,17 +12,19 @@ OPTIONS:
   MAIN OPTIONS:
     --bool=false
         Boolean flag.
+    --enum=bar
+        Enum flag.
     --flag=''
         Flag name to show.
     --int=100
-        Integer flag.
-    --list='a,b,c'
+        Integer flag. (Alias: --i)
+    --list=a,b,c
         Multiple strings flag.
-    --multiint='1,10,100'
-        Multiple integers flag.
+    --multiint=1,10,100
+        Multiple integers flag. (Alias: --m)
     --show_argv=false
         Output extra argv.
-    --string='default'
+    --string=default
         String flag."
   ASSERT_EQ "${expected_message}" "$(run --help 2>&1)" &
   pids+=("$!")
@@ -53,27 +55,31 @@ A script to test imosh flags.
 Boolean flag.
 
 .TP
+\fB--enum=bar\fP
+Enum flag.
+
+.TP
 \fB--flag='\'\''\fP
 Flag name to show.
 
 .TP
 \fB--int=100\fP
-Integer flag.
+Integer flag. (Alias: --i)
 
 .TP
-\fB--list='\''a,b,c'\''\fP
+\fB--list=a,b,c\fP
 Multiple strings flag.
 
 .TP
-\fB--multiint='\''1,10,100'\''\fP
-Multiple integers flag.
+\fB--multiint=1,10,100\fP
+Multiple integers flag. (Alias: --m)
 
 .TP
 \fB--show_argv=false\fP
 Output extra argv.
 
 .TP
-\fB--string='\''default'\''\fP
+\fB--string=default\fP
 String flag.'
   ASSERT_EQ "${expected_message}" "$(run --help_format=groff 2>&1)"
 }
@@ -85,17 +91,19 @@ test::help_markdown() {
 ## main options
 * --bool=false
     * Boolean flag.
+* --enum=bar
+    * Enum flag.
 * --flag='\'\''
     * Flag name to show.
 * --int=100
-    * Integer flag.
-* --list='\''a,b,c'\''
+    * Integer flag. (Alias: --i)
+* --list=a,b,c
     * Multiple strings flag.
-* --multiint='\''1,10,100'\''
-    * Multiple integers flag.
+* --multiint=1,10,100
+    * Multiple integers flag. (Alias: --m)
 * --show_argv=false
     * Output extra argv.
-* --string='\''default'\''
+* --string=default
     * String flag.'
   ASSERT_EQ "${expected_message}" "$(run --help_format=markdown 2>&1)"
 }

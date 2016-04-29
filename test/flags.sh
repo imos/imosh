@@ -6,10 +6,11 @@ source "$(dirname "${BASH_SOURCE}")"/../imosh || exit 1
 DEFINE_string 'flag' '' 'Flag name to show.'
 DEFINE_bool 'show_argv' false 'Output extra argv.'
 DEFINE_string 'string' 'default' 'String flag.'
-DEFINE_int 'int' 100 'Integer flag.'
+DEFINE_int --alias=i 'int' 100 'Integer flag.'
 DEFINE_bool 'bool' false 'Boolean flag.'
-DEFINE_multiint 'multiint' 1,10,100 'Multiple integers flag.'
+DEFINE_multiint 'multiint' --alias=m 1,10,100 'Multiple integers flag.'
 DEFINE_list 'list' 'a,b,c' 'Multiple strings flag.'
+DEFINE_enum 'enum' 'bar' --values='foo,bar' 'Enum flag.'
 
 IMOSH_PREDICATE="${IMOSH_TEST_PREDICATE:--1}" eval "${IMOSH_INIT}"
 

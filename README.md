@@ -140,6 +140,8 @@ imosh outputs log files to `${TMPDIR}/<program name>.<host name>.<user>.<severit
 * [array_unique](doc/array/array_unique.sh.md) -- Removes duplicated elements from an array variable.
 * [array_values](doc/array/array_values.sh.md) -- Copies elements from an array to an array.
 * [count](doc/array/count.sh.md) -- Counts the number of elements.
+* [in_array](doc/array/in_array.sh.md) -- Checks if a value exists in an array.
+* [in_array](doc/array/is_array.sh.md) -- Finds whether a variable is an array.
 * [sort](doc/array/sort.sh.md) -- Sorts elements.
 
 ## Date/Time
@@ -155,6 +157,9 @@ imosh outputs log files to `${TMPDIR}/<program name>.<host name>.<user>.<severit
 * [readarray](doc/filesystem/readarray.sh.md) -- Reads a line as an array.
 * [readline](doc/filesystem/readline.sh.md) -- Gets a line.
 * [tmpfile](doc/filesystem/tmpfile.sh.md) -- Creates a temporary file.
+
+
+* [function_exists](doc/funchand/function_exists.sh.md) -- Returns true iff the given function has been defined.
 
 ## Regular Expressions (Glob-Compatible)
 For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://mywiki.wooledge.org/glob).
@@ -200,10 +205,12 @@ For more details of GREG pattern, see [http://mywiki.wooledge.org/glob](http://m
 * [implode](doc/strings/implode.sh.md) -- Joins array elements with a string.
 * [ltrim](doc/strings/ltrim.sh.md) -- Strips whitespace(s) from the beginning of a string.
 * [md5](doc/strings/md5.sh.md) -- Calculates a MD5 hash.
+* [md5](doc/strings/md5_file.sh.md) -- Calculates the MD5 hash of a given file.
 * [ord](doc/strings/ord.sh.md) -- Gets a character's ASCII code.
 * [print](doc/strings/print.sh.md) -- Prints a message.
 * [println](doc/strings/println.sh.md) -- Prints a message with a new line.
 * [rtrim](doc/strings/rtrim.sh.md) -- Strips whitespace(s) from the end of a string.
+* [sha1](doc/strings/sha1.sh.md) -- Calculates a MD5 hash.
 * [str_replace](doc/strings/str_replace.sh.md) -- Replaces a substring with another substring.
 * [strcpy](doc/strings/strcpy.sh.md) -- Copies a string from a variable to another variable.
 * [strtolower](doc/strings/strtolower.sh.md) -- Makes a string lowercase.
@@ -237,6 +244,7 @@ Functions only for testing.
 
 * [boolval](doc/var/boolval.sh.md) -- Casts a variable as a boolean value.
 * [cast](doc/var/cast.sh.md) -- Casts a variable.
+* [enumval](doc/var/enumval.sh.md) -- Casts a variable as an enum value.
 * [floatval](doc/var/floatval.sh.md) -- Casts a variable as a float value.
 * [intval](doc/var/intval.sh.md) -- Casts a variable as an integer value.
 * [isset](doc/var/isset.sh.md) -- Checks if a variable exists.
