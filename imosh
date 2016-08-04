@@ -3,10 +3,10 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2015-10-19 23:11:49 +0900 (33e9124)'
+IMOSH_VERSION='2016-04-27 17:23:35 +0900 (b0cf72e)'
 
 # Enables error checking if imosh is called in a script.
-if ! shopt login_shell >/dev/null; then
+if [ "${-//i/}" != "${-}" ]; then
   # Make a script fail when
   # - a command returns non-zero value (-e).
   # - an undefined variable is referred (-u).
