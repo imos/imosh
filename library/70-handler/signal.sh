@@ -13,7 +13,7 @@ __imosh::signal_handler() {
   kill -s "${signal}" "${pid}"
 }
 
-if ! shopt login_shell >/dev/null; then
+if [ "${-//i/}" == "${-}" ]; then
   for signal in SIGHUP SIGINT SIGPIPE SIGTERM \
                 SIGXCPU SIGXFSZ SIGUSR1 SIGUSR2; do
     trap "__imosh::signal_handler ${signal}" "${signal}"

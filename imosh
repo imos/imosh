@@ -3,7 +3,7 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2016-08-05 02:08:52 +0900 (71fda35)'
+IMOSH_VERSION='2016-09-02 01:30:31 +0900 (169b08a)'
 
 # Enables error checking if imosh is called in a script.
 if [ "${-//i/}" == "${-}" ]; then
@@ -3820,7 +3820,7 @@ fi
 __imosh::error_handler() {
   local exit_code="$?"
   __IMOSH_STACK_TRACED=1
-  imosh::stack_trace "error status: ${exit_code}"
+  imosh::stack_trace "Exit code: ${exit_code}"
 }
 
 trap '__imosh::error_handler' ERR
@@ -3882,7 +3882,7 @@ __imosh::signal_handler() {
   kill -s "${signal}" "${pid}"
 }
 
-if ! shopt login_shell >/dev/null; then
+if [ "${-//i/}" == "${-}" ]; then
   for signal in SIGHUP SIGINT SIGPIPE SIGTERM \
                 SIGXCPU SIGXFSZ SIGUSR1 SIGUSR2; do
     trap "__imosh::signal_handler ${signal}" "${signal}"
