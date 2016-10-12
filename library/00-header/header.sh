@@ -1,5 +1,5 @@
 # Enables error checking if imosh is called in a script.
-if ! shopt login_shell >/dev/null; then
+if [ "${-//i/}" == "${-}" ]; then
   # Make a script fail when
   # - a command returns non-zero value (-e).
   # - an undefined variable is referred (-u).

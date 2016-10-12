@@ -63,7 +63,7 @@ __sub::exit() {
     local ppid=0
     local pid=0
     func::tmpfile tmpfile
-    ps -o ppid,pid > "${tmpfile}"
+    ps ax -o ppid,pid > "${tmpfile}"
     while IFS=$' \t\n' read -r ppid pid; do
       if [ "${ppid}" = "${1}" ]; then
         __sub::exit "${pid}" "${2}"

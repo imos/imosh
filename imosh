@@ -3,10 +3,10 @@
 #
 # For more details, see https://github.com/imos/imosh
 
-IMOSH_VERSION='2015-10-19 23:11:49 +0900 (33e9124)'
+IMOSH_VERSION='2016-09-02 01:30:31 +0900 (169b08a)'
 
 # Enables error checking if imosh is called in a script.
-if ! shopt login_shell >/dev/null; then
+if [ "${-//i/}" == "${-}" ]; then
   # Make a script fail when
   # - a command returns non-zero value (-e).
   # - an undefined variable is referred (-u).
@@ -1530,7 +1530,7 @@ __sub::exit() {
     local ppid=0
     local pid=0
     func::tmpfile tmpfile
-    ps -o ppid,pid > "${tmpfile}"
+    ps ax -o ppid,pid > "${tmpfile}"
     while IFS=$' \t\n' read -r ppid pid; do
       if [ "${ppid}" = "${1}" ]; then
         __sub::exit "${pid}" "${2}"
@@ -3820,7 +3820,7 @@ fi
 __imosh::error_handler() {
   local exit_code="$?"
   __IMOSH_STACK_TRACED=1
-  imosh::stack_trace "error status: ${exit_code}"
+  imosh::stack_trace "Exit code: ${exit_code}"
 }
 
 trap '__imosh::error_handler' ERR
@@ -3882,7 +3882,7 @@ __imosh::signal_handler() {
   kill -s "${signal}" "${pid}"
 }
 
-if ! shopt login_shell >/dev/null; then
+if [ "${-//i/}" == "${-}" ]; then
   for signal in SIGHUP SIGINT SIGPIPE SIGTERM \
                 SIGXCPU SIGXFSZ SIGUSR1 SIGUSR2; do
     trap "__imosh::signal_handler ${signal}" "${signal}"
